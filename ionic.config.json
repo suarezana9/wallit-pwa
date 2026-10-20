@@ -1,0 +1,7 @@
+{
+  "name": "wallit",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
