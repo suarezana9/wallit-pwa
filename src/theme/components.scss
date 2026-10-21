@@ -1,0 +1,86 @@
+:root {
+  --wl-field-bg: var(--ion-background-color-step-50, #f6f5fa);
+  --wl-field-border: var(--ion-background-color-step-150, #e6e4ee);
+  --wl-muted: var(--ion-text-color-step-400, #6b6880);
+}
+
+.wl-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.wl-field-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+ion-input.wl-input {
+  --background: transparent;
+  --padding-start: 16px;
+  --padding-end: 12px;
+  --border-width: 0;
+  --highlight-height: 0;
+  min-height: 52px;
+  overflow: hidden;
+  background: var(--wl-field-bg);
+  border: 1px solid var(--wl-field-border);
+  border-radius: 14px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus-within {
+    border-color: var(--ion-color-primary);
+    box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.12);
+  }
+
+  &.has-error {
+    border-color: var(--ion-color-danger);
+  }
+}
+
+.wl-field-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ion-color-danger);
+}
+
+.wl-notice {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.wl-notice-error {
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  color: var(--ion-color-danger-shade);
+}
+
+.wl-notice-info {
+  background: rgba(var(--ion-color-success-rgb), 0.12);
+  color: var(--ion-color-success-shade);
+}
+
+ion-button.wl-btn {
+  --border-radius: 14px;
+  --box-shadow: none;
+  height: 52px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+ion-button.wl-btn-primary {
+  margin-top: 4px;
+}
+
+ion-button.wl-btn-secondary {
+  --border-width: 1px;
+  --border-color: var(--wl-field-border);
+  --color: var(--ion-text-color);
+  --background-hover: var(--wl-field-bg);
+}
+

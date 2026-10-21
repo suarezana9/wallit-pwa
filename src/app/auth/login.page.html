@@ -1,0 +1,85 @@
+<ion-content class="login-content">
+  <main class="login">
+    <header class="brand">
+      <app-wallit-logo [size]="40" />
+      <span class="wordmark">Wallit</span>
+    </header>
+
+    <section class="hero">
+      <h1>Tu plata, en orden.</h1>
+      <p>Gastos, ingresos y ahorros, solo o en familia.</p>
+    </section>
+
+    <ion-segment mode="ios" class="mode-toggle" [value]="mode()" (ionChange)="onModeChange($event)">
+      <ion-segment-button value="login">
+        <ion-label>Ingresar</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="registro">
+        <ion-label>Crear cuenta</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <form (submit)="onSubmit($event)" novalidate>
+      <div class="wl-field">
+        <span class="wl-field-label" aria-hidden="true">Email</span>
+        <ion-input
+          class="wl-input"
+          aria-label="Email"
+          placeholder="nombre@email.com"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          [class.has-error]="!!errorOf(loginForm.email)"
+          [formField]="loginForm.email"
+        />
+        @if (errorOf(loginForm.email); as error) {
+          <p class="wl-field-error">{{ error }}</p>
+        }
+      </div>
+
+      <div class="wl-field">
+        <span class="wl-field-label" aria-hidden="true">Contraseña</span>
+        <ion-input
+          class="wl-input"
+          aria-label="Contraseña"
+          [placeholder]="mode() === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres'"
+          type="password"
+          [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
+          [class.has-error]="!!errorOf(loginForm.password)"
+          [formField]="loginForm.password"
+        >
+          <ion-input-password-toggle slot="end" />
+        </ion-input>
+        @if (errorOf(loginForm.password); as error) {
+          <p class="wl-field-error">{{ error }}</p>
+        }
+      </div>
+
+      @if (serverError(); as error) {
+        <p class="wl-notice wl-notice-error" role="alert">{{ error }}</p>
+      }
+      @if (info(); as message) {
+        <p class="wl-notice wl-notice-info" role="status">{{ message }}</p>
+      }
+
+      <ion-button class="wl-btn wl-btn-primary" type="submit" expand="block" [disabled]="loginForm().submitting()">
+        @if (loginForm().submitting()) {
+          <ion-spinner name="crescent" />
+        } @else {
+          {{ mode() === 'login' ? 'Ingresar' : 'Crear cuenta' }}
+        }
+      </ion-button>
+    </form>
+
+    <div class="divider"><span>o</span></div>
+
+    <ion-button class="wl-btn wl-btn-secondary" fill="outline" expand="block" (click)="onGoogle()" [disabled]="googleLoading()">
+      @if (googleLoading()) {
+        <ion-spinner name="crescent" />
+      } @else {
+        <ion-icon slot="start" name="logo-google" />
+        Continuar con Google
+      }
+    </ion-button>
+  </main>
+</ion-content>

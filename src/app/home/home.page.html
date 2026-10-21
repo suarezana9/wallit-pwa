@@ -1,20 +1,46 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Blank
-    </ion-title>
+    <ion-title>Wallit</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" aria-label="Cerrar sesión">
+        <ion-icon slot="icon-only" name="log-out-outline" />
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Blank</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <div id="container">
-    <strong>Ready to create an app?</strong>
-    <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
+  <div class="ion-padding">
+    <h2 class="greeting">Hola, {{ displayName() }}</h2>
+    @if (profile.error()) {
+      <p class="status">No se pudo leer tu perfil de Supabase.</p>
+    } @else if (profile.isLoading()) {
+      <p class="status">Conectando con Supabase…</p>
+    } @else if (profile.hasValue()) {
+      <p class="status">Conectado a Supabase como {{ profile.value().email }}</p>
+    }
   </div>
+
+  <ion-list>
+    <ion-list-header>
+      <ion-label>Datos de ejemplo (en la Etapa 2 pasan a ser tus movimientos reales)</ion-label>
+    </ion-list-header>
+
+    <ion-item>
+      <ion-label><strong>Total del mes</strong></ion-label>
+      <ion-note slot="end">{{ total() | currency:'ARS':'symbol-narrow':'1.0-0' }}</ion-note>
+    </ion-item>
+
+    @for (expense of expenses(); track expense.id) {
+      <ion-item>
+        <ion-label>
+          <h2>{{ expense.category }}</h2>
+          <p>{{ expense.date | date:'dd/MM' }}</p>
+        </ion-label>
+        <ion-note slot="end">{{ expense.amount | currency:'ARS':'symbol-narrow':'1.0-0' }}</ion-note>
+      </ion-item>
+    } @empty {
+      <ion-item><ion-label>Todavía no cargaste gastos</ion-label></ion-item>
+    }
+  </ion-list>
 </ion-content>

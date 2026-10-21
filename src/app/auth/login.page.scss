@@ -1,0 +1,71 @@
+.login-content {
+  --background:
+    radial-gradient(110% 55% at 50% -12%, rgba(var(--ion-color-primary-rgb), 0.16), transparent 62%),
+    var(--ion-background-color, #fff);
+}
+
+.login {
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 7vh 24px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.wordmark {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hero {
+  text-align: center;
+  h1 {
+    margin: 0 0 8px;
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
+  }
+
+  p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--wl-muted);
+    text-wrap: pretty;
+  }
+}
+
+.mode-toggle {
+  --background: var(--wl-field-bg);
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--wl-muted);
+
+  &::before,
+  &::after {
+    content: '';
+    flex: 1;
+    border-top: 1px solid var(--wl-field-border);
+  }
+}

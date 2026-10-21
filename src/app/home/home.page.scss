@@ -25,3 +25,13 @@
 #container a {
   text-decoration: none;
 }
+.greeting {
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.status {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
