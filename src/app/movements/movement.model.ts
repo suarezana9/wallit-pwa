@@ -1,17 +1,20 @@
 import type { FuenteIngreso, Movimiento, TipoMovimiento } from '../core/database.types';
+import type { TranslationKey } from '../core/i18n/i18n';
 
 export interface TypeInfo {
   id: TipoMovimiento;
-  label: string;
+  labelKey: TranslationKey;
+  pluralKey: TranslationKey;
+  placeholderKey: TranslationKey;
   icon: string;
   color: string;
 }
 
 export const MOVEMENT_TYPES: readonly TypeInfo[] = [
-  { id: 'gasto', label: 'Gasto', icon: 'card-outline', color: 'var(--wl-type-gasto)' },
-  { id: 'ingreso', label: 'Ingreso', icon: 'arrow-down-outline', color: 'var(--wl-type-ingreso)' },
-  { id: 'ahorro', label: 'Ahorro', icon: 'wallet-outline', color: 'var(--wl-type-ahorro)' },
-  { id: 'inversion', label: 'Inversión', icon: 'trending-up-outline', color: 'var(--wl-type-inversion)' },
+  { id: 'gasto', labelKey: 'typeGasto', pluralKey: 'expenses', placeholderKey: 'placeholderGasto', icon: 'card-outline', color: 'var(--wl-type-gasto)' },
+  { id: 'ingreso', labelKey: 'typeIngreso', pluralKey: 'income', placeholderKey: 'placeholderIngreso', icon: 'arrow-down-outline', color: 'var(--wl-type-ingreso)' },
+  { id: 'ahorro', labelKey: 'typeAhorro', pluralKey: 'savings', placeholderKey: 'placeholderAhorro', icon: 'wallet-outline', color: 'var(--wl-type-ahorro)' },
+  { id: 'inversion', labelKey: 'typeInversion', pluralKey: 'investments', placeholderKey: 'placeholderInversion', icon: 'trending-up-outline', color: 'var(--wl-type-inversion)' },
 ];
 
 export function typeInfo(id: TipoMovimiento): TypeInfo {
@@ -56,15 +59,15 @@ export function categoryInfo(name: string): CategoryInfo {
   return CATEGORIES.find((c) => c.name === name) ?? { ...FALLBACK_CATEGORY, name };
 }
 
-export const INCOME_SOURCES: readonly { id: FuenteIngreso; label: string }[] = [
-  { id: 'sueldo', label: 'Sueldo' },
-  { id: 'freelance', label: 'Freelance' },
-  { id: 'alquiler', label: 'Alquiler' },
-  { id: 'otro', label: 'Otro' },
+export const INCOME_SOURCES: readonly { id: FuenteIngreso; labelKey: TranslationKey }[] = [
+  { id: 'sueldo', labelKey: 'sourceSueldo' },
+  { id: 'freelance', labelKey: 'sourceFreelance' },
+  { id: 'alquiler', labelKey: 'sourceAlquiler' },
+  { id: 'otro', labelKey: 'sourceOtro' },
 ];
 
-export function incomeSourceLabel(id: string | null): string {
-  return INCOME_SOURCES.find((s) => s.id === id)?.label ?? '';
+export function incomeSourceKey(id: string | null): TranslationKey | null {
+  return INCOME_SOURCES.find((s) => s.id === id)?.labelKey ?? null;
 }
 
 export interface MovementInput {

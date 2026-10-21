@@ -1,7 +1,8 @@
 import { Service, computed, inject, resource } from '@angular/core';
 import { AuthStore } from '../core/auth-store';
 import { Supabase } from '../core/supabase';
-import { monthRange } from '../core/dates';
+import { monthName, monthRange } from '../core/dates';
+import { PreferencesStore } from '../core/preferences-store';
 import { MovementsStore } from './movements-store';
 
 export interface MonthPoint {
@@ -23,17 +24,13 @@ function monthKey(offset: number): string {
   return monthRange(offset).from.slice(0, 7);
 }
 
-function shortMonth(offset: number): string {
-  const from = monthRange(offset).from;
-  const [y, m] = from.split('-').map(Number);
-  return new Date(y, m - 1, 1).toLocaleDateString('es-AR', { month: 'short' }).replace('.', '');
-}
 
 @Service()
 export class InsightsStore {
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
   private readonly movements = inject(MovementsStore);
+  private readonly preferences = inject(PreferencesStore);
 
   private readonly history = resource({
     params: () => {
@@ -57,6 +54,8 @@ export class InsightsStore {
 
   readonly months = computed<MonthPoint[]>(() => {
     const offset = this.movements.monthOffset();
+    const locale = this.preferences.locale();
+    const shortMonth = (o: number) => monthName(o, locale, 'short');
     const rows = this.history.hasValue() ? this.history.value() : [];
     const points: MonthPoint[] = [];
     for (let i = offset - MONTHS_BACK; i < offset; i++) {
@@ -76,7 +75,7 @@ export class InsightsStore {
     const previous = points[points.length - 2];
     const current = points[points.length - 1];
     if (!previous.gastos) return null;
-    const label = monthRange(this.movements.monthOffset() - 1).label.split(' ')[0].toLowerCase();
+    const label = monthName(this.movements.monthOffset() - 1, this.preferences.locale());
     return { percent: ((current.gastos - previous.gastos) / previous.gastos) * 100, previousMonth: label };
   });
 

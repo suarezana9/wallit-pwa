@@ -6,15 +6,15 @@
   --wl-type-ingreso: #16a34a;
   --wl-type-ahorro: #2563eb;
   --wl-type-inversion: #d97706;
+  color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --wl-type-gasto: #ff6b6f;
-    --wl-type-ingreso: #4ade80;
-    --wl-type-ahorro: #60a5fa;
-    --wl-type-inversion: #f59e0b;
-  }
+:root.ion-palette-dark {
+  --wl-type-gasto: #ff6b6f;
+  --wl-type-ingreso: #4ade80;
+  --wl-type-ahorro: #60a5fa;
+  --wl-type-inversion: #f59e0b;
+  color-scheme: dark;
 }
 
 .wl-field {
@@ -121,8 +121,8 @@ ion-menu.wl-sidebar::part(container) {
 
 @media (min-width: 768px) {
   ion-modal.wl-dialog {
-    --width: 520px;
-    --height: min(780px, 92vh);
+    --width: min(820px, 94vw);
+    --height: min(520px, 90vh);
     --border-radius: 20px;
   }
 }

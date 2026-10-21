@@ -1,6 +1,5 @@
 import { Component, computed, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { DecimalPipe } from '@angular/common';
 import {
   IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher,
   IonRefresherContent, IonSkeletonText, IonToolbar, RefresherCustomEvent,
@@ -9,6 +8,8 @@ import { addIcons } from 'ionicons';
 import { add, arrowDownOutline, arrowUpOutline } from 'ionicons/icons';
 import { ProfileStore } from '../core/profile-store';
 import { MoneyPipe } from '../core/money';
+import { I18n, TranslatePipe } from '../core/i18n/i18n';
+import { PreferencesStore } from '../core/preferences-store';
 import { WallitLogoComponent } from '../shared/wallit-logo';
 import { MonthNavComponent } from '../shared/month-nav.component';
 import { MovementsStore } from '../movements/movements-store';
@@ -23,10 +24,10 @@ import { MonthlyChartComponent } from '../movements/monthly-chart.component';
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
-    CategoryBreakdownComponent, DecimalPipe, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
+    CategoryBreakdownComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
     MonthNavComponent, MonthlyChartComponent, MovementEditorComponent, MovementListComponent,
-    RouterLink, WallitLogoComponent,
+    RouterLink, TranslatePipe, WallitLogoComponent,
   ],
 })
 export class HomePage {
@@ -34,14 +35,30 @@ export class HomePage {
   readonly insights = inject(InsightsStore);
   readonly displayName = inject(ProfileStore).displayName;
   readonly editor = viewChild.required(MovementEditorComponent);
+  private readonly i18n = inject(I18n);
+  private readonly preferences = inject(PreferencesStore);
 
   readonly summary = this.store.summary;
   readonly hasIncome = computed(() => this.summary().ingresos > 0);
   readonly recent = computed(() => this.store.list().slice(0, 5));
   readonly change = this.insights.expenseChange;
 
+  readonly savingRateNote = computed(() => {
+    const rate = this.summary().tasaAhorro;
+    return rate === null ? '' : this.i18n.t('savingRate', this.percent(rate));
+  });
+
+  readonly changeNote = computed(() => {
+    const change = this.change();
+    return change ? this.i18n.t('vsMonth', this.percent(Math.abs(change.percent)), change.previousMonth) : '';
+  });
+
   constructor() {
     addIcons({ add, arrowDownOutline, arrowUpOutline });
+  }
+
+  private percent(value: number): string {
+    return Math.round(value).toLocaleString(this.preferences.locale());
   }
 
   async refresh(event: RefresherCustomEvent): Promise<void> {

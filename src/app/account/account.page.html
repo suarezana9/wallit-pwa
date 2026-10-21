@@ -1,0 +1,115 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-title>{{ 'navAccount' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="wl-page">
+    <header class="wl-page-header ion-hide-lg-down">
+      <div class="wl-page-title">
+        <h1>{{ 'navAccount' | t }}</h1>
+        <p>{{ 'accountSubtitle' | t }}</p>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="wl-panel profile">
+        <div class="avatar" aria-hidden="true">{{ initial() }}</div>
+        <div class="who">
+          <span class="name">{{ displayName() }}</span>
+          <span class="email" [title]="email()">{{ email() }}</span>
+        </div>
+        <div class="session">
+          <ion-button class="wl-btn wl-btn-secondary logout" fill="outline" expand="block" (click)="logout()">
+            <ion-icon slot="start" name="log-out-outline" />
+            {{ 'logout' | t }}
+          </ion-button>
+          <p class="hint">{{ 'logoutHint' | t }}</p>
+        </div>
+      </aside>
+
+      <div class="settings">
+        <section class="wl-panel group" aria-labelledby="prefs-title">
+          <h2 id="prefs-title">{{ 'preferences' | t }}</h2>
+
+          <div class="setting">
+            <div class="setting-text">
+              <span class="setting-label" id="currency-label">{{ 'currency' | t }}</span>
+              <p class="hint">{{ 'currencyHint' | t }}</p>
+            </div>
+            <ion-select
+              class="currency-select"
+              interface="popover"
+              aria-labelledby="currency-label"
+              [value]="preferences.currency()"
+              (ionChange)="onCurrency($event)"
+            >
+              @for (option of currencyOptions(); track option.code) {
+                <ion-select-option [value]="option.code">{{ option.label }}</ion-select-option>
+              }
+            </ion-select>
+          </div>
+
+          <div class="setting">
+            <div class="setting-text">
+              <span class="setting-label" id="lang-label">{{ 'language' | t }}</span>
+              <p class="hint">{{ 'languageHint' | t }}</p>
+            </div>
+            <div class="segmented" role="radiogroup" aria-labelledby="lang-label">
+              @for (language of languages; track language.id) {
+                <button
+                  type="button"
+                  role="radio"
+                  [class.selected]="preferences.language() === language.id"
+                  [attr.aria-checked]="preferences.language() === language.id"
+                  (click)="preferences.language.set(language.id)"
+                >
+                  {{ language.label }}
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="wl-panel group" aria-labelledby="appearance-title">
+          <h2 id="appearance-title">{{ 'appearance' | t }}</h2>
+
+          <div class="setting stacked">
+            <div class="setting-text">
+              <span class="setting-label" id="theme-label">{{ 'theme' | t }}</span>
+              <p class="hint">{{ 'themeHint' | t }}</p>
+            </div>
+            <div class="themes" role="radiogroup" aria-labelledby="theme-label">
+              @for (theme of themes; track theme.id) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="theme"
+                  [class.selected]="preferences.theme() === theme.id"
+                  [attr.aria-checked]="preferences.theme() === theme.id"
+                  (click)="preferences.theme.set(theme.id)"
+                >
+                  <span [class]="'preview preview-' + theme.id" aria-hidden="true">
+                    <span class="pv-side"></span>
+                    <span class="pv-main">
+                      <span class="pv-bar"></span>
+                      <span class="pv-card"></span>
+                      <span class="pv-card short"></span>
+                    </span>
+                  </span>
+                  <span class="theme-label">
+                    {{ theme.labelKey | t }}
+                    @if (preferences.theme() === theme.id) {
+                      <ion-icon name="checkmark-circle" aria-hidden="true" />
+                    }
+                  </span>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+</ion-content>

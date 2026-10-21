@@ -1,10 +1,12 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
+import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MoneyPipe } from '../core/money';
 import type { Movimiento } from '../core/database.types';
 import { categoryInfo } from './movement.model';
 
 interface CategoryRow {
   name: string;
+  label: string;
   emoji: string;
   color: string;
   total: number;
@@ -13,20 +15,20 @@ interface CategoryRow {
 
 @Component({
   selector: 'app-category-breakdown',
-  imports: [MoneyPipe],
+  imports: [MoneyPipe, TranslatePipe],
   template: `
     @for (row of rows(); track row.name) {
       <div class="row">
         <div class="row-head">
-          <span class="name"><span aria-hidden="true">{{ row.emoji }}</span> {{ row.name }}</span>
+          <span class="name"><span aria-hidden="true">{{ row.emoji }}</span> {{ row.label }}</span>
           <span class="amount">{{ row.total | money }}</span>
         </div>
-        <div class="bar" role="progressbar" [attr.aria-valuenow]="row.percent" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="row.name">
+        <div class="bar" role="progressbar" [attr.aria-valuenow]="row.percent" aria-valuemin="0" aria-valuemax="100" [attr.aria-label]="row.label">
           <span [style.width.%]="row.percent" [style.background]="row.color"></span>
         </div>
       </div>
     } @empty {
-      <p class="empty">Sin gastos este mes.</p>
+      <p class="empty">{{ 'noExpensesMonth' | t }}</p>
     }
   `,
   styles: `
@@ -42,6 +44,7 @@ interface CategoryRow {
 export class CategoryBreakdownComponent {
   readonly movements = input.required<readonly Movimiento[]>();
   readonly limit = input(6);
+  private readonly i18n = inject(I18n);
 
   readonly rows = computed<CategoryRow[]>(() => {
     const totals = new Map<string, number>();
@@ -55,7 +58,7 @@ export class CategoryBreakdownComponent {
       .slice(0, this.limit())
       .map(([name, total]) => {
         const info = categoryInfo(name);
-        return { name, emoji: info.emoji, color: info.color, total, percent: sum ? Math.round((total / sum) * 100) : 0 };
+        return { name, label: this.i18n.category(name), emoji: info.emoji, color: info.color, total, percent: sum ? Math.round((total / sum) * 100) : 0 };
       });
   });
 }

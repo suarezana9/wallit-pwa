@@ -3,22 +3,23 @@ import { IonButton, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, chevronForwardOutline } from 'ionicons/icons';
 import { MovementsStore } from '../movements/movements-store';
+import { TranslatePipe } from '../core/i18n/i18n';
 
 @Component({
   selector: 'app-month-nav',
-  imports: [IonButton, IonIcon],
+  imports: [IonButton, IonIcon, TranslatePipe],
   template: `
-    <nav aria-label="Mes">
-      <ion-button fill="clear" size="small" (click)="store.previousMonth()" aria-label="Mes anterior">
+    <nav [attr.aria-label]="'month' | t">
+      <ion-button fill="clear" size="small" (click)="store.previousMonth()" [attr.aria-label]="'previousMonth' | t">
         <ion-icon slot="icon-only" name="chevron-back-outline" />
       </ion-button>
-      <span class="label">{{ store.range().label }}</span>
+      <span class="label">{{ store.label() }}</span>
       <ion-button
         fill="clear"
         size="small"
         [disabled]="store.range().isCurrent"
         (click)="store.nextMonth()"
-        aria-label="Mes siguiente"
+        [attr.aria-label]="'nextMonth' | t"
       >
         <ion-icon slot="icon-only" name="chevron-forward-outline" />
       </ion-button>

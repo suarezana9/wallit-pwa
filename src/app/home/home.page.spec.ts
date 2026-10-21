@@ -27,6 +27,7 @@ describe('HomePage', () => {
           provide: MovementsStore,
           useValue: {
             range: signal(monthRange(0)),
+            label: signal('Octubre 2026'),
             list,
             summary: computed(() => summarize(list())),
             movements: { error: signal(undefined), isLoading: signal(false), hasValue: signal(true), reload: vi.fn() },

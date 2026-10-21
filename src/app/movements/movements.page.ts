@@ -4,20 +4,15 @@ import {
   IonRefresherContent, IonSkeletonText, IonTitle, IonToolbar, RefresherCustomEvent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
+import type { TipoMovimiento } from '../core/database.types';
 import { add } from 'ionicons/icons';
+import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MonthNavComponent } from '../shared/month-nav.component';
 import { ChipOption, ChipPickerComponent } from './chip-picker.component';
 import { MovementEditorComponent } from './movement-editor.component';
 import { MovementListComponent } from './movement-list.component';
-import { MOVEMENT_TYPES } from './movement.model';
+import { MOVEMENT_TYPES, typeInfo } from './movement.model';
 import { MovementsStore } from './movements-store';
-
-const PLURALS: Record<string, string> = {
-  gasto: 'Gastos',
-  ingreso: 'Ingresos',
-  ahorro: 'Ahorros',
-  inversion: 'Inversiones',
-};
 
 @Component({
   selector: 'app-movements',
@@ -26,11 +21,12 @@ const PLURALS: Record<string, string> = {
   imports: [
     ChipPickerComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon,
     IonRefresher, IonRefresherContent, IonSkeletonText, IonTitle, IonToolbar, MonthNavComponent,
-    MovementEditorComponent, MovementListComponent,
+    MovementEditorComponent, MovementListComponent, TranslatePipe,
   ],
 })
 export class MovementsPage {
   readonly store = inject(MovementsStore);
+  private readonly i18n = inject(I18n);
   readonly editor = viewChild.required(MovementEditorComponent);
 
   readonly filter = signal('todos');
@@ -38,10 +34,10 @@ export class MovementsPage {
   readonly filterOptions = computed<ChipOption[]>(() => {
     const list = this.store.list();
     return [
-      { value: 'todos', label: `Todos · ${list.length}` },
+      { value: 'todos', label: `${this.i18n.t('filterAll')} · ${list.length}` },
       ...MOVEMENT_TYPES.map((t) => ({
         value: t.id,
-        label: `${PLURALS[t.id]} · ${list.filter((m) => m.tipo === t.id).length}`,
+        label: `${this.i18n.t(t.pluralKey)} · ${list.filter((m) => m.tipo === t.id).length}`,
       })),
     ];
   });
@@ -52,11 +48,12 @@ export class MovementsPage {
     return filter === 'todos' ? list : list.filter((m) => m.tipo === filter);
   });
 
-  readonly emptyTitle = computed(() =>
-    this.filter() === 'todos'
-      ? 'Todavía no hay movimientos este mes'
-      : `No hay ${PLURALS[this.filter()].toLowerCase()} este mes`,
-  );
+  readonly emptyTitle = computed(() => {
+    const filter = this.filter();
+    if (filter === 'todos') return this.i18n.t('emptyMonth');
+    const plural = this.i18n.t(typeInfo(filter as TipoMovimiento).pluralKey);
+    return this.i18n.t('noneOfType', plural.toLowerCase());
+  });
 
   constructor() {
     addIcons({ add });

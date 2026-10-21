@@ -1,11 +1,13 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowDownOutline, cardOutline, trendingUpOutline, walletOutline } from 'ionicons/icons';
 import { relativeDate } from '../core/dates';
 import { MoneyPipe } from '../core/money';
+import { I18n } from '../core/i18n/i18n';
+import { PreferencesStore } from '../core/preferences-store';
 import type { Movimiento } from '../core/database.types';
-import { categoryInfo, incomeSourceLabel, typeInfo } from './movement.model';
+import { categoryInfo, incomeSourceKey, typeInfo } from './movement.model';
 
 @Component({
   selector: 'app-movement-item',
@@ -42,6 +44,8 @@ import { categoryInfo, incomeSourceLabel, typeInfo } from './movement.model';
 })
 export class MovementItemComponent {
   readonly movement = input.required<Movimiento>();
+  private readonly i18n = inject(I18n);
+  private readonly preferences = inject(PreferencesStore);
 
   constructor() {
     addIcons({ arrowDownOutline, cardOutline, trendingUpOutline, walletOutline });
@@ -49,27 +53,33 @@ export class MovementItemComponent {
 
   readonly view = computed(() => {
     const m = this.movement();
-    const date = relativeDate(m.date);
+    const date = relativeDate(m.date, new Date(), this.preferences.locale(), {
+      today: this.i18n.t('today'),
+      yesterday: this.i18n.t('yesterday'),
+    });
     if (m.tipo === 'gasto') {
       const category = categoryInfo(m.category);
+      const name = this.i18n.category(category.name);
       return {
         emoji: category.emoji,
         icon: '',
         color: category.color,
-        title: m.description || category.name,
-        subtitle: `${category.name} · ${date}`,
+        title: m.description || name,
+        subtitle: `${name} · ${date}`,
         isIncome: false,
         amountColor: null,
       };
     }
     const type = typeInfo(m.tipo);
-    const source = m.tipo === 'ingreso' ? incomeSourceLabel(m.fuente) : '';
+    const label = this.i18n.t(type.labelKey);
+    const sourceKey = m.tipo === 'ingreso' ? incomeSourceKey(m.fuente) : null;
+    const source = sourceKey ? this.i18n.t(sourceKey) : '';
     return {
       emoji: '',
       icon: type.icon,
       color: type.color,
-      title: m.description || type.label,
-      subtitle: [type.label, source, date].filter(Boolean).join(' · '),
+      title: m.description || label,
+      subtitle: [label, source, date].filter(Boolean).join(' · '),
       isIncome: m.tipo === 'ingreso',
       amountColor: type.color,
     };

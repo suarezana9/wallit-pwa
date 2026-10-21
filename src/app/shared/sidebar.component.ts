@@ -6,10 +6,11 @@ import { homeOutline, listOutline, logOutOutline, personCircleOutline } from 'io
 import { AuthStore } from '../core/auth-store';
 import { ProfileStore } from '../core/profile-store';
 import { WallitLogoComponent } from './wallit-logo';
+import { TranslatePipe } from '../core/i18n/i18n';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [IonButton, IonIcon, RouterLink, RouterLinkActive, WallitLogoComponent],
+  imports: [IonButton, IonIcon, RouterLink, RouterLinkActive, TranslatePipe, WallitLogoComponent],
   template: `
     <div class="brand">
       <app-wallit-logo [size]="32" />
@@ -19,15 +20,15 @@ import { WallitLogoComponent } from './wallit-logo';
     <nav aria-label="Principal">
       <a class="nav-item" routerLink="/inicio" routerLinkActive="active">
         <ion-icon name="home-outline" aria-hidden="true" />
-        Inicio
+        {{ 'navHome' | t }}
       </a>
       <a class="nav-item" routerLink="/movimientos" routerLinkActive="active">
         <ion-icon name="list-outline" aria-hidden="true" />
-        Movimientos
+        {{ 'navMovements' | t }}
       </a>
       <a class="nav-item" routerLink="/cuenta" routerLinkActive="active">
         <ion-icon name="person-circle-outline" aria-hidden="true" />
-        Cuenta
+        {{ 'navAccount' | t }}
       </a>
     </nav>
 
@@ -37,7 +38,7 @@ import { WallitLogoComponent } from './wallit-logo';
         <span class="name">{{ displayName() }}</span>
         <span class="email">{{ email() }}</span>
       </div>
-      <ion-button fill="clear" color="medium" (click)="logout()" aria-label="Cerrar sesión">
+      <ion-button fill="clear" color="medium" (click)="logout()" [attr.aria-label]="'logout' | t">
         <ion-icon slot="icon-only" name="log-out-outline" />
       </ion-button>
     </div>

@@ -10,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { flashOutline, logoGoogle, pieChartOutline, walletOutline } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
+import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { WallitLogoComponent } from '../shared/wallit-logo';
 
 type Mode = 'login' | 'registro' | 'recuperar';
@@ -20,28 +21,29 @@ type Mode = 'login' | 'registro' | 'recuperar';
   styleUrls: ['login.page.scss'],
   imports: [
     FormField, IonButton, IonContent, IonIcon, IonInput, IonInputPasswordToggle,
-    IonLabel, IonSegment, IonSegmentButton, IonSpinner, WallitLogoComponent,
+    IonLabel, IonSegment, IonSegmentButton, IonSpinner, TranslatePipe, WallitLogoComponent,
   ],
 })
 export class LoginPage {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18n);
 
   readonly mode = signal<Mode>('login');
   readonly serverError = signal<string | null>(null);
   readonly info = signal<string | null>(null);
   readonly googleLoading = signal(false);
   readonly submitLabel = computed(() => {
-    const labels: Record<Mode, string> = { login: 'Ingresar', registro: 'Crear cuenta', recuperar: 'Enviar enlace' };
-    return labels[this.mode()];
+    const keys = { login: 'tabLogin', registro: 'tabSignup', recuperar: 'sendLink' } as const;
+    return this.i18n.t(keys[this.mode()]);
   });
 
   readonly credentials = signal({ email: '', password: '' });
   readonly loginForm = form(this.credentials, (path) => {
-    required(path.email, { message: 'Ingresá tu email.' });
-    email(path.email, { message: 'El email no es válido.' });
-    required(path.password, { message: 'Ingresá tu contraseña.', when: () => this.mode() !== 'recuperar' });
-    minLength(path.password, 6, { message: 'Mínimo 6 caracteres.', when: () => this.mode() !== 'recuperar' });
+    required(path.email, { message: () => this.i18n.t('errEmailRequired') });
+    email(path.email, { message: () => this.i18n.t('errEmailInvalid') });
+    required(path.password, { message: () => this.i18n.t('errPasswordRequired'), when: () => this.mode() !== 'recuperar' });
+    minLength(path.password, 6, { message: () => this.i18n.t('errPasswordMin'), when: () => this.mode() !== 'recuperar' });
   });
 
   constructor() {
@@ -77,7 +79,7 @@ export class LoginPage {
         if (error) {
           this.serverError.set(error);
         } else {
-          this.info.set(`Si hay una cuenta con ${email.trim()}, te llega un enlace para crear una contraseña nueva. Abrilo en este mismo navegador.`);
+          this.info.set(this.i18n.t('recoverSent', email.trim()));
         }
         return;
       }
@@ -96,7 +98,7 @@ export class LoginPage {
       if (error) {
         this.serverError.set(error);
       } else if (needsConfirmation) {
-        this.info.set(`Te mandamos un enlace de confirmación a ${email.trim()}. Abrilo para activar tu cuenta.`);
+        this.info.set(this.i18n.t('confirmSent', email.trim()));
       } else {
         await this.router.navigateByUrl('/inicio', { replaceUrl: true });
       }

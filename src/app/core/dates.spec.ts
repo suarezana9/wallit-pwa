@@ -1,4 +1,4 @@
-import { isInRange, monthRange, relativeDate, toIsoDate } from './dates';
+import { isInRange, monthLabel, monthName, monthRange, relativeDate, toIsoDate } from './dates';
 
 describe('dates', () => {
   const today = new Date(2026, 9, 21);
@@ -8,8 +8,10 @@ describe('dates', () => {
     expect(monthRange(-10, today)).toMatchObject({ from: '2025-12-01', to: '2025-12-31', isCurrent: false });
   });
 
-  it('formatea el label del mes', () => {
-    expect(monthRange(0, today).label).toBe('Octubre 2026');
+  it('formatea el label del mes según el idioma', () => {
+    expect(monthLabel(0, 'es-AR', today)).toBe('Octubre 2026');
+    expect(monthLabel(0, 'en-US', today)).toBe('October 2026');
+    expect(monthName(-1, 'es-AR', 'short', today)).toBe('sept');
   });
 
   it('compara fechas ISO por rango', () => {
@@ -21,5 +23,6 @@ describe('dates', () => {
   it('muestra hoy y ayer', () => {
     expect(relativeDate(toIsoDate(today), today)).toBe('Hoy');
     expect(relativeDate('2026-10-20', today)).toBe('Ayer');
+    expect(relativeDate('2026-10-20', today, 'en-US', { today: 'Today', yesterday: 'Yesterday' })).toBe('Yesterday');
   });
 });

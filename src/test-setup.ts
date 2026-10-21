@@ -24,3 +24,5 @@ if (!('IntersectionObserver' in window)) {
   }
   (window as unknown as { IntersectionObserver: unknown }).IntersectionObserver = NoopIntersectionObserver;
 }
+
+Object.defineProperty(window.navigator, 'language', { value: 'es-AR', configurable: true });

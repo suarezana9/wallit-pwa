@@ -1,11 +1,11 @@
-import { translateAuthError } from './auth-store';
+import { authErrorKey } from './auth-store';
 
-describe('translateAuthError', () => {
-  it('traduce credenciales inválidas', () => {
-    expect(translateAuthError('Invalid login credentials')).toBe('Email o contraseña incorrectos.');
+describe('authErrorKey', () => {
+  it('reconoce credenciales inválidas', () => {
+    expect(authErrorKey('Invalid login credentials')).toBe('errInvalidCredentials');
   });
 
-  it('deja pasar mensajes desconocidos', () => {
-    expect(translateAuthError('Algo raro')).toBe('Algo raro');
+  it('devuelve null para mensajes desconocidos', () => {
+    expect(authErrorKey('Algo raro')).toBeNull();
   });
 });

@@ -1,5 +1,7 @@
-import { Component, computed, input } from '@angular/core';
-import { MoneyPipe, formatMoney } from '../core/money';
+import { Component, computed, inject, input } from '@angular/core';
+import { I18n, TranslatePipe } from '../core/i18n/i18n';
+import { MoneyPipe, formatMoney, formatMoneyCompact } from '../core/money';
+import { PreferencesStore } from '../core/preferences-store';
 import type { MonthPoint } from './insights-store';
 
 const WIDTH = 600;
@@ -19,7 +21,7 @@ function barPath(x: number, y: number, w: number, h: number): string {
 
 @Component({
   selector: 'app-monthly-chart',
-  imports: [MoneyPipe],
+  imports: [MoneyPipe, TranslatePipe],
   template: `
     @if (hasData()) {
       <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" [attr.aria-label]="summary()">
@@ -37,14 +39,14 @@ function barPath(x: number, y: number, w: number, h: number): string {
         }
       </svg>
       <table class="sr-only">
-        <caption>Gastos por mes</caption>
-        <tr><th>Mes</th><th>Gastos</th></tr>
+        <caption>{{ 'chartCaption' | t }}</caption>
+        <tr><th>{{ 'month' | t }}</th><th>{{ 'expenses' | t }}</th></tr>
         @for (point of points(); track point.key) {
           <tr><td>{{ point.label }}</td><td>{{ point.gastos | money }}</td></tr>
         }
       </table>
     } @else {
-      <p class="empty">Todavía no hay gastos para comparar.</p>
+      <p class="empty">{{ 'chartEmpty' | t }}</p>
     }
   `,
   styles: `
@@ -68,6 +70,8 @@ function barPath(x: number, y: number, w: number, h: number): string {
 })
 export class MonthlyChartComponent {
   readonly points = input.required<readonly MonthPoint[]>();
+  private readonly i18n = inject(I18n);
+  private readonly preferences = inject(PreferencesStore);
 
   readonly width = WIDTH;
   readonly height = HEIGHT;
@@ -77,6 +81,7 @@ export class MonthlyChartComponent {
   readonly hasData = computed(() => this.points().some((p) => p.gastos > 0));
 
   readonly bars = computed(() => {
+    const currency = this.preferences.currency();
     const max = Math.max(...this.points().map((p) => p.gastos), 1);
     const usable = this.baseY - TOP;
     return this.points().map((p, i) => {
@@ -91,19 +96,15 @@ export class MonthlyChartComponent {
         cx: x + BAR / 2,
         y,
         path: barPath(x, y, BAR, h),
-        title: `${p.label}: ${formatMoney(p.gastos)}`,
-        short: compactMoney(p.gastos),
+        title: `${p.label}: ${formatMoney(p.gastos, currency)}`,
+        short: formatMoneyCompact(p.gastos, currency),
       };
     });
   });
 
-  readonly summary = computed(() =>
-    `Gastos de los últimos 6 meses: ${this.points().map((p) => `${p.label} ${formatMoney(p.gastos)}`).join(', ')}`,
-  );
-}
-
-function compactMoney(amount: number): string {
-  if (amount >= 1_000_000) return `$ ${(amount / 1_000_000).toLocaleString('es-AR', { maximumFractionDigits: 1 })} M`;
-  if (amount >= 1_000) return `$ ${Math.round(amount / 1_000).toLocaleString('es-AR')} mil`;
-  return formatMoney(amount);
+  readonly summary = computed(() => {
+    const currency = this.preferences.currency();
+    const values = this.points().map((p) => `${p.label} ${formatMoney(p.gastos, currency)}`).join(', ');
+    return `${this.i18n.t('chartSummary')}: ${values}`;
+  });
 }

@@ -1,7 +1,9 @@
 import { Service, computed, inject, resource, signal } from '@angular/core';
 import { AuthStore } from '../core/auth-store';
 import { Supabase } from '../core/supabase';
-import { isInRange, monthRange } from '../core/dates';
+import { isInRange, monthLabel, monthRange } from '../core/dates';
+import { I18n } from '../core/i18n/i18n';
+import { PreferencesStore } from '../core/preferences-store';
 import type { Movimiento } from '../core/database.types';
 import { MovementInput, sortMovements, summarize } from './movement.model';
 
@@ -9,9 +11,12 @@ import { MovementInput, sortMovements, summarize } from './movement.model';
 export class MovementsStore {
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
+  private readonly i18n = inject(I18n);
+  private readonly preferences = inject(PreferencesStore);
 
   readonly monthOffset = signal(0);
   readonly range = computed(() => monthRange(this.monthOffset()));
+  readonly label = computed(() => monthLabel(this.monthOffset(), this.preferences.locale()));
 
   readonly movements = resource({
     params: () => {
@@ -48,13 +53,13 @@ export class MovementsStore {
 
   async create(input: MovementInput): Promise<string | null> {
     const userId = this.auth.user()?.id;
-    if (!userId) return 'Tu sesión expiró. Volvé a ingresar.';
+    if (!userId) return this.i18n.t('errSessionExpired');
     const { data, error } = await this.supabase
       .from('expenses')
       .insert({ ...input, user_id: userId, group_id: null, is_private: false, receipt_url: null })
       .select()
       .single();
-    if (error) return 'No se pudo guardar el movimiento.';
+    if (error) return this.i18n.t('errSave');
     if (isInRange(data.date, this.range())) {
       this.movements.update((list) => sortMovements([...(list ?? []), data]));
     }
@@ -68,7 +73,7 @@ export class MovementsStore {
       .eq('id', id)
       .select()
       .single();
-    if (error) return 'No se pudieron guardar los cambios.';
+    if (error) return this.i18n.t('errSaveChanges');
     this.movements.update((list) => {
       const rest = (list ?? []).filter((m) => m.id !== id);
       return sortMovements(isInRange(data.date, this.range()) ? [...rest, data] : rest);
@@ -78,7 +83,7 @@ export class MovementsStore {
 
   async remove(id: string): Promise<string | null> {
     const { error } = await this.supabase.from('expenses').delete().eq('id', id);
-    if (error) return 'No se pudo eliminar el movimiento.';
+    if (error) return this.i18n.t('errDelete');
     this.movements.update((list) => (list ?? []).filter((m) => m.id !== id));
     return null;
   }

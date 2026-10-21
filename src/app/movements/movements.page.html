@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border ion-hide-lg-up">
   <ion-toolbar>
-    <ion-title>Movimientos</ion-title>
+    <ion-title>{{ 'navMovements' | t }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -12,25 +12,25 @@
   <div class="wl-page">
     <header class="wl-page-header">
       <div class="wl-page-title ion-hide-lg-down">
-        <h1>Movimientos</h1>
-        <p>Todo lo que entró y salió en el mes.</p>
+        <h1>{{ 'navMovements' | t }}</h1>
+        <p>{{ 'movementsSubtitle' | t }}</p>
       </div>
       <app-month-nav />
       <ion-button class="wl-btn wl-btn-primary ion-hide-lg-down" (click)="editor().openNew()">
         <ion-icon slot="start" name="add" />
-        Nuevo movimiento
+        {{ 'newMovement' | t }}
       </ion-button>
     </header>
 
     <div class="filters">
-      <app-chip-picker label="Filtrar por tipo" [options]="filterOptions()" [(value)]="filter" />
+      <app-chip-picker [label]="'filterLabel' | t" [options]="filterOptions()" [(value)]="filter" />
     </div>
 
-    <section class="wl-panel" aria-label="Lista de movimientos">
+    <section class="wl-panel" [attr.aria-label]="'movementList' | t">
       @if (store.movements.error()) {
         <div class="error">
-          <p>No pudimos cargar tus movimientos.</p>
-          <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="store.movements.reload()">Reintentar</ion-button>
+          <p>{{ 'loadError' | t }}</p>
+          <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="store.movements.reload()">{{ 'retry' | t }}</ion-button>
         </div>
       } @else if (store.movements.isLoading() && !store.movements.hasValue()) {
         @for (row of [1, 2, 3, 4, 5]; track row) {
@@ -48,7 +48,7 @@
   </div>
 
   <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-hide-lg-up">
-    <ion-fab-button (click)="editor().openNew()" aria-label="Nuevo movimiento">
+    <ion-fab-button (click)="editor().openNew()" [attr.aria-label]="'newMovement' | t">
       <ion-icon name="add" />
     </ion-fab-button>
   </ion-fab>

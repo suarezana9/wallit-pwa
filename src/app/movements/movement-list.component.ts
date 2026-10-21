@@ -5,11 +5,12 @@ import {
 import { addIcons } from 'ionicons';
 import { trashOutline } from 'ionicons/icons';
 import type { Movimiento } from '../core/database.types';
+import { TranslatePipe } from '../core/i18n/i18n';
 import { MovementItemComponent } from './movement-item.component';
 
 @Component({
   selector: 'app-movement-list',
-  imports: [IonButton, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonList, MovementItemComponent],
+  imports: [IonButton, IonIcon, IonItem, IonItemOption, IonItemOptions, IonItemSliding, IonList, MovementItemComponent, TranslatePipe],
   template: `
     <ion-list lines="none">
       @for (movement of movements(); track movement.id) {
@@ -27,14 +28,14 @@ import { MovementItemComponent } from './movement-item.component';
               class="row-delete ion-hide-lg-down"
               fill="clear"
               color="medium"
-              aria-label="Eliminar movimiento"
+              [attr.aria-label]="'deleteMovement' | t"
               (click)="$event.stopPropagation(); removed.emit(movement.id)"
             >
               <ion-icon slot="icon-only" name="trash-outline" />
             </ion-button>
           </ion-item>
           <ion-item-options side="end">
-            <ion-item-option color="danger" (click)="sliding.close(); removed.emit(movement.id)">
+            <ion-item-option color="danger" [attr.aria-label]="'deleteMovement' | t" (click)="sliding.close(); removed.emit(movement.id)">
               <ion-icon slot="icon-only" name="trash-outline" />
             </ion-item-option>
           </ion-item-options>
@@ -71,7 +72,7 @@ import { MovementItemComponent } from './movement-item.component';
 })
 export class MovementListComponent {
   readonly movements = input.required<readonly Movimiento[]>();
-  readonly emptyTitle = input('No hay movimientos');
+  readonly emptyTitle = input.required<string>();
   readonly emptyHint = input('');
 
   readonly selected = output<Movimiento>();

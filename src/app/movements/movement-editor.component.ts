@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { AlertController, IonModal, ToastController } from '@ionic/angular';
 import type { Movimiento } from '../core/database.types';
+import { I18n } from '../core/i18n/i18n';
 import { MovementFormComponent } from './movement-form.component';
 import { MovementInput } from './movement.model';
 import { MovementsStore } from './movements-store';
@@ -26,6 +27,7 @@ export class MovementEditorComponent {
   private readonly store = inject(MovementsStore);
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastController);
+  private readonly i18n = inject(I18n);
 
   readonly isOpen = signal(false);
   readonly editing = signal<Movimiento | null>(null);
@@ -55,16 +57,16 @@ export class MovementEditorComponent {
       return;
     }
     this.close();
-    await this.toast(editing ? 'Cambios guardados' : 'Movimiento guardado');
+    await this.toast(this.i18n.t(editing ? 'changesSaved' : 'saved'));
   }
 
   async confirmRemove(id: string): Promise<void> {
     const alert = await this.alerts.create({
-      header: '¿Eliminar movimiento?',
-      message: 'No se puede deshacer.',
+      header: this.i18n.t('deleteConfirm'),
+      message: this.i18n.t('cannotUndo'),
       buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        { text: 'Eliminar', role: 'destructive', handler: () => this.remove(id) },
+        { text: this.i18n.t('cancel'), role: 'cancel' },
+        { text: this.i18n.t('delete'), role: 'destructive', handler: () => this.remove(id) },
       ],
     });
     await alert.present();
@@ -77,7 +79,7 @@ export class MovementEditorComponent {
       return;
     }
     this.close();
-    await this.toast('Movimiento eliminado');
+    await this.toast(this.i18n.t('deleted'));
   }
 
   private async toast(message: string, color: 'dark' | 'danger' = 'dark'): Promise<void> {

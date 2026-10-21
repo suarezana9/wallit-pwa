@@ -1,4 +1,5 @@
 import { Component, input, model } from '@angular/core';
+import { TranslatePipe } from '../core/i18n/i18n';
 import { FormValueControl } from '@angular/forms/signals';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -8,9 +9,9 @@ import { MOVEMENT_TYPES } from './movement.model';
 
 @Component({
   selector: 'app-type-picker',
-  imports: [IonIcon],
+  imports: [IonIcon, TranslatePipe],
   template: `
-    <div class="types" role="radiogroup" aria-label="Tipo de movimiento">
+    <div class="types" role="radiogroup" [attr.aria-label]="'movementType' | t">
       @for (type of types; track type.id) {
         <button
           type="button"
@@ -23,13 +24,15 @@ import { MOVEMENT_TYPES } from './movement.model';
           (click)="value.set(type.id)"
         >
           <ion-icon [name]="type.icon" aria-hidden="true" />
-          <span>{{ type.label }}</span>
+          <span>{{ type.labelKey | t }}</span>
         </button>
       }
     </div>
   `,
   styles: `
+    :host { display: block; container-type: inline-size; }
     .types { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    @container (max-width: 320px) { .types { grid-template-columns: repeat(2, 1fr); } .type { flex-direction: row; justify-content: center; padding: 10px 8px; } }
     .type {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
       padding: 12px 4px; border-radius: 14px; font: inherit; font-size: 13px; font-weight: 600;

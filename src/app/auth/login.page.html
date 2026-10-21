@@ -6,13 +6,13 @@
         <span class="wordmark">Wallit</span>
       </div>
       <div class="aside-copy">
-        <h1>Tu plata, en orden.</h1>
-        <p>Gastos, ingresos y ahorros, solo o en familia.</p>
+        <h1>{{ 'tagline' | t }}</h1>
+        <p>{{ 'taglineSub' | t }}</p>
       </div>
       <ul class="features">
-        <li><ion-icon name="flash-outline" aria-hidden="true" />Cargá un gasto en segundos, desde el celular o la compu.</li>
-        <li><ion-icon name="wallet-outline" aria-hidden="true" />Ingresos, gastos, ahorros e inversiones en un solo lugar.</li>
-        <li><ion-icon name="pie-chart-outline" aria-hidden="true" />Mirá a dónde va tu plata cada mes.</li>
+        <li><ion-icon name="flash-outline" aria-hidden="true" />{{ 'featureFast' | t }}</li>
+        <li><ion-icon name="wallet-outline" aria-hidden="true" />{{ 'featureAll' | t }}</li>
+        <li><ion-icon name="pie-chart-outline" aria-hidden="true" />{{ 'featureWhere' | t }}</li>
       </ul>
     </aside>
 
@@ -23,37 +23,37 @@
       </header>
 
       <section class="hero ion-hide-lg-up">
-        <h1>Tu plata, en orden.</h1>
-        <p>Gastos, ingresos y ahorros, solo o en familia.</p>
+        <h1>{{ 'tagline' | t }}</h1>
+        <p>{{ 'taglineSub' | t }}</p>
       </section>
 
       @if (mode() !== 'recuperar') {
-        <h2 class="form-title ion-hide-lg-down">{{ mode() === 'login' ? 'Ingresá a tu cuenta' : 'Creá tu cuenta' }}</h2>
+        <h2 class="form-title ion-hide-lg-down">{{ (mode() === 'login' ? 'loginTitle' : 'signupTitle') | t }}</h2>
       }
 
       @if (mode() === 'recuperar') {
         <div class="recover-intro">
-          <h2>Recuperar contraseña</h2>
-          <p>Ingresá tu email y te mandamos un enlace para crear una nueva.</p>
+          <h2>{{ 'recoverTitle' | t }}</h2>
+          <p>{{ 'recoverText' | t }}</p>
         </div>
       } @else {
         <ion-segment mode="ios" class="mode-toggle" [value]="mode()" (ionChange)="onModeChange($event)">
           <ion-segment-button value="login">
-            <ion-label>Ingresar</ion-label>
+            <ion-label>{{ 'tabLogin' | t }}</ion-label>
           </ion-segment-button>
           <ion-segment-button value="registro">
-            <ion-label>Crear cuenta</ion-label>
+            <ion-label>{{ 'tabSignup' | t }}</ion-label>
           </ion-segment-button>
         </ion-segment>
       }
 
       <form (submit)="onSubmit($event)" novalidate>
         <div class="wl-field">
-          <span class="wl-field-label" aria-hidden="true">Email</span>
+          <span class="wl-field-label" aria-hidden="true">{{ 'email' | t }}</span>
           <ion-input
             class="wl-input"
-            aria-label="Email"
-            placeholder="nombre@email.com"
+            [attr.aria-label]="'email' | t"
+            [placeholder]="'emailPlaceholder' | t"
             type="email"
             inputmode="email"
             autocomplete="email"
@@ -67,11 +67,11 @@
 
         @if (mode() !== 'recuperar') {
           <div class="wl-field">
-            <span class="wl-field-label" aria-hidden="true">Contraseña</span>
+            <span class="wl-field-label" aria-hidden="true">{{ 'password' | t }}</span>
             <ion-input
               class="wl-input"
-              aria-label="Contraseña"
-              [placeholder]="mode() === 'login' ? 'Tu contraseña' : 'Mínimo 6 caracteres'"
+              [attr.aria-label]="'password' | t"
+              [placeholder]="(mode() === 'login' ? 'passwordPlaceholder' : 'passwordNewPlaceholder') | t"
               type="password"
               [autocomplete]="mode() === 'login' ? 'current-password' : 'new-password'"
               [class.has-error]="!!errorOf(loginForm.password)"
@@ -83,7 +83,7 @@
               <p class="wl-field-error">{{ error }}</p>
             }
             @if (mode() === 'login') {
-              <button type="button" class="link forgot" (click)="setMode('recuperar')">¿Olvidaste tu contraseña?</button>
+              <button type="button" class="link forgot" (click)="setMode('recuperar')">{{ 'forgotPassword' | t }}</button>
             }
           </div>
         }
@@ -105,16 +105,16 @@
       </form>
 
       @if (mode() === 'recuperar') {
-        <button type="button" class="link back" (click)="setMode('login')">Volver a ingresar</button>
+        <button type="button" class="link back" (click)="setMode('login')">{{ 'backToLogin' | t }}</button>
       } @else {
-        <div class="divider"><span>o</span></div>
+        <div class="divider"><span>{{ 'or' | t }}</span></div>
 
         <ion-button class="wl-btn wl-btn-secondary" fill="outline" expand="block" (click)="onGoogle()" [disabled]="googleLoading()">
           @if (googleLoading()) {
             <ion-spinner name="crescent" />
           } @else {
             <ion-icon slot="start" name="logo-google" />
-            Continuar con Google
+            {{ 'continueGoogle' | t }}
           }
         </ion-button>
       }

@@ -1,6 +1,7 @@
 import { Service, computed, inject, signal } from '@angular/core';
 import type { Session } from '@supabase/supabase-js';
 import { Supabase } from './supabase';
+import { I18n, TranslationKey } from './i18n/i18n';
 
 export interface AuthResult {
   error: string | null;
@@ -18,6 +19,7 @@ export interface SignUpResult extends AuthResult {
 @Service()
 export class AuthStore {
   private readonly supabase = inject(Supabase).client;
+  private readonly i18n = inject(I18n);
 
   private readonly _session = signal<Session | null>(null);
   private readonly _ready = signal(false);
@@ -45,7 +47,7 @@ export class AuthStore {
 
   async signInWithPassword(email: string, password: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.signInWithPassword({ email: email.trim(), password });
-    return { error: error ? translateAuthError(error.message) : null };
+    return { error: error ? this.translate(error.message) : null };
   }
 
   async signUp(email: string, password: string): Promise<SignUpResult> {
@@ -55,7 +57,7 @@ export class AuthStore {
       options: { emailRedirectTo: `${window.location.origin}/inicio` },
     });
     return {
-      error: error ? translateAuthError(error.message) : null,
+      error: error ? this.translate(error.message) : null,
       needsConfirmation: !error && !data.session,
     };
   }
@@ -73,19 +75,24 @@ export class AuthStore {
         queryParams: { prompt: 'select_account' },
       },
     });
-    return { error: error ? translateAuthError(error.message) : null };
+    return { error: error ? this.translate(error.message) : null };
   }
 
   async sendPasswordReset(email: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/nueva-contrasena`,
     });
-    return { error: error ? translateAuthError(error.message) : null };
+    return { error: error ? this.translate(error.message) : null };
   }
 
   async updatePassword(password: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.updateUser({ password });
-    return { error: error ? translateAuthError(error.message) : null };
+    return { error: error ? this.translate(error.message) : null };
+  }
+
+  private translate(message: string): string {
+    const key = authErrorKey(message);
+    return key ? this.i18n.t(key) : message;
   }
 
   async signOut(): Promise<void> {
@@ -94,14 +101,13 @@ export class AuthStore {
   }
 }
 
-/** Mismos mensajes que tenía la app de React Native. */
-export function translateAuthError(message: string): string {
-  if (message.includes('Invalid login credentials')) return 'Email o contraseña incorrectos.';
-  if (message.includes('Email not confirmed')) return 'Confirmá tu email antes de ingresar.';
-  if (message.includes('User already registered')) return 'Ya existe una cuenta con ese email. Iniciá sesión.';
-  if (message.includes('Password should be')) return 'La contraseña debe tener al menos 6 caracteres.';
-  if (message.includes('should be different from the old password')) return 'La nueva contraseña tiene que ser distinta a la anterior.';
-  if (message.includes('For security purposes')) return 'Esperá unos segundos antes de pedir otro enlace.';
-  if (message.toLowerCase().includes('rate limit')) return 'Se enviaron demasiados correos. Probá de nuevo en un rato.';
-  return message;
+export function authErrorKey(message: string): TranslationKey | null {
+  if (message.includes('Invalid login credentials')) return 'errInvalidCredentials';
+  if (message.includes('Email not confirmed')) return 'errEmailNotConfirmed';
+  if (message.includes('User already registered')) return 'errAlreadyRegistered';
+  if (message.includes('Password should be')) return 'errPasswordLength';
+  if (message.includes('should be different from the old password')) return 'errSamePassword';
+  if (message.includes('For security purposes')) return 'errWaitSeconds';
+  if (message.toLowerCase().includes('rate limit')) return 'errRateLimit';
+  return null;
 }

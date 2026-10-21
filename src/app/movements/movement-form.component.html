@@ -1,8 +1,8 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>{{ isEdit() ? 'Editar movimiento' : 'Nuevo movimiento' }}</ion-title>
+    <ion-title>{{ (isEdit() ? 'editMovementTitle' : 'newMovementTitle') | t }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="dismiss.emit()" aria-label="Cerrar">
+      <ion-button (click)="dismiss.emit()" [attr.aria-label]="'close' | t">
         <ion-icon slot="icon-only" name="close-outline" />
       </ion-button>
     </ion-buttons>
@@ -10,79 +10,87 @@
 </ion-header>
 
 <ion-content class="ion-padding">
-  <form class="movement-form" (submit)="onSubmit($event)" novalidate>
-    <div class="amount" [style.--type-color]="currentType().color">
-      <span class="currency" aria-hidden="true">$</span>
-      <ion-input
-        class="amount-input wl-no-spin"
-        aria-label="Monto"
-        type="number"
-        inputmode="decimal"
-        placeholder="0"
-        [style.width.ch]="amountWidth()"
-        [formField]="movementForm.amount"
-      />
-    </div>
-    @if (errorOf(movementForm.amount); as error) {
-      <p class="wl-field-error center">{{ error }}</p>
-    }
-
-    <app-type-picker [formField]="movementForm.tipo" />
-
-    @if (!movementForm.category().hidden()) {
-      <div class="wl-field">
-        <span class="wl-field-label">Categoría</span>
-        <app-chip-picker label="Categoría" [options]="categoryOptions" [formField]="movementForm.category" />
-        @if (errorOf(movementForm.category); as error) {
-          <p class="wl-field-error">{{ error }}</p>
-        }
+  <form id="movement-form" class="movement-form" (submit)="onSubmit($event)" novalidate>
+    <div class="col-primary" [style.--type-color]="currentType().color">
+      <div class="amount">
+        <span class="currency" aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
+        <ion-input
+          class="amount-input wl-no-spin"
+          [attr.aria-label]="'amount' | t"
+          type="number"
+          inputmode="decimal"
+          placeholder="0"
+          [style.width.ch]="amountWidth()"
+          [formField]="movementForm.amount"
+        />
       </div>
-    }
+      @if (errorOf(movementForm.amount); as error) {
+        <p class="wl-field-error center">{{ error }}</p>
+      }
 
-    @if (!movementForm.fuente().hidden()) {
-      <div class="wl-field">
-        <span class="wl-field-label">¿De dónde viene?</span>
-        <app-chip-picker label="Origen del ingreso" [options]="sourceOptions" [formField]="movementForm.fuente" />
-        @if (errorOf(movementForm.fuente); as error) {
-          <p class="wl-field-error">{{ error }}</p>
-        }
+      <app-type-picker [formField]="movementForm.tipo" />
+    </div>
+
+    <div class="col-detail">
+      @if (!movementForm.category().hidden()) {
+        <div class="wl-field">
+          <span class="wl-field-label">{{ 'category' | t }}</span>
+          <app-category-picker [label]="'category' | t" [formField]="movementForm.category" />
+          @if (errorOf(movementForm.category); as error) {
+            <p class="wl-field-error">{{ error }}</p>
+          }
+        </div>
+      }
+
+      @if (!movementForm.fuente().hidden()) {
+        <div class="wl-field">
+          <span class="wl-field-label">{{ 'incomeSource' | t }}</span>
+          <app-chip-picker [label]="'incomeSourceAria' | t" [options]="sourceOptions()" [formField]="movementForm.fuente" />
+          @if (errorOf(movementForm.fuente); as error) {
+            <p class="wl-field-error">{{ error }}</p>
+          }
+        </div>
+      }
+
+      <div class="row">
+        <div class="wl-field grow">
+          <span class="wl-field-label">{{ 'description' | t }} <span class="optional">{{ 'optional' | t }}</span></span>
+          <ion-input
+            class="wl-input"
+            [attr.aria-label]="'description' | t"
+            [placeholder]="currentType().placeholderKey | t"
+            [formField]="movementForm.description"
+          />
+          @if (errorOf(movementForm.description); as error) {
+            <p class="wl-field-error">{{ error }}</p>
+          }
+        </div>
+
+        <div class="wl-field date">
+          <span class="wl-field-label">{{ 'date' | t }}</span>
+          <ion-input class="wl-input" [attr.aria-label]="'date' | t" type="date" [formField]="movementForm.date" />
+          @if (errorOf(movementForm.date); as error) {
+            <p class="wl-field-error">{{ error }}</p>
+          }
+        </div>
       </div>
-    }
-
-    <div class="wl-field">
-      <span class="wl-field-label">Descripción <span class="optional">(opcional)</span></span>
-      <ion-input
-        class="wl-input"
-        aria-label="Descripción"
-        placeholder="Ej: compra semanal"
-        [formField]="movementForm.description"
-      />
-      @if (errorOf(movementForm.description); as error) {
-        <p class="wl-field-error">{{ error }}</p>
-      }
-    </div>
-
-    <div class="wl-field">
-      <span class="wl-field-label">Fecha</span>
-      <ion-input class="wl-input" aria-label="Fecha" type="date" [formField]="movementForm.date" />
-      @if (errorOf(movementForm.date); as error) {
-        <p class="wl-field-error">{{ error }}</p>
-      }
-    </div>
-
-    <div class="actions">
-      <ion-button class="wl-btn wl-btn-primary" type="submit" expand="block" [disabled]="saving()">
-        @if (saving()) {
-          <ion-spinner name="crescent" />
-        } @else {
-          {{ saveLabel() }}
-        }
-      </ion-button>
-      @if (isEdit()) {
-        <ion-button class="wl-btn delete" fill="clear" color="danger" expand="block" [disabled]="saving()" (click)="onRemove()">
-          Eliminar movimiento
-        </ion-button>
-      }
     </div>
   </form>
 </ion-content>
+
+<ion-footer class="ion-no-border">
+  <div class="actions">
+    @if (isEdit()) {
+      <ion-button class="wl-btn delete" fill="clear" color="danger" [disabled]="saving()" (click)="onRemove()">
+        {{ 'deleteMovement' | t }}
+      </ion-button>
+    }
+    <ion-button class="wl-btn wl-btn-primary save" type="submit" form="movement-form" [disabled]="saving()">
+      @if (saving()) {
+        <ion-spinner name="crescent" />
+      } @else {
+        {{ saveLabel() }}
+      }
+    </ion-button>
+  </div>
+</ion-footer>
