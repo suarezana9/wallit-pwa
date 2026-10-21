@@ -1,0 +1,57 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-title>Movimientos</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  <div class="wl-page">
+    <header class="wl-page-header">
+      <div class="wl-page-title ion-hide-lg-down">
+        <h1>Movimientos</h1>
+        <p>Todo lo que entró y salió en el mes.</p>
+      </div>
+      <app-month-nav />
+      <ion-button class="wl-btn wl-btn-primary ion-hide-lg-down" (click)="editor().openNew()">
+        <ion-icon slot="start" name="add" />
+        Nuevo movimiento
+      </ion-button>
+    </header>
+
+    <div class="filters">
+      <app-chip-picker label="Filtrar por tipo" [options]="filterOptions()" [(value)]="filter" />
+    </div>
+
+    <section class="wl-panel" aria-label="Lista de movimientos">
+      @if (store.movements.error()) {
+        <div class="error">
+          <p>No pudimos cargar tus movimientos.</p>
+          <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="store.movements.reload()">Reintentar</ion-button>
+        </div>
+      } @else if (store.movements.isLoading() && !store.movements.hasValue()) {
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <ion-skeleton-text [animated]="true" class="skeleton" />
+        }
+      } @else {
+        <app-movement-list
+          [movements]="filtered()"
+          [emptyTitle]="emptyTitle()"
+          (selected)="editor().openEdit($event)"
+          (removed)="editor().confirmRemove($event)"
+        />
+      }
+    </section>
+  </div>
+
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-hide-lg-up">
+    <ion-fab-button (click)="editor().openNew()" aria-label="Nuevo movimiento">
+      <ion-icon name="add" />
+    </ion-fab-button>
+  </ion-fab>
+
+  <app-movement-editor />
+</ion-content>

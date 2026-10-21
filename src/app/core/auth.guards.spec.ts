@@ -35,9 +35,9 @@ describe('guestGuard', () => {
     expect(run(guestGuard)).toBe(true);
   });
 
-  it('manda a /home si ya hay sesión', () => {
+  it('manda a /inicio si ya hay sesión', () => {
     const { run, router } = setup(true);
     const result = run(guestGuard) as UrlTree;
-    expect(router.serializeUrl(result)).toBe('/home');
+    expect(router.serializeUrl(result)).toBe('/inicio');
   });
 });

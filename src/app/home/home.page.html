@@ -1,46 +1,117 @@
-<ion-header [translucent]="true">
+<ion-header class="ion-no-border ion-hide-lg-up">
   <ion-toolbar>
-    <ion-title>Wallit</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="logout()" aria-label="Cerrar sesión">
-        <ion-icon slot="icon-only" name="log-out-outline" />
-      </ion-button>
-    </ion-buttons>
+    <div class="topbar" slot="start">
+      <app-wallit-logo [size]="30" />
+      <span class="hello">Hola, {{ displayName() }}</span>
+    </div>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="ion-padding">
-    <h2 class="greeting">Hola, {{ displayName() }}</h2>
-    @if (profile.error()) {
-      <p class="status">No se pudo leer tu perfil de Supabase.</p>
-    } @else if (profile.isLoading()) {
-      <p class="status">Conectando con Supabase…</p>
-    } @else if (profile.hasValue()) {
-      <p class="status">Conectado a Supabase como {{ profile.value().email }}</p>
-    }
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  <div class="wl-page">
+    <header class="wl-page-header">
+      <div class="wl-page-title ion-hide-lg-down">
+        <h1>Inicio</h1>
+        <p>Hola, {{ displayName() }}. Así viene tu mes.</p>
+      </div>
+      <app-month-nav />
+      <ion-button class="wl-btn wl-btn-primary new-btn ion-hide-lg-down" (click)="editor().openNew()">
+        <ion-icon slot="start" name="add" />
+        Nuevo movimiento
+      </ion-button>
+    </header>
+
+    <section class="kpis" aria-label="Resumen del mes">
+      <div class="kpi main">
+        @if (hasIncome()) {
+          <span class="kpi-label">Disponible</span>
+          <span class="kpi-amount" [class.negative]="summary().disponible < 0">{{ summary().disponible | money }}</span>
+          @if (summary().tasaAhorro !== null) {
+            <span class="kpi-note">Ahorrás e invertís el {{ summary().tasaAhorro | number: '1.0-0' }}% de tus ingresos</span>
+          }
+        } @else {
+          <span class="kpi-label">Lo que gastaste</span>
+          <span class="kpi-amount">{{ summary().gastos | money }}</span>
+          <span class="kpi-note">Cargá tus ingresos para ver tu disponible</span>
+        }
+      </div>
+      <div class="kpi">
+        <span class="kpi-label"><span class="dot ingreso"></span>Ingresos</span>
+        <span class="kpi-amount">{{ summary().ingresos | money }}</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label"><span class="dot gasto"></span>Gastos</span>
+        <span class="kpi-amount">{{ summary().gastos | money }}</span>
+        @if (change(); as c) {
+          <span class="change" [class.up]="c.percent > 0" [class.down]="c.percent <= 0">
+            <ion-icon [name]="c.percent > 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true" />
+            {{ (c.percent < 0 ? -c.percent : c.percent) | number: '1.0-0' }}% vs {{ c.previousMonth }}
+          </span>
+        }
+      </div>
+      <div class="kpi">
+        <span class="kpi-label"><span class="dot ahorro"></span>Ahorros</span>
+        <span class="kpi-amount">{{ summary().ahorros | money }}</span>
+      </div>
+      <div class="kpi">
+        <span class="kpi-label"><span class="dot inversion"></span>Inversiones</span>
+        <span class="kpi-amount">{{ summary().inversiones | money }}</span>
+      </div>
+    </section>
+
+    <div class="columns">
+      <div class="column">
+        <section class="wl-panel" aria-labelledby="chart-title">
+          <div class="panel-header">
+            <h2 id="chart-title">Evolución de gastos</h2>
+            <span class="panel-note">Últimos 6 meses</span>
+          </div>
+          @defer (on viewport) {
+            <app-monthly-chart [points]="insights.months()" />
+          } @placeholder {
+            <div class="chart-placeholder"></div>
+          }
+        </section>
+
+        <section class="wl-panel" aria-labelledby="recent-title">
+          <div class="panel-header">
+            <h2 id="recent-title">Últimos movimientos</h2>
+            <a class="see-all" routerLink="/movimientos">Ver todos</a>
+          </div>
+          @if (store.movements.isLoading() && !store.movements.hasValue()) {
+            @for (row of [1, 2, 3]; track row) {
+              <ion-skeleton-text [animated]="true" class="skeleton" />
+            }
+          } @else {
+            <app-movement-list
+              [movements]="recent()"
+              emptyTitle="Todavía no hay movimientos este mes"
+              emptyHint="Cargá el primero con el botón +."
+              (selected)="editor().openEdit($event)"
+              (removed)="editor().confirmRemove($event)"
+            />
+          }
+        </section>
+      </div>
+
+      <aside class="wl-panel" aria-labelledby="breakdown-title">
+        <div class="panel-header">
+          <h2 id="breakdown-title">Gastos por categoría</h2>
+        </div>
+        <app-category-breakdown [movements]="store.list()" />
+      </aside>
+    </div>
   </div>
 
-  <ion-list>
-    <ion-list-header>
-      <ion-label>Datos de ejemplo (en la Etapa 2 pasan a ser tus movimientos reales)</ion-label>
-    </ion-list-header>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-hide-lg-up">
+    <ion-fab-button (click)="editor().openNew()" aria-label="Nuevo movimiento">
+      <ion-icon name="add" />
+    </ion-fab-button>
+  </ion-fab>
 
-    <ion-item>
-      <ion-label><strong>Total del mes</strong></ion-label>
-      <ion-note slot="end">{{ total() | currency:'ARS':'symbol-narrow':'1.0-0' }}</ion-note>
-    </ion-item>
-
-    @for (expense of expenses(); track expense.id) {
-      <ion-item>
-        <ion-label>
-          <h2>{{ expense.category }}</h2>
-          <p>{{ expense.date | date:'dd/MM' }}</p>
-        </ion-label>
-        <ion-note slot="end">{{ expense.amount | currency:'ARS':'symbol-narrow':'1.0-0' }}</ion-note>
-      </ion-item>
-    } @empty {
-      <ion-item><ion-label>Todavía no cargaste gastos</ion-label></ion-item>
-    }
-  </ion-list>
+  <app-movement-editor />
 </ion-content>

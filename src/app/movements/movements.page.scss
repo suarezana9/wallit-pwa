@@ -1,0 +1,17 @@
+.filters {
+  margin: 4px 0 16px;
+}
+
+.error {
+  padding: 28px 8px;
+  text-align: center;
+  color: var(--wl-muted);
+
+  p { margin: 0 0 12px; }
+}
+
+.skeleton {
+  height: 42px;
+  margin-bottom: 12px;
+  border-radius: 12px;
+}

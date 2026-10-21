@@ -1,0 +1,88 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{ isEdit() ? 'Editar movimiento' : 'Nuevo movimiento' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="dismiss.emit()" aria-label="Cerrar">
+        <ion-icon slot="icon-only" name="close-outline" />
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <form class="movement-form" (submit)="onSubmit($event)" novalidate>
+    <div class="amount" [style.--type-color]="currentType().color">
+      <span class="currency" aria-hidden="true">$</span>
+      <ion-input
+        class="amount-input wl-no-spin"
+        aria-label="Monto"
+        type="number"
+        inputmode="decimal"
+        placeholder="0"
+        [style.width.ch]="amountWidth()"
+        [formField]="movementForm.amount"
+      />
+    </div>
+    @if (errorOf(movementForm.amount); as error) {
+      <p class="wl-field-error center">{{ error }}</p>
+    }
+
+    <app-type-picker [formField]="movementForm.tipo" />
+
+    @if (!movementForm.category().hidden()) {
+      <div class="wl-field">
+        <span class="wl-field-label">Categoría</span>
+        <app-chip-picker label="Categoría" [options]="categoryOptions" [formField]="movementForm.category" />
+        @if (errorOf(movementForm.category); as error) {
+          <p class="wl-field-error">{{ error }}</p>
+        }
+      </div>
+    }
+
+    @if (!movementForm.fuente().hidden()) {
+      <div class="wl-field">
+        <span class="wl-field-label">¿De dónde viene?</span>
+        <app-chip-picker label="Origen del ingreso" [options]="sourceOptions" [formField]="movementForm.fuente" />
+        @if (errorOf(movementForm.fuente); as error) {
+          <p class="wl-field-error">{{ error }}</p>
+        }
+      </div>
+    }
+
+    <div class="wl-field">
+      <span class="wl-field-label">Descripción <span class="optional">(opcional)</span></span>
+      <ion-input
+        class="wl-input"
+        aria-label="Descripción"
+        placeholder="Ej: compra semanal"
+        [formField]="movementForm.description"
+      />
+      @if (errorOf(movementForm.description); as error) {
+        <p class="wl-field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="wl-field">
+      <span class="wl-field-label">Fecha</span>
+      <ion-input class="wl-input" aria-label="Fecha" type="date" [formField]="movementForm.date" />
+      @if (errorOf(movementForm.date); as error) {
+        <p class="wl-field-error">{{ error }}</p>
+      }
+    </div>
+
+    <div class="actions">
+      <ion-button class="wl-btn wl-btn-primary" type="submit" expand="block" [disabled]="saving()">
+        @if (saving()) {
+          <ion-spinner name="crescent" />
+        } @else {
+          {{ saveLabel() }}
+        }
+      </ion-button>
+      @if (isEdit()) {
+        <ion-button class="wl-btn delete" fill="clear" color="danger" expand="block" [disabled]="saving()" (click)="onRemove()">
+          Eliminar movimiento
+        </ion-button>
+      }
+    </div>
+  </form>
+</ion-content>

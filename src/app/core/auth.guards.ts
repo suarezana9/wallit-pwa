@@ -11,5 +11,5 @@ export const authGuard: CanActivateFn = () => {
 /** Para /login: si ya hay sesión, no tiene sentido mostrarlo. */
 export const guestGuard: CanActivateFn = () => {
   const auth = inject(AuthStore);
-  return auth.isLoggedIn() ? inject(Router).createUrlTree(['/home']) : true;
+  return auth.isLoggedIn() ? inject(Router).createUrlTree(['/inicio']) : true;
 };

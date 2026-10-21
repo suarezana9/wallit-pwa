@@ -8,12 +8,13 @@ describe('LoginPage', () => {
     signInWithPassword: vi.fn().mockResolvedValue({ error: null }),
     signUp: vi.fn(),
     signInWithGoogle: vi.fn(),
+    sendPasswordReset: vi.fn().mockResolvedValue({ error: null }),
   };
 
   beforeEach(() => {
     auth.signInWithPassword.mockClear();
     TestBed.configureTestingModule({
-      providers: [provideRouter([{ path: 'home', children: [] }]), { provide: AuthStore, useValue: auth }],
+      providers: [provideRouter([{ path: 'inicio', children: [] }]), { provide: AuthStore, useValue: auth }],
     });
   });
 
@@ -36,5 +37,14 @@ describe('LoginPage', () => {
     page.credentials.set({ email: 'ana@mail.com', password: '123456' });
     await page.onSubmit(new Event('submit'));
     expect(auth.signInWithPassword).toHaveBeenCalledWith('ana@mail.com', '123456');
+  });
+
+  it('en modo recuperar solo pide el email y manda el enlace', async () => {
+    const page = TestBed.createComponent(LoginPage).componentInstance;
+    page.setMode('recuperar');
+    page.credentials.set({ email: 'ana@mail.com', password: '' });
+    await page.onSubmit(new Event('submit'));
+    expect(auth.sendPasswordReset).toHaveBeenCalledWith('ana@mail.com');
+    expect(page.info()).toContain('ana@mail.com');
   });
 });

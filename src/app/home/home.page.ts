@@ -1,42 +1,52 @@
-import { Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, computed, inject, viewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { DecimalPipe } from '@angular/common';
 import {
-  IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonItem, IonLabel,
-  IonList, IonListHeader, IonNote, IonTitle, IonToolbar,
+  IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher,
+  IonRefresherContent, IonSkeletonText, IonToolbar, RefresherCustomEvent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { logOutOutline } from 'ionicons/icons';
-import { ExpenseStore } from '../services/expense-store';
-import { AuthStore } from '../core/auth-store';
+import { add, arrowDownOutline, arrowUpOutline } from 'ionicons/icons';
 import { ProfileStore } from '../core/profile-store';
+import { MoneyPipe } from '../core/money';
+import { WallitLogoComponent } from '../shared/wallit-logo';
+import { MonthNavComponent } from '../shared/month-nav.component';
+import { MovementsStore } from '../movements/movements-store';
+import { InsightsStore } from '../movements/insights-store';
+import { CategoryBreakdownComponent } from '../movements/category-breakdown.component';
+import { MovementEditorComponent } from '../movements/movement-editor.component';
+import { MovementListComponent } from '../movements/movement-list.component';
+import { MonthlyChartComponent } from '../movements/monthly-chart.component';
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
-    CurrencyPipe, DatePipe, IonButton, IonButtons, IonContent, IonHeader, IonIcon,
-    IonItem, IonLabel, IonList, IonListHeader, IonNote, IonTitle, IonToolbar,
+    CategoryBreakdownComponent, DecimalPipe, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
+    IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
+    MonthNavComponent, MonthlyChartComponent, MovementEditorComponent, MovementListComponent,
+    RouterLink, WallitLogoComponent,
   ],
 })
 export class HomePage {
-  private readonly expenseStore = inject(ExpenseStore);
-  private readonly auth = inject(AuthStore);
-  private readonly router = inject(Router);
-  private readonly profileStore = inject(ProfileStore);
+  readonly store = inject(MovementsStore);
+  readonly insights = inject(InsightsStore);
+  readonly displayName = inject(ProfileStore).displayName;
+  readonly editor = viewChild.required(MovementEditorComponent);
 
-  readonly expenses = this.expenseStore.expenses;
-  readonly total = this.expenseStore.total;
-  readonly displayName = this.profileStore.displayName;
-  readonly profile = this.profileStore.profile;
+  readonly summary = this.store.summary;
+  readonly hasIncome = computed(() => this.summary().ingresos > 0);
+  readonly recent = computed(() => this.store.list().slice(0, 5));
+  readonly change = this.insights.expenseChange;
 
   constructor() {
-    addIcons({ logOutOutline });
+    addIcons({ add, arrowDownOutline, arrowUpOutline });
   }
 
-  async logout(): Promise<void> {
-    await this.auth.signOut();
-    await this.router.navigateByUrl('/login', { replaceUrl: true });
+  async refresh(event: RefresherCustomEvent): Promise<void> {
+    this.store.movements.reload();
+    this.insights.reload();
+    await event.target.complete();
   }
 }

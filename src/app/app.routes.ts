@@ -8,10 +8,30 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
   },
   {
-    path: 'home',
+    path: 'nueva-contrasena',
     canActivate: [authGuard],
-    loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+    loadComponent: () => import('./auth/new-password.page').then((m) => m.NewPasswordPage),
   },
-  { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: '**', redirectTo: 'home' },
+  { path: 'home', redirectTo: 'inicio', pathMatch: 'full' },
+  {
+    path: '',
+    canActivate: [authGuard],
+    loadComponent: () => import('./tabs/tabs.page').then((m) => m.TabsPage),
+    children: [
+      {
+        path: 'inicio',
+        loadComponent: () => import('./home/home.page').then((m) => m.HomePage),
+      },
+      {
+        path: 'movimientos',
+        loadComponent: () => import('./movements/movements.page').then((m) => m.MovementsPage),
+      },
+      {
+        path: 'cuenta',
+        loadComponent: () => import('./account/account.page').then((m) => m.AccountPage),
+      },
+      { path: '', redirectTo: 'inicio', pathMatch: 'full' },
+    ],
+  },
+  { path: '**', redirectTo: 'inicio' },
 ];

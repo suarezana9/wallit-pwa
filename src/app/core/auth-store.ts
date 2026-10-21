@@ -52,7 +52,7 @@ export class AuthStore {
     const { data, error } = await this.supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: `${window.location.origin}/home` },
+      options: { emailRedirectTo: `${window.location.origin}/inicio` },
     });
     return {
       error: error ? translateAuthError(error.message) : null,
@@ -69,10 +69,22 @@ export class AuthStore {
     const { error } = await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/home`,
+        redirectTo: `${window.location.origin}/inicio`,
         queryParams: { prompt: 'select_account' },
       },
     });
+    return { error: error ? translateAuthError(error.message) : null };
+  }
+
+  async sendPasswordReset(email: string): Promise<AuthResult> {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/nueva-contrasena`,
+    });
+    return { error: error ? translateAuthError(error.message) : null };
+  }
+
+  async updatePassword(password: string): Promise<AuthResult> {
+    const { error } = await this.supabase.auth.updateUser({ password });
     return { error: error ? translateAuthError(error.message) : null };
   }
 
@@ -88,5 +100,8 @@ export function translateAuthError(message: string): string {
   if (message.includes('Email not confirmed')) return 'Confirmá tu email antes de ingresar.';
   if (message.includes('User already registered')) return 'Ya existe una cuenta con ese email. Iniciá sesión.';
   if (message.includes('Password should be')) return 'La contraseña debe tener al menos 6 caracteres.';
+  if (message.includes('should be different from the old password')) return 'La nueva contraseña tiene que ser distinta a la anterior.';
+  if (message.includes('For security purposes')) return 'Esperá unos segundos antes de pedir otro enlace.';
+  if (message.toLowerCase().includes('rate limit')) return 'Se enviaron demasiados correos. Probá de nuevo en un rato.';
   return message;
 }

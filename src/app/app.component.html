@@ -1,3 +1,8 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-split-pane contentId="main" when="lg">
+    <ion-menu contentId="main" class="wl-sidebar" [disabled]="!auth.isLoggedIn()" [swipeGesture]="false">
+      <app-sidebar />
+    </ion-menu>
+    <ion-router-outlet id="main" />
+  </ion-split-pane>
 </ion-app>
