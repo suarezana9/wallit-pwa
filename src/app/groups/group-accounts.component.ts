@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { AlertController, IonButton, IonIcon, IonSkeletonText, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowForward, checkmarkCircle, informationCircleOutline, trashOutline } from 'ionicons/icons';
@@ -11,6 +11,8 @@ import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component
 import type { Transfer } from './balances.model';
 import { injectGroupAccounts } from './group-accounts';
 import type { GroupMember } from './groups-store';
+import type { Grupo } from '../core/database.types';
+import { TripSummaryComponent } from './trip-summary.component';
 
 interface Person {
   name: string;
@@ -22,11 +24,21 @@ interface Person {
 /** Pestaña "Cuentas" del grupo: tu saldo, cómo saldar con pocas transferencias y los pagos registrados. */
 @Component({
   selector: 'app-group-accounts',
-  imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, TranslatePipe],
+  imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, TranslatePipe, TripSummaryComponent],
   template: `
     @if (accounts.data.isLoading() && !accounts.data.hasValue()) {
       <ion-skeleton-text [animated]="true" class="skeleton" />
     } @else {
+      @if (group()?.tipo === 'viaje') {
+        <app-trip-summary
+          [group]="group()!"
+          [movements]="accounts.movements()"
+          [memberCount]="members().length"
+          [pendingDebts]="transfers().length > 0"
+          [isAdmin]="isAdmin()"
+          (archive)="archive.emit()"
+        />
+      }
       <section class="hero" [class.owed]="myBalance() > 0" [class.owes]="myBalance() < 0">
         @if (myBalance() === 0) {
           <ion-icon name="checkmark-circle" class="hero-icon" aria-hidden="true" />
@@ -173,6 +185,9 @@ interface Person {
 export class GroupAccountsComponent {
   readonly groupId = input.required<string>();
   readonly members = input<readonly GroupMember[]>([]);
+  readonly group = input<Grupo | null>(null);
+  readonly isAdmin = input(false);
+  readonly archive = output<void>();
 
   private readonly auth = inject(AuthStore);
   private readonly i18n = inject(I18n);

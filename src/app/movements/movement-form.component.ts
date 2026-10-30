@@ -107,9 +107,9 @@ export class MovementFormComponent {
   readonly targetGroupId = computed(() => (this.spaceId() === PERSONAL ? null : this.spaceId()));
   readonly spaceOptions = computed<ChipOption[]>(() => [
     { value: PERSONAL, label: this.i18n.t('personal') },
-    ...this.groups.list().map(({ group }) => ({ value: group.id, label: group.name })),
+    ...this.groups.openList().map(({ group }) => ({ value: group.id, label: group.name })),
   ]);
-  readonly showSpacePicker = computed(() => !this.isEdit() && this.groups.list().length > 0);
+  readonly showSpacePicker = computed(() => !this.isEdit() && this.groups.openList().length > 0);
 
   private readonly membersResource = resource({
     params: () => this.targetGroupId() ?? undefined,

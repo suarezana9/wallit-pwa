@@ -5,7 +5,7 @@ import { Supabase } from '../core/supabase';
 import { monthRange } from '../core/dates';
 import { I18n } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
-import type { Grupo, RolGrupo } from '../core/database.types';
+import type { Grupo, RolGrupo, TipoGrupo } from '../core/database.types';
 
 export const PERSONAL = 'personal';
 
@@ -35,6 +35,12 @@ export interface GroupMember {
   email: string;
   role: RolGrupo;
   joinedAt: string;
+}
+
+export interface GroupSettings {
+  tipo: TipoGrupo;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
 }
 
 export interface GroupMonthSummary {
@@ -84,6 +90,9 @@ export class GroupsStore {
   });
 
   readonly list = computed(() => (this.groups.hasValue() ? this.groups.value() : []));
+  /** Los archivados no aparecen en el selector de espacio; quedan en Grupos > Archivados. */
+  readonly openList = computed(() => this.list().filter((g) => !g.group.archivado));
+  readonly archivedList = computed(() => this.list().filter((g) => g.group.archivado));
 
   readonly contextId = computed(() => {
     const id = this.selected();
@@ -161,12 +170,12 @@ export class GroupsStore {
     }));
   }
 
-  async create(name: string): Promise<{ id?: string; error?: string }> {
+  async create(name: string, settings: GroupSettings = { tipo: 'hogar', fecha_inicio: null, fecha_fin: null }): Promise<{ id?: string; error?: string }> {
     const userId = this.auth.user()?.id;
     if (!userId) return { error: this.i18n.t('errSessionExpired') };
     const { error } = await this.supabase
       .from('groups')
-      .insert({ name: name.trim(), created_by: userId, currency: this.preferences.currency() });
+      .insert({ name: name.trim(), created_by: userId, currency: this.preferences.currency(), ...settings });
     if (error) return { error: this.i18n.t('errCreateGroup') };
 
     const { data: group, error: findError } = await this.supabase
@@ -216,6 +225,17 @@ export class GroupsStore {
     this.groups.update((list) =>
       (list ?? []).map((g) => (g.group.id === groupId ? { ...g, group: { ...g.group, name: name.trim() } } : g)),
     );
+    return null;
+  }
+
+  /** Tipo y fechas del grupo (solo admin; la RLS de groups también lo exige). */
+  async updateSettings(groupId: string, changes: Partial<GroupSettings & { archivado: boolean }>): Promise<string | null> {
+    if (this.roleIn(groupId) !== 'admin') return this.i18n.t('errOnlyAdmin');
+    const { data, error } = await this.supabase.from('groups').update(changes).eq('id', groupId).select().single();
+    if (error || !data) return this.i18n.t('errSaveChanges');
+    this.groups.update((list) => (list ?? []).map((g) => (g.group.id === groupId ? { ...g, group: data } : g)));
+    // Si se archiva el espacio que estás usando, volvés a Personal.
+    if (changes.archivado && this.selected() === groupId) this.selected.set(PERSONAL);
     return null;
   }
 

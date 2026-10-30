@@ -255,3 +255,74 @@
     margin-top: 48px;
   }
 }
+
+.badge-trip {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.14);
+}
+
+.archived {
+  margin-top: 24px;
+
+  ul {
+    list-style: none;
+    margin: 8px 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    color: inherit;
+    text-decoration: none;
+    background: var(--wl-field-bg);
+  }
+}
+
+.archived-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--wl-muted);
+  background: none;
+  cursor: pointer;
+}
+
+.mini-icon {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--wl-muted);
+  background: var(--wl-field-border);
+}
+
+.archived-name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.archived-hint {
+  font-size: 12px;
+  color: var(--wl-muted);
+}
+
+.card .group-icon {
+  color: #fff;
+  background: var(--space-color, var(--ion-color-primary));
+}

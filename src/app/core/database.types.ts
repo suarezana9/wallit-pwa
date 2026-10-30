@@ -13,6 +13,21 @@ export type Categoria =
 export type TipoMovimiento = 'gasto' | 'ingreso' | 'ahorro' | 'inversion';
 export type FuenteIngreso = 'sueldo' | 'freelance' | 'alquiler' | 'otro';
 export type RolGrupo = 'admin' | 'member';
+export type TipoGrupo = 'hogar' | 'viaje';
+export type TipoActividad =
+  | 'gasto_nuevo' | 'gasto_editado' | 'gasto_borrado' | 'pago' | 'pago_borrado' | 'miembro_entro' | 'miembro_salio';
+
+/** Lo que guardan los triggers en group_activity.data (migración 013). */
+export interface ActividadData {
+  actor_name?: string;
+  descripcion?: string;
+  categoria?: string;
+  tipo?: TipoMovimiento;
+  monto?: number;
+  monto_anterior?: number;
+  de?: string;
+  para?: string;
+}
 
 /** División de un gasto de grupo (columna expenses.division, migración 012). */
 export type Division =
@@ -48,9 +63,21 @@ export interface Database {
           created_by: string | null;
           invite_code: string;
           created_at: string;
+          /** Migración 013. */
+          tipo: TipoGrupo;
+          fecha_inicio: string | null;
+          fecha_fin: string | null;
+          archivado: boolean;
         };
-        Insert: Omit<Database['public']['Tables']['groups']['Row'], 'id' | 'created_at' | 'invite_code'> & {
+        Insert: Omit<
+          Database['public']['Tables']['groups']['Row'],
+          'id' | 'created_at' | 'invite_code' | 'tipo' | 'fecha_inicio' | 'fecha_fin' | 'archivado'
+        > & {
           invite_code?: string;
+          tipo?: TipoGrupo;
+          fecha_inicio?: string | null;
+          fecha_fin?: string | null;
+          archivado?: boolean;
         };
         Update: Partial<Database['public']['Tables']['groups']['Row']>;
         Relationships: [];
@@ -123,6 +150,19 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['settlements']['Row']>;
         Relationships: [];
       };
+      group_activity: {
+        Row: {
+          id: string;
+          group_id: string;
+          actor: string | null;
+          kind: TipoActividad;
+          data: ActividadData;
+          created_at: string;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       expense_splits: {
         Row: {
           id: string;
@@ -163,3 +203,4 @@ export type UserRow = Database['public']['Tables']['users']['Row'];
 export type Movimiento = Database['public']['Tables']['expenses']['Row'];
 export type Grupo = Database['public']['Tables']['groups']['Row'];
 export type Pago = Database['public']['Tables']['settlements']['Row'];
+export type Actividad = Database['public']['Tables']['group_activity']['Row'];

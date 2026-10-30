@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, resource, signal } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, resource, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
@@ -6,13 +6,17 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
+  archiveOutline, arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
   shareSocialOutline, trashOutline,
 } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component';
 import { GroupAccountsComponent } from './group-accounts.component';
+import { GroupActivityComponent } from './group-activity.component';
+import { formatTripRange } from './trip.model';
+import { PreferencesStore } from '../core/preferences-store';
+import type { TipoGrupo } from '../core/database.types';
 import { spaceColor } from './space-color';
 import { GroupsStore } from './groups-store';
 
@@ -21,7 +25,7 @@ import { GroupsStore } from './groups-store';
   templateUrl: 'group-detail.page.html',
   styleUrls: ['group-detail.page.scss'],
   imports: [
-    GroupAccountsComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
+    GroupAccountsComponent, GroupActivityComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
     IonSkeletonText, IonTitle, IonToolbar, RouterLink, TranslatePipe,
   ],
 })
@@ -35,11 +39,29 @@ export class GroupDetailPage {
   private readonly toasts = inject(ToastController);
   readonly groups = inject(GroupsStore);
   readonly colors = MEMBER_COLORS;
-  readonly tab = signal<'accounts' | 'members'>('accounts');
+  readonly tab = signal<'accounts' | 'activity' | 'members'>('accounts');
 
   readonly entry = computed(() => this.groups.list().find((g) => g.group.id === this.id()) ?? null);
   readonly group = computed(() => this.entry()?.group ?? null);
   readonly color = computed(() => spaceColor(this.id()));
+  private readonly preferences = inject(PreferencesStore);
+
+  readonly tripLabel = computed(() => {
+    const group = this.group();
+    const dates = group ? formatTripRange(group.fecha_inicio, group.fecha_fin, this.preferences.locale(), this.i18n.t('since')) : '';
+    return dates || this.i18n.t('tripLabel');
+  });
+
+  // Borrador de la configuración (tipo y fechas); se reinicia si cambia el grupo.
+  readonly draftKind = linkedSignal<TipoGrupo>(() => this.group()?.tipo ?? 'hogar');
+  readonly draftFrom = linkedSignal(() => this.group()?.fecha_inicio ?? '');
+  readonly draftTo = linkedSignal(() => this.group()?.fecha_fin ?? '');
+  readonly settingsChanged = computed(() => {
+    const group = this.group();
+    if (!group) return false;
+    return this.draftKind() !== group.tipo
+      || (this.draftKind() === 'viaje' && ((this.draftFrom() || null) !== group.fecha_inicio || (this.draftTo() || null) !== group.fecha_fin));
+  });
   readonly isAdmin = computed(() => this.entry()?.role === 'admin');
   readonly isActive = computed(() => this.groups.contextId() === this.id());
   readonly userId = computed(() => this.auth.user()?.id);
@@ -79,7 +101,7 @@ export class GroupDetailPage {
 
   constructor() {
     addIcons({
-      arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
+      archiveOutline, arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
       shareSocialOutline, trashOutline,
     });
   }
@@ -122,6 +144,31 @@ export class GroupDetailPage {
     } catch {
       return;
     }
+  }
+
+  async saveSettings(): Promise<void> {
+    const trip = this.draftKind() === 'viaje';
+    const from = trip ? this.draftFrom() || null : null;
+    const to = trip ? this.draftTo() || null : null;
+    if (from && to && to < from) {
+      await this.toast(this.i18n.t('errTripDates'), 'danger');
+      return;
+    }
+    const error = await this.groups.updateSettings(this.id(), { tipo: this.draftKind(), fecha_inicio: from, fecha_fin: to });
+    await this.toast(error ?? this.i18n.t('changesSaved'), error ? 'danger' : 'dark');
+  }
+
+  async setArchived(archivado: boolean): Promise<void> {
+    if (archivado) {
+      const name = this.group()?.name ?? '';
+      await this.confirm(this.i18n.t('archiveConfirm', name), this.i18n.t('archiveText'), this.i18n.t('archiveGroup'), async () => {
+        const error = await this.groups.updateSettings(this.id(), { archivado: true });
+        await this.toast(error ?? this.i18n.t('groupArchived'), error ? 'danger' : 'dark');
+      });
+      return;
+    }
+    const error = await this.groups.updateSettings(this.id(), { archivado: false });
+    await this.toast(error ?? this.i18n.t('groupUnarchived'), error ? 'danger' : 'dark');
   }
 
   async useInHome(): Promise<void> {

@@ -31,7 +31,7 @@
           <ion-skeleton-text [animated]="true" class="skeleton" />
         }
       </div>
-    } @else if (!groups.list().length) {
+    } @else if (!groups.openList().length && !groups.archivedList().length) {
       <section class="empty">
         <div class="empty-icon" aria-hidden="true"><ion-icon name="people-outline" /></div>
         <h2>{{ 'noGroupsTitle' | t }}</h2>
@@ -57,15 +57,18 @@
       </section>
     } @else {
       <div class="grid">
-        @for (item of groups.list(); track item.group.id) {
+        @for (item of groups.openList(); track item.group.id) {
           <a class="card" [class.active]="groups.contextId() === item.group.id" [routerLink]="['/grupos', item.group.id]">
             <div class="card-head">
-              <div class="group-icon" aria-hidden="true">{{ item.group.name.charAt(0).toUpperCase() }}</div>
+              <div class="group-icon" [style.--space-color]="color(item.group.id)" aria-hidden="true">{{ item.group.name.charAt(0).toUpperCase() }}</div>
               <div class="card-title">
                 <h2>{{ item.group.name }}</h2>
                 <div class="badges">
                   @if (groups.contextId() === item.group.id) {
                     <span class="badge badge-active">{{ 'inUse' | t }}</span>
+                  }
+                  @if (item.group.tipo === 'viaje') {
+                    <span class="badge badge-trip">✈️ {{ tripLabel(item.group) }}</span>
                   }
                   @if (item.role === 'admin') {
                     <span class="badge">{{ 'admin' | t }}</span>
@@ -95,6 +98,31 @@
           </a>
         }
       </div>
+
+      @if (groups.archivedList().length) {
+        <section class="archived">
+          <button type="button" class="archived-toggle" [attr.aria-expanded]="showArchived()" (click)="showArchived.set(!showArchived())">
+            <ion-icon [name]="showArchived() ? 'chevron-down' : 'chevron-forward'" aria-hidden="true" />
+            {{ 'archivedGroups' | t: String(groups.archivedList().length) }}
+          </button>
+          @if (showArchived()) {
+            <ul>
+              @for (item of groups.archivedList(); track item.group.id) {
+                <li>
+                  <a [routerLink]="['/grupos', item.group.id]">
+                    <span class="mini-icon" aria-hidden="true">{{ item.group.name.charAt(0).toUpperCase() }}</span>
+                    <span class="archived-name">{{ item.group.name }}</span>
+                    @if (item.group.tipo === 'viaje') {
+                      <span class="archived-hint">✈️ {{ tripLabel(item.group) }}</span>
+                    }
+                    <ion-icon name="chevron-forward" aria-hidden="true" />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
     }
   </div>
 

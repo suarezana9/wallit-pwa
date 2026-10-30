@@ -10,6 +10,9 @@ import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { GroupDialogComponent } from './group-dialog.component';
 import { GroupsStore, PERSONAL, injectSpaceSwitcher } from './groups-store';
 import { spaceColor } from './space-color';
+import { formatTripRange } from './trip.model';
+import { PreferencesStore } from '../core/preferences-store';
+import type { Grupo, RolGrupo } from '../core/database.types';
 
 interface SpaceOption {
   id: string;
@@ -130,6 +133,7 @@ export class ContextSwitcherComponent {
   readonly groups = inject(GroupsStore);
   private readonly i18n = inject(I18n);
   private readonly router = inject(Router);
+  private readonly preferences = inject(PreferencesStore);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly select = injectSpaceSwitcher();
   private readonly dialog = viewChild.required(GroupDialogComponent);
@@ -138,10 +142,11 @@ export class ContextSwitcherComponent {
 
   readonly options = computed<SpaceOption[]>(() => [
     { id: PERSONAL, name: this.i18n.t('personal'), hint: this.i18n.t('spacePersonalHint'), letter: '', color: null },
-    ...this.groups.list().map(({ group, role }) => ({
+    // Los archivados no se listan, salvo el que estás viendo ahora.
+    ...this.groups.list().filter(({ group }) => !group.archivado || group.id === this.groups.contextId()).map(({ group, role }) => ({
       id: group.id,
       name: group.name,
-      hint: this.i18n.t(role === 'admin' ? 'spaceGroupAdmin' : 'spaceGroupMember'),
+      hint: this.hintFor(group, role),
       letter: group.name.trim().charAt(0).toUpperCase() || '?',
       color: spaceColor(group.id),
     })),
@@ -151,6 +156,14 @@ export class ContextSwitcherComponent {
 
   constructor() {
     addIcons({ add, checkmark, chevronExpandOutline, enterOutline, personOutline, settingsOutline });
+  }
+
+  private hintFor(group: Grupo, role: RolGrupo): string {
+    if (group.tipo === 'viaje') {
+      const dates = formatTripRange(group.fecha_inicio, group.fecha_fin, this.preferences.locale(), this.i18n.t('since'));
+      return dates ? `${this.i18n.t('tripLabel')} · ${dates}` : this.i18n.t('tripLabel');
+    }
+    return this.i18n.t(role === 'admin' ? 'spaceGroupAdmin' : 'spaceGroupMember');
   }
 
   toggle(): void {

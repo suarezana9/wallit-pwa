@@ -4,8 +4,9 @@ import {
   IonTitle, IonToolbar, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { closeOutline } from 'ionicons/icons';
-import { I18n, TranslatePipe } from '../core/i18n/i18n';
+import { airplaneOutline, closeOutline, homeOutline } from 'ionicons/icons';
+import type { TipoGrupo } from '../core/database.types';
+import { I18n, TranslatePipe, TranslationKey } from '../core/i18n/i18n';
 import { GroupsStore } from './groups-store';
 
 export type GroupDialogMode = 'create' | 'join';
@@ -17,7 +18,7 @@ export type GroupDialogMode = 'create' | 'join';
     IonTitle, IonToolbar, TranslatePipe,
   ],
   template: `
-    <ion-modal class="wl-dialog wl-dialog-sm" [isOpen]="mode() !== null" (didDismiss)="close()">
+    <ion-modal class="wl-dialog wl-dialog-sm" [class.wl-dialog-md]="mode() === 'create'" [isOpen]="mode() !== null" (didDismiss)="close()">
       <ng-template>
         <div class="ion-page">
           <ion-header>
@@ -49,6 +50,40 @@ export type GroupDialogMode = 'create' | 'join';
                   <p class="wl-field-error" role="alert">{{ message }}</p>
                 }
               </div>
+              @if (mode() === 'create') {
+                <div class="wl-field kind">
+                  <span class="wl-field-label">{{ 'groupKind' | t }}</span>
+                  <div class="kinds" role="radiogroup" [attr.aria-label]="'groupKind' | t">
+                    @for (option of kinds; track option.id) {
+                      <button
+                        type="button"
+                        role="radio"
+                        class="kind-option"
+                        [class.selected]="tipo() === option.id"
+                        [attr.aria-checked]="tipo() === option.id"
+                        (click)="tipo.set(option.id)"
+                      >
+                        <ion-icon [name]="option.icon" aria-hidden="true" />
+                        <span class="kind-title">{{ option.title | t }}</span>
+                        <span class="kind-hint">{{ option.hint | t }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+                @if (tipo() === 'viaje') {
+                  <div class="dates">
+                    <label class="wl-field">
+                      <span class="wl-field-label">{{ 'tripFrom' | t }}</span>
+                      <input class="date-input" type="date" [value]="from()" (input)="from.set($any($event.target).value)" />
+                    </label>
+                    <label class="wl-field">
+                      <span class="wl-field-label">{{ 'tripTo' | t }}</span>
+                      <input class="date-input" type="date" [min]="from()" [value]="to()" (input)="to.set($any($event.target).value)" />
+                    </label>
+                  </div>
+                  <p class="hint">{{ 'tripDatesHint' | t }}</p>
+                }
+              }
             </form>
           </ion-content>
           <ion-footer class="ion-no-border">
@@ -68,6 +103,25 @@ export type GroupDialogMode = 'create' | 'join';
   `,
   styles: `
     .intro { margin: 0 0 18px; color: var(--wl-muted); font-size: 14px; line-height: 1.45; }
+    .kind { margin-top: 18px; }
+    .kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kind-option {
+      display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 12px; border-radius: 14px;
+      font: inherit; text-align: left; color: inherit; cursor: pointer;
+      background: var(--wl-field-bg); border: 1px solid var(--wl-field-border);
+    }
+    .kind-option ion-icon { font-size: 20px; margin-bottom: 4px; color: var(--wl-muted); }
+    .kind-option.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
+    .kind-option.selected ion-icon { color: var(--ion-color-primary); }
+    .kind-title { font-size: 14px; font-weight: 700; }
+    .kind-hint { font-size: 12px; color: var(--wl-muted); }
+    .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .date-input {
+      height: 46px; padding: 0 12px; border-radius: 12px; font: inherit; color: inherit;
+      background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); outline: none;
+    }
+    .date-input:focus { border-color: var(--ion-color-primary); }
+    .hint { margin: 8px 0 0; font-size: 12px; color: var(--wl-muted); }
     ion-footer { border-top: 1px solid var(--wl-field-border); }
     .actions { padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px)); }
   `,
@@ -83,14 +137,24 @@ export class GroupDialogComponent {
   readonly value = signal('');
   readonly error = signal<string | null>(null);
   readonly busy = signal(false);
+  readonly tipo = signal<TipoGrupo>('hogar');
+  readonly from = signal('');
+  readonly to = signal('');
+  readonly kinds: { id: TipoGrupo; icon: string; title: TranslationKey; hint: TranslationKey }[] = [
+    { id: 'hogar', icon: 'home-outline', title: 'kindHome', hint: 'kindHomeHint' },
+    { id: 'viaje', icon: 'airplane-outline', title: 'kindTrip', hint: 'kindTripHint' },
+  ];
   readonly submitLabel = computed(() => this.i18n.t(this.mode() === 'join' ? 'join' : 'createGroup'));
 
   constructor() {
-    addIcons({ closeOutline });
+    addIcons({ airplaneOutline, closeOutline, homeOutline });
   }
 
   open(mode: GroupDialogMode, value = ''): void {
     this.value.set(value);
+    this.tipo.set('hogar');
+    this.from.set('');
+    this.to.set('');
     this.error.set(null);
     this.mode.set(mode);
   }
@@ -112,8 +176,20 @@ export class GroupDialogComponent {
       this.error.set(this.i18n.t(mode === 'join' ? 'errCode' : 'errGroupName'));
       return;
     }
+    const trip = this.tipo() === 'viaje';
+    if (mode === 'create' && trip && this.from() && this.to() && this.to() < this.from()) {
+      this.error.set(this.i18n.t('errTripDates'));
+      return;
+    }
     this.busy.set(true);
-    const result = mode === 'join' ? await this.groups.join(value) : await this.groups.create(value);
+    const result =
+      mode === 'join'
+        ? await this.groups.join(value)
+        : await this.groups.create(value, {
+            tipo: this.tipo(),
+            fecha_inicio: trip ? this.from() || null : null,
+            fecha_fin: trip ? this.to() || null : null,
+          });
     this.busy.set(false);
     if (result.error || !result.id) {
       this.error.set(result.error ?? this.i18n.t('errLeaveGroup'));

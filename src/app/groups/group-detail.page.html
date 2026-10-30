@@ -57,22 +57,40 @@
             @if (isActive()) {
               <span class="badge badge-active">{{ 'inUse' | t }}</span>
             }
+            @if (group()!.tipo === 'viaje') {
+              <span class="badge badge-trip">✈️ {{ tripLabel() }}</span>
+            }
+            @if (group()!.archivado) {
+              <span class="badge">{{ 'archived' | t }}</span>
+            }
             @if (isAdmin()) {
               <span class="badge">{{ 'admin' | t }}</span>
             }
             <span class="badge">{{ 'membersCount' | t: '' + memberList().length }}</span>
           </div>
         </div>
-        @if (!isActive()) {
+        @if (!isActive() && !group()!.archivado) {
           <ion-button class="wl-btn wl-btn-primary use" (click)="useInHome()">
             {{ 'useGroup' | t }}
           </ion-button>
         }
       </header>
 
+      @if (group()!.archivado) {
+        <div class="archived-banner">
+          <span>{{ 'archivedBanner' | t }}</span>
+          @if (isAdmin()) {
+            <ion-button class="wl-btn" size="small" fill="outline" (click)="setArchived(false)">{{ 'unarchive' | t }}</ion-button>
+          }
+        </div>
+      }
+
       <div class="tabs" role="tablist">
         <button type="button" role="tab" [class.selected]="tab() === 'accounts'" [attr.aria-selected]="tab() === 'accounts'" (click)="tab.set('accounts')">
           {{ 'accountsTitle' | t }}
+        </button>
+        <button type="button" role="tab" [class.selected]="tab() === 'activity'" [attr.aria-selected]="tab() === 'activity'" (click)="tab.set('activity')">
+          {{ 'activityTitle' | t }}
         </button>
         <button type="button" role="tab" [class.selected]="tab() === 'members'" [attr.aria-selected]="tab() === 'members'" (click)="tab.set('members')">
           {{ 'membersTitle' | t }} · {{ memberList().length }}
@@ -80,7 +98,15 @@
       </div>
 
       @if (tab() === 'accounts') {
-        <app-group-accounts [groupId]="id()" [members]="memberList()" />
+        <app-group-accounts
+          [groupId]="id()"
+          [members]="memberList()"
+          [group]="group()"
+          [isAdmin]="isAdmin()"
+          (archive)="setArchived(true)"
+        />
+      } @else if (tab() === 'activity') {
+        <app-group-activity [groupId]="id()" [members]="memberList()" />
       } @else {
         <div class="members-layout">
           <section class="wl-panel" aria-labelledby="members-title">
@@ -143,11 +169,46 @@
             }
           </section>
 
+          @if (isAdmin()) {
+            <section class="wl-panel settings" aria-labelledby="settings-title">
+              <h2 id="settings-title">{{ 'groupSettings' | t }}</h2>
+              <div class="kind-toggle" role="radiogroup" [attr.aria-label]="'groupKind' | t">
+                <button type="button" role="radio" [class.selected]="draftKind() === 'hogar'" [attr.aria-checked]="draftKind() === 'hogar'" (click)="draftKind.set('hogar')">
+                  {{ 'kindHome' | t }}
+                </button>
+                <button type="button" role="radio" [class.selected]="draftKind() === 'viaje'" [attr.aria-checked]="draftKind() === 'viaje'" (click)="draftKind.set('viaje')">
+                  {{ 'kindTrip' | t }}
+                </button>
+              </div>
+              @if (draftKind() === 'viaje') {
+                <div class="dates">
+                  <label>
+                    <span>{{ 'tripFrom' | t }}</span>
+                    <input type="date" [value]="draftFrom()" (input)="draftFrom.set($any($event.target).value)" />
+                  </label>
+                  <label>
+                    <span>{{ 'tripTo' | t }}</span>
+                    <input type="date" [min]="draftFrom()" [value]="draftTo()" (input)="draftTo.set($any($event.target).value)" />
+                  </label>
+                </div>
+              }
+              @if (settingsChanged()) {
+                <ion-button class="wl-btn wl-btn-primary" size="small" (click)="saveSettings()">{{ 'saveChanges' | t }}</ion-button>
+              }
+            </section>
+          }
+
           <section class="danger">
             <ion-button class="wl-btn" fill="clear" color="danger" (click)="confirmLeave()">
               <ion-icon slot="start" name="exit-outline" />
               {{ 'leaveGroup' | t }}
             </ion-button>
+            @if (isAdmin() && !group()!.archivado) {
+              <ion-button class="wl-btn" fill="clear" color="medium" (click)="setArchived(true)">
+                <ion-icon slot="start" name="archive-outline" />
+                {{ 'archiveGroup' | t }}
+              </ion-button>
+            }
             @if (isAdmin()) {
               <ion-button class="wl-btn" fill="clear" color="danger" (click)="confirmClose()">
                 <ion-icon slot="start" name="trash-outline" />
