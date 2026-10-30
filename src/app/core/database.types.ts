@@ -163,6 +163,21 @@ export interface Database {
         Update: Record<string, never>;
         Relationships: [];
       };
+      push_subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+          user_agent: string | null;
+          created_at: string;
+          last_used_at: string | null;
+        };
+        Insert: Record<string, never>;
+        Update: Record<string, never>;
+        Relationships: [];
+      };
       expense_splits: {
         Row: {
           id: string;
@@ -181,6 +196,10 @@ export interface Database {
       buscar_grupo_por_codigo: {
         Args: { p_codigo: string };
         Returns: { id: string; name: string; invite_code: string }[];
+      };
+      guardar_suscripcion_push: {
+        Args: { p_endpoint: string; p_p256dh: string; p_auth: string; p_user_agent?: string | null };
+        Returns: undefined;
       };
       obtener_miembros_grupo: {
         Args: { p_group_id: string };

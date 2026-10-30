@@ -11,6 +11,7 @@ import { CURRENCIES } from '../core/currencies';
 import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
 import { Language, PreferencesStore, Theme } from '../core/preferences-store';
 import { ProfileStore } from '../core/profile-store';
+import { NotificationSettingsComponent } from '../notifications/notification-settings.component';
 
 interface ThemeOption {
   id: Theme;
@@ -31,7 +32,8 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
 @Component({
   selector: 'app-account',
   imports: [
-    IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, RouterLink, TranslatePipe,
+    IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, NotificationSettingsComponent,
+    RouterLink, TranslatePipe,
   ],
   templateUrl: 'account.page.html',
   styleUrls: ['account.page.scss'],
