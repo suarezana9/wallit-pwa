@@ -12,6 +12,9 @@
     "lint": "ng lint"
   },
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "@angular/common": "22.1.7",
     "@angular/compiler": "22.1.7",
