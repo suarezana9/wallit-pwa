@@ -1,4 +1,6 @@
-import { EMPTY_CONFIG, lookupCategory, nameTaken, parseConfig, visibleCategories } from './category-config';
+import {
+  EMPTY_CONFIG, colorFor, filterCategories, findExact, lookupCategory, nameTaken, parseConfig, suggestEmoji, visibleCategories,
+} from './category-config';
 
 const config = {
   ocultas: ['Tecnología', 'Bar'],
@@ -30,3 +32,20 @@ describe('category-config', () => {
     expect(nameTaken('Gimnasio', config)).toBe(false);
   });
 });
+
+describe('crear categoría desde el formulario', () => {
+  it('busca sin tildes ni mayúsculas y encuentra coincidencias exactas', () => {
+    const list = [{ name: 'Educación' }, { name: 'Ocio' }, { name: 'Bebé' }];
+    expect(filterCategories(list, 'educa').map((c) => c.name)).toEqual(['Educación']);
+    expect(findExact(list, ' bebe ')?.name).toBe('Bebé');
+    expect(findExact(list, 'Beb')).toBeUndefined();
+  });
+
+  it('sugiere emoji y color estables', () => {
+    expect(suggestEmoji('Gimnasio')).toBe('🏋️');
+    expect(suggestEmoji('Pañales del bebé')).toBe('👶');
+    expect(suggestEmoji('Cosas raras')).toBe('🏷️');
+    expect(colorFor('Gimnasio')).toBe(colorFor('gimnasio'));
+  });
+});
+

@@ -2,9 +2,9 @@ import { Service, computed, inject, resource } from '@angular/core';
 import { AuthStore } from '../core/auth-store';
 import type { Json } from '../core/database.types';
 import { Supabase } from '../core/supabase';
-import type { CategoryInfo } from '../movements/movement.model';
+import { CATEGORIES, type CategoryInfo } from '../movements/movement.model';
 import {
-  CategoryConfig, CustomCategory, EMPTY_CONFIG, lookupCategory, nameTaken, parseConfig, visibleCategories,
+  CategoryConfig, CustomCategory, EMPTY_CONFIG, colorFor, lookupCategory, nameTaken, parseConfig, visibleCategories,
 } from './category-config';
 
 @Service()
@@ -48,6 +48,21 @@ export class CategoriesStore {
   addCustom(category: Omit<CustomCategory, 'id'>): Promise<boolean> {
     const custom: CustomCategory = { ...category, nombre: category.nombre.trim(), id: `custom_${Date.now()}` };
     return this.save({ ...this.config(), personalizadas: [...this.config().personalizadas, custom] });
+  }
+
+  /** Categorías predeterminadas que la persona ocultó: aparecen al buscar, por si las quiere volver a usar. */
+  readonly hiddenBuiltins = computed(() => CATEGORIES.filter((c) => this.hidden().has(c.name)));
+
+  /** Alta rápida desde el formulario: el color sale del nombre. Devuelve el nombre guardado o null si falló. */
+  async quickCreate(name: string, emoji: string): Promise<string | null> {
+    const nombre = name.trim().slice(0, 30);
+    if (!nombre || this.isTaken(nombre)) return null;
+    const ok = await this.addCustom({ nombre, emoji, color: colorFor(nombre) });
+    return ok ? nombre : null;
+  }
+
+  async unhide(name: string): Promise<boolean> {
+    return this.hidden().has(name) ? this.toggleHidden(name) : true;
   }
 
   removeCustom(id: string): Promise<boolean> {

@@ -61,3 +61,73 @@ export function nameTaken(name: string, config: CategoryConfig): boolean {
     config.personalizadas.some((c) => c.nombre.toLowerCase() === key)
   );
 }
+
+/** Minúsculas y sin tildes, para comparar "Educacion" con "Educación". */
+export function normalizeName(name: string): string {
+  return name.trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+}
+
+/** Busca por nombre sin importar mayúsculas ni tildes. */
+export function filterCategories<T extends { name: string }>(list: readonly T[], query: string, label: (name: string) => string = (n) => n): T[] {
+  const q = normalizeName(query);
+  if (!q) return [...list];
+  return list.filter((c) => normalizeName(c.name).includes(q) || normalizeName(label(c.name)).includes(q));
+}
+
+export function findExact<T extends { name: string }>(list: readonly T[], query: string): T | undefined {
+  const q = normalizeName(query);
+  return q ? list.find((c) => normalizeName(c.name) === q) : undefined;
+}
+
+const EMOJI_KEYWORDS: [string[], string][] = [
+  [['gym', 'gimnasio', 'crossfit', 'pilates', 'yoga'], '🏋️'],
+  [['futbol', 'padel', 'tenis', 'club'], '⚽'],
+  [['bebe', 'panal', 'hijo', 'hija', 'nene', 'nena'], '👶'],
+  [['perro', 'veterinari'], '🐶'],
+  [['gato'], '🐱'],
+  [['cafe', 'cafeteria'], '☕'],
+  [['cerveza', 'birra', 'vino', 'trago'], '🍺'],
+  [['nafta', 'combustible', 'gasolina'], '⛽'],
+  [['estacionamiento', 'cochera', 'peaje'], '🅿️'],
+  [['alquiler', 'expensas', 'casa', 'depto'], '🏠'],
+  [['luz', 'gas', 'agua', 'servicio'], '💡'],
+  [['internet', 'celular', 'telefono', 'wifi'], '📱'],
+  [['medico', 'dentista', 'prepaga', 'obra social', 'psico', 'terapia', 'clinica'], '🩺'],
+  [['colegio', 'escuela', 'curso', 'facultad', 'universidad', 'clase'], '🎓'],
+  [['regalo', 'cumple'], '🎁'],
+  [['vacaciones', 'hotel', 'vuelo', 'viaje'], '🏖️'],
+  [['juego', 'videojuego', 'steam', 'play'], '🎮'],
+  [['musica', 'spotify', 'recital'], '🎵'],
+  [['libro', 'libreria'], '📚'],
+  [['ropa', 'zapatilla', 'calzado'], '👟'],
+  [['peluqueria', 'barberia', 'manicura'], '💈'],
+  [['impuesto', 'afip', 'arca', 'monotributo', 'abl', 'patente'], '🧾'],
+  [['tarjeta', 'credito', 'cuota', 'prestamo'], '💳'],
+  [['ahorro'], '🐷'],
+  [['inversion', 'acciones', 'cripto', 'plazo fijo'], '📈'],
+  [['comida', 'almuerzo', 'cena', 'hamburguesa', 'pizza'], '🍔'],
+  [['verduleria', 'fruta', 'verdura'], '🥦'],
+  [['carniceria', 'carne', 'asado'], '🥩'],
+  [['panaderia', 'pan', 'facturas'], '🥖'],
+  [['uber', 'taxi', 'cabify', 'didi'], '🚕'],
+  [['colectivo', 'bondi', 'subte', 'tren', 'sube'], '🚌'],
+  [['kiosco', 'golosina'], '🍫'],
+  [['limpieza', 'lavanderia'], '🧽'],
+  [['jardin', 'planta', 'vivero'], '🌿'],
+  [['arreglo', 'ferreteria', 'plomero', 'electricista'], '🛠️'],
+  [['donacion', 'caridad'], '❤️'],
+  [['streaming', 'netflix', 'disney', 'hbo'], '📺'],
+];
+
+/** Emoji sugerido a partir del nombre ("Gimnasio" → 🏋️); si no hay pista, una etiqueta. */
+export function suggestEmoji(name: string): string {
+  const key = normalizeName(name);
+  return EMOJI_KEYWORDS.find(([words]) => words.some((w) => key.includes(w)))?.[1] ?? '🏷️';
+}
+
+/** Color estable por nombre, así no hace falta elegirlo. */
+export function colorFor(name: string): string {
+  let hash = 0;
+  for (const char of normalizeName(name)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return COLOR_CHOICES[hash % COLOR_CHOICES.length];
+}
