@@ -1,0 +1,163 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/grupos" [text]="''" />
+    </ion-buttons>
+    <ion-title>{{ group()?.name }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="wl-page">
+    @if (!group()) {
+      @if (groups.groups.hasValue()) {
+        <section class="not-found">
+          <p>{{ 'groupNotFound' | t }}</p>
+          <ion-button class="wl-btn wl-btn-secondary" fill="outline" routerLink="/grupos">{{ 'navGroups' | t }}</ion-button>
+        </section>
+      } @else {
+        <ion-skeleton-text [animated]="true" class="skeleton-head" />
+      }
+    } @else {
+      <a class="back ion-hide-lg-down" routerLink="/grupos">
+        <ion-icon name="arrow-back" aria-hidden="true" />
+        {{ 'navGroups' | t }}
+      </a>
+
+      <header class="head">
+        <div class="group-icon" [style.background]="color()" aria-hidden="true">{{ group()!.name.charAt(0).toUpperCase() }}</div>
+        <div class="head-text">
+          @if (editing()) {
+            <form class="rename" (submit)="saveName($event)">
+              <ion-input
+                class="wl-input"
+                [attr.aria-label]="'groupName' | t"
+                [value]="draftName()"
+                maxlength="60"
+                (ionInput)="draftName.set($event.detail.value ?? '')"
+              />
+              <ion-button type="submit" class="wl-btn wl-btn-primary" [attr.aria-label]="'save' | t">
+                <ion-icon slot="icon-only" name="checkmark" />
+              </ion-button>
+              <ion-button fill="clear" color="medium" (click)="editing.set(false)" [attr.aria-label]="'cancel' | t">
+                <ion-icon slot="icon-only" name="close-outline" />
+              </ion-button>
+            </form>
+          } @else {
+            <div class="title-row">
+              <h1>{{ group()!.name }}</h1>
+              @if (isAdmin()) {
+                <ion-button fill="clear" color="medium" size="small" (click)="startRename()" [attr.aria-label]="'rename' | t">
+                  <ion-icon slot="icon-only" name="pencil-outline" />
+                </ion-button>
+              }
+            </div>
+          }
+          <div class="badges">
+            @if (isActive()) {
+              <span class="badge badge-active">{{ 'inUse' | t }}</span>
+            }
+            @if (isAdmin()) {
+              <span class="badge">{{ 'admin' | t }}</span>
+            }
+            <span class="badge">{{ 'membersCount' | t: '' + memberList().length }}</span>
+          </div>
+        </div>
+        @if (!isActive()) {
+          <ion-button class="wl-btn wl-btn-primary use" (click)="useInHome()">
+            {{ 'useGroup' | t }}
+          </ion-button>
+        }
+      </header>
+
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" [class.selected]="tab() === 'accounts'" [attr.aria-selected]="tab() === 'accounts'" (click)="tab.set('accounts')">
+          {{ 'accountsTitle' | t }}
+        </button>
+        <button type="button" role="tab" [class.selected]="tab() === 'members'" [attr.aria-selected]="tab() === 'members'" (click)="tab.set('members')">
+          {{ 'membersTitle' | t }} · {{ memberList().length }}
+        </button>
+      </div>
+
+      @if (tab() === 'accounts') {
+        <app-group-accounts [groupId]="id()" [members]="memberList()" />
+      } @else {
+        <div class="members-layout">
+          <section class="wl-panel" aria-labelledby="members-title">
+            <h2 id="members-title">{{ 'membersTitle' | t }}</h2>
+            <ul class="members">
+              @for (member of memberList(); track member.userId; let i = $index) {
+                <li>
+                  <span class="avatar" [style.background]="colors[i % colors.length]" aria-hidden="true">
+                    {{ member.name.charAt(0).toUpperCase() }}
+                  </span>
+                  <span class="member-text">
+                    <span class="member-name">
+                      {{ member.name }}
+                      @if (member.userId === userId()) {
+                        <span class="you">({{ 'you' | t }})</span>
+                      }
+                    </span>
+                    <span class="member-email">{{ member.email }}</span>
+                  </span>
+                  @if (member.role === 'admin') {
+                    <span class="badge">{{ 'admin' | t }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+
+          <section class="wl-panel" aria-labelledby="invite-title">
+            <h2 id="invite-title">{{ 'invite' | t }}</h2>
+            <p class="hint">{{ 'inviteText' | t }}</p>
+            <div class="code-box">
+              <span class="code-label">{{ 'inviteCode' | t }}</span>
+              <span class="code">{{ group()!.invite_code }}</span>
+            </div>
+            <div class="invite-actions">
+              <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="copy('code')">
+                <ion-icon slot="start" [name]="copied() === 'code' ? 'checkmark' : 'copy-outline'" />
+                {{ (copied() === 'code' ? 'copied' : 'copyCode') | t }}
+              </ion-button>
+              <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="copy('link')">
+                <ion-icon slot="start" [name]="copied() === 'link' ? 'checkmark' : 'link-outline'" />
+                {{ (copied() === 'link' ? 'copied' : 'copyLink') | t }}
+              </ion-button>
+              <ion-button class="wl-btn wl-btn-primary" [href]="whatsappLink()" target="_blank" rel="noopener">
+                <ion-icon slot="start" name="logo-whatsapp" />
+                {{ 'shareWhatsapp' | t }}
+              </ion-button>
+              @if (canShare) {
+                <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="share()">
+                  <ion-icon slot="start" name="share-social-outline" />
+                  {{ 'share' | t }}
+                </ion-button>
+              }
+            </div>
+            @if (qr.hasValue() && qr.value(); as src) {
+              <div class="qr">
+                <img [src]="src" [alt]="'inviteQrAlt' | t" width="168" height="168" />
+                <span>{{ 'inviteQr' | t }}</span>
+              </div>
+            }
+          </section>
+
+          <section class="danger">
+            <ion-button class="wl-btn" fill="clear" color="danger" (click)="confirmLeave()">
+              <ion-icon slot="start" name="exit-outline" />
+              {{ 'leaveGroup' | t }}
+            </ion-button>
+            @if (isAdmin()) {
+              <ion-button class="wl-btn" fill="clear" color="danger" (click)="confirmClose()">
+                <ion-icon slot="start" name="trash-outline" />
+                {{ 'closeGroup' | t }}
+              </ion-button>
+            }
+          </section>
+        </div>
+      }
+    }
+  </div>
+
+</ion-content>

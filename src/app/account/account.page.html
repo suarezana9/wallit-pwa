@@ -70,6 +70,17 @@
               }
             </div>
           </div>
+
+          <div class="setting">
+            <div class="setting-text">
+              <span class="setting-label">{{ 'categoriesTitle' | t }}</span>
+              <p class="hint">{{ 'categoriesSubtitle' | t }}</p>
+            </div>
+            <ion-button class="wl-btn wl-btn-secondary manage" fill="outline" routerLink="/categorias">
+              {{ 'manageCategories' | t }}
+              <ion-icon slot="end" name="chevron-forward" />
+            </ion-button>
+          </div>
         </section>
 
         <section class="wl-panel group" aria-labelledby="appearance-title">

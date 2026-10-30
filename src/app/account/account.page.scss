@@ -313,7 +313,8 @@
     width: 280px;
   }
 
-  .segmented {
+  .segmented,
+  .manage {
     flex: none;
     width: 280px;
   }
@@ -326,4 +327,8 @@
   .preview {
     height: 96px;
   }
+}
+
+.manage {
+  margin: 0;
 }

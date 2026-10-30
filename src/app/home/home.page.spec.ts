@@ -5,13 +5,16 @@ import { HomePage } from './home.page';
 import { ProfileStore } from '../core/profile-store';
 import { MovementsStore } from '../movements/movements-store';
 import { InsightsStore } from '../movements/insights-store';
+import { GroupsStore } from '../groups/groups-store';
+import { AuthStore } from '../core/auth-store';
+import { BudgetsStore } from '../budgets/budgets-store';
 import { monthRange } from '../core/dates';
 import { summarize } from '../movements/movement.model';
 import type { Movimiento } from '../core/database.types';
 
 const mov = (id: string, tipo: Movimiento['tipo'], amount: number, description: string): Movimiento => ({
   id, group_id: null, user_id: 'u', amount, category: 'Supermercado', description,
-  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null,
+  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null,
 });
 
 describe('HomePage', () => {
@@ -22,6 +25,19 @@ describe('HomePage', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
+        { provide: AuthStore, useValue: { user: signal({ id: 'u' }) } },
+        { provide: BudgetsStore, useValue: { progress: signal([]) } },
+        {
+          provide: GroupsStore,
+          useValue: {
+            list: signal([]),
+            active: signal(null),
+            contextId: signal('personal'),
+            activeGroupId: signal(null),
+            memberNames: signal({}),
+            setContext: vi.fn(),
+          },
+        },
         { provide: ProfileStore, useValue: { displayName: signal('Ana') } },
         {
           provide: MovementsStore,

@@ -1,4 +1,5 @@
 {
+  "id": "./",
   "name": "Wallit",
   "short_name": "Wallit",
   "description": "Control de gastos del hogar",
@@ -8,6 +9,27 @@
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "share_target": {
+    "action": "./compartir",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "receipt",
+          "accept": [
+            "image/*",
+            "image/jpeg",
+            "image/png",
+            "image/webp"
+          ]
+        }
+      ]
+    }
+  },
   "icons": [
     {
       "src": "icons/icon-72x72.png",

@@ -1,4 +1,4 @@
-import type { FuenteIngreso, Movimiento, TipoMovimiento } from '../core/database.types';
+import type { Division, FuenteIngreso, Movimiento, TipoMovimiento } from '../core/database.types';
 import type { TranslationKey } from '../core/i18n/i18n';
 
 export interface TypeInfo {
@@ -77,6 +77,15 @@ export interface MovementInput {
   fuente: FuenteIngreso | null;
   description: string;
   date: string;
+  is_private: boolean;
+  /** Ruta del comprobante en el bucket. Si no viene, no se toca. */
+  receipt_url?: string | null;
+  /** Espacio donde se guarda (solo al crear). Si no viene, el espacio activo. null = Personal. */
+  group_id?: string | null;
+  /** Quién pagó, si no fue quien lo carga. */
+  paid_by?: string | null;
+  /** Cómo se divide (solo gastos de grupo). */
+  division?: Division | null;
 }
 
 export interface MonthSummary {

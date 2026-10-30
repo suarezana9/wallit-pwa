@@ -2,7 +2,7 @@
   <ion-toolbar>
     <div class="topbar" slot="start">
       <app-wallit-logo [size]="30" />
-      <span class="hello">{{ 'hello' | t: displayName() }}</span>
+      <span class="hello">{{ mobileTitle() }}</span>
     </div>
   </ion-toolbar>
 </ion-header>
@@ -13,10 +13,17 @@
   </ion-refresher>
 
   <div class="wl-page">
+    <app-context-switcher class="switcher ion-hide-lg-up" />
     <header class="wl-page-header">
       <div class="wl-page-title ion-hide-lg-down">
-        <h1>{{ 'navHome' | t }}</h1>
-        <p>{{ 'homeSubtitle' | t: displayName() }}</p>
+        @if (activeGroup(); as group) {
+          <span class="eyebrow">{{ 'groupLabel' | t }}</span>
+          <h1>{{ group.name }}</h1>
+          <p>{{ 'groupSubtitle' | t: group.name }}</p>
+        } @else {
+          <h1>{{ 'navHome' | t }}</h1>
+          <p>{{ 'homeSubtitle' | t: displayName() }}</p>
+        }
       </div>
       <app-month-nav />
       <ion-button class="wl-btn wl-btn-primary new-btn ion-hide-lg-down" (click)="editor().openNew()">
@@ -24,6 +31,9 @@
         {{ 'newMovement' | t }}
       </ion-button>
     </header>
+
+    <app-ai-quick-add class="quick-add" (result)="editor().openNew($event)" />
+    <app-group-balance-banner class="balance-banner" />
 
     <section class="kpis" [attr.aria-label]="'monthSummary' | t">
       <div class="kpi main">
@@ -103,6 +113,18 @@
           <h2 id="breakdown-title">{{ 'byCategory' | t }}</h2>
         </div>
         <app-category-breakdown [movements]="store.list()" />
+
+        <div class="panel-header budgets-header">
+          <h2>{{ 'navBudgets' | t }}</h2>
+          <a class="see-all" routerLink="/presupuestos">{{ 'seeAll' | t }}</a>
+        </div>
+        @for (item of topBudgets(); track item.budget.id) {
+          <a class="budget-row" routerLink="/presupuestos">
+            <app-budget-card [progress]="item" [compact]="true" />
+          </a>
+        } @empty {
+          <a class="budget-cta" routerLink="/presupuestos">{{ 'noBudgetsTitle' | t }} →</a>
+        }
       </aside>
     </div>
   </div>

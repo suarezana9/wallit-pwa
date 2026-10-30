@@ -1,3 +1,7 @@
+// Tipos de la base de Supabase, portados de la app de React Native (types/database.ts)
+// y actualizados con las migraciones 004 a 009.
+// Más adelante se pueden generar automáticamente con: supabase gen types typescript
+
 export type Categoria =
   | 'Supermercado' | 'Servicios' | 'Transporte' | 'Salud' | 'Educación'
   | 'Ocio' | 'Restaurantes' | 'Ropa' | 'Tecnología'
@@ -10,7 +14,12 @@ export type TipoMovimiento = 'gasto' | 'ingreso' | 'ahorro' | 'inversion';
 export type FuenteIngreso = 'sueldo' | 'freelance' | 'alquiler' | 'otro';
 export type RolGrupo = 'admin' | 'member';
 
-type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
+/** División de un gasto de grupo (columna expenses.division, migración 012). */
+export type Division =
+  | { tipo: 'iguales'; entre: string[] }
+  | { tipo: 'montos'; partes: Record<string, number> };
+
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export interface Database {
   public: {
@@ -72,8 +81,15 @@ export interface Database {
           created_at: string;
           tipo: TipoMovimiento;
           fuente: FuenteIngreso | null;
+          /** Quién pagó; null = quien lo cargó (user_id). */
+          paid_by: string | null;
+          /** Cómo se divide un gasto de grupo; null = no se divide. */
+          division: Division | null;
         };
-        Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at'>;
+        Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at' | 'paid_by' | 'division'> & {
+          paid_by?: string | null;
+          division?: Division | null;
+        };
         Update: Partial<Database['public']['Tables']['expenses']['Row']>;
         Relationships: [];
       };
@@ -92,6 +108,21 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['budgets']['Row']>;
         Relationships: [];
       };
+      settlements: {
+        Row: {
+          id: string;
+          group_id: string;
+          from_user: string;
+          to_user: string;
+          amount: number;
+          date: string;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['settlements']['Row'], 'id' | 'created_at' | 'date'> & { date?: string };
+        Update: Partial<Database['public']['Tables']['settlements']['Row']>;
+        Relationships: [];
+      };
       expense_splits: {
         Row: {
           id: string;
@@ -106,7 +137,23 @@ export interface Database {
       };
     };
     Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Functions: {
+      buscar_grupo_por_codigo: {
+        Args: { p_codigo: string };
+        Returns: { id: string; name: string; invite_code: string }[];
+      };
+      obtener_miembros_grupo: {
+        Args: { p_group_id: string };
+        Returns: {
+          user_id: string;
+          name: string | null;
+          email: string | null;
+          avatar_url: string | null;
+          role: RolGrupo;
+          joined_at: string;
+        }[];
+      };
+    };
     Enums: Record<never, never>;
     CompositeTypes: Record<never, never>;
   };
@@ -114,3 +161,5 @@ export interface Database {
 
 export type UserRow = Database['public']['Tables']['users']['Row'];
 export type Movimiento = Database['public']['Tables']['expenses']['Row'];
+export type Grupo = Database['public']['Tables']['groups']['Row'];
+export type Pago = Database['public']['Tables']['settlements']['Row'];

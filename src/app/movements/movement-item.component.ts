@@ -1,13 +1,14 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowDownOutline, cardOutline, trendingUpOutline, walletOutline } from 'ionicons/icons';
+import { arrowDownOutline, attachOutline, cardOutline, lockClosed, trendingUpOutline, walletOutline } from 'ionicons/icons';
 import { relativeDate } from '../core/dates';
 import { MoneyPipe } from '../core/money';
 import { I18n } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
 import type { Movimiento } from '../core/database.types';
-import { categoryInfo, incomeSourceKey, typeInfo } from './movement.model';
+import { CategoriesStore } from '../categories/categories-store';
+import { incomeSourceKey, typeInfo } from './movement.model';
 
 @Component({
   selector: 'app-movement-item',
@@ -22,7 +23,15 @@ import { categoryInfo, incomeSourceKey, typeInfo } from './movement.model';
     </div>
     <div class="text">
       <span class="title">{{ view().title }}</span>
-      <span class="subtitle">{{ view().subtitle }}</span>
+      <span class="subtitle">
+        @if (movement().is_private) {
+          <ion-icon name="lock-closed" class="lock" aria-hidden="true" />
+        }
+        @if (movement().receipt_url) {
+          <ion-icon name="attach-outline" class="lock clip" [attr.aria-label]="receiptLabel()" role="img" />
+        }
+        {{ view().subtitle }}
+      </span>
     </div>
     <span class="amount" [class.positive]="view().isIncome" [style.color]="view().amountColor">
       {{ view().isIncome ? '+' : '' }}{{ movement().amount | money }}
@@ -38,34 +47,41 @@ import { categoryInfo, incomeSourceKey, typeInfo } from './movement.model';
     }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .subtitle { font-size: 13px; color: var(--wl-muted); }
-    .amount { font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .subtitle { font-size: 13px; color: var(--wl-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lock { font-size: 11px; vertical-align: -1px; margin-right: 2px; }
+    .clip { font-size: 13px; vertical-align: -2px; color: var(--ion-color-primary); }
+    .amount { flex: none; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
   `,
 })
 export class MovementItemComponent {
   readonly movement = input.required<Movimiento>();
+  readonly author = input<string | null>(null);
+  readonly showDate = input(true);
   private readonly i18n = inject(I18n);
+  private readonly categories = inject(CategoriesStore);
   private readonly preferences = inject(PreferencesStore);
 
   constructor() {
-    addIcons({ arrowDownOutline, cardOutline, trendingUpOutline, walletOutline });
+    addIcons({ arrowDownOutline, attachOutline, cardOutline, lockClosed, trendingUpOutline, walletOutline });
   }
+
+  readonly receiptLabel = computed(() => this.i18n.t('receipt'));
 
   readonly view = computed(() => {
     const m = this.movement();
-    const date = relativeDate(m.date, new Date(), this.preferences.locale(), {
+    const date = !this.showDate() ? '' : relativeDate(m.date, new Date(), this.preferences.locale(), {
       today: this.i18n.t('today'),
       yesterday: this.i18n.t('yesterday'),
     });
     if (m.tipo === 'gasto') {
-      const category = categoryInfo(m.category);
+      const category = this.categories.info(m.category);
       const name = this.i18n.category(category.name);
       return {
         emoji: category.emoji,
         icon: '',
         color: category.color,
         title: m.description || name,
-        subtitle: `${name} · ${date}`,
+        subtitle: [name, this.author(), date].filter(Boolean).join(' · '),
         isIncome: false,
         amountColor: null,
       };
@@ -79,7 +95,7 @@ export class MovementItemComponent {
       icon: type.icon,
       color: type.color,
       title: m.description || label,
-      subtitle: [label, source, date].filter(Boolean).join(' · '),
+      subtitle: [label, source, this.author(), date].filter(Boolean).join(' · '),
       isIncome: m.tipo === 'ingreso',
       amountColor: type.color,
     };

@@ -39,11 +39,28 @@ describe('MovementFormComponent', () => {
     form.save.subscribe(emitted);
     form.model.update((m) => ({ ...m, amount: 1500, category: 'Ocio', description: '  cine ' }));
     await form.onSubmit(new Event('submit'));
-    expect(emitted).toHaveBeenCalledWith(expect.objectContaining({ amount: 1500, category: 'Ocio', description: 'cine', fuente: null }));
+    expect(emitted).toHaveBeenCalledWith({
+      input: expect.objectContaining({ amount: 1500, category: 'Ocio', description: 'cine', fuente: null }),
+      receipt: null,
+    });
+  });
+
+  it('la foto que leyó la IA queda como comprobante y varios movimientos van a la revisión en lote', () => {
+    const form = create();
+    const multiple = vi.fn();
+    form.multiple.subscribe(multiple);
+    const m = { tipo: 'gasto' as const, monto: 800, descripcion: 'Kiosco', categoria: 'Otros', fuente: null, fecha: '2026-10-20' };
+    form.applyAi({ movements: [m], receipt: 'data:image/jpeg;base64,AAA' });
+    expect(form.receipt()).toEqual({ kind: 'new', dataUrl: 'data:image/jpeg;base64,AAA' });
+    expect(form.model().amount).toBe(800);
+    form.applyAi({ movements: [m, m] });
+    expect(multiple).toHaveBeenCalledOnce();
+    form.removeReceipt();
+    expect(form.receipt()).toBeNull();
   });
 
   it('un ingreso se guarda con categoría Otros', () => {
-    const input = toMovementInput({ tipo: 'ingreso', amount: 10, category: 'Ocio', fuente: 'sueldo', description: '', date: '2026-10-01' });
-    expect(input).toMatchObject({ category: 'Otros', fuente: 'sueldo' });
+    const input = toMovementInput({ tipo: 'ingreso', amount: 10, category: 'Ocio', fuente: 'sueldo', description: '', date: '2026-10-01', isPrivate: true });
+    expect(input).toMatchObject({ category: 'Otros', fuente: 'sueldo', is_private: false });
   });
 });

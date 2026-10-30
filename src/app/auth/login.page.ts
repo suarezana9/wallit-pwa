@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   FieldTree, FormField, email, form, minLength, required, submit,
 } from '@angular/forms/signals';
@@ -10,6 +10,7 @@ import {
 import { addIcons } from 'ionicons';
 import { flashOutline, logoGoogle, pieChartOutline, walletOutline } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
+import { safeRedirect } from '../core/auth.guards';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { WallitLogoComponent } from '../shared/wallit-logo';
 
@@ -28,6 +29,8 @@ export class LoginPage {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18n);
+  private readonly redirect =
+    safeRedirect(inject(ActivatedRoute).snapshot.queryParamMap.get('redirect')) ?? '/inicio';
 
   readonly mode = signal<Mode>('login');
   readonly serverError = signal<string | null>(null);
@@ -90,7 +93,7 @@ export class LoginPage {
           this.serverError.set(error);
           return;
         }
-        await this.router.navigateByUrl('/inicio', { replaceUrl: true });
+        await this.router.navigateByUrl(this.redirect, { replaceUrl: true });
         return;
       }
 
@@ -100,7 +103,7 @@ export class LoginPage {
       } else if (needsConfirmation) {
         this.info.set(this.i18n.t('confirmSent', email.trim()));
       } else {
-        await this.router.navigateByUrl('/inicio', { replaceUrl: true });
+        await this.router.navigateByUrl(this.redirect, { replaceUrl: true });
       }
     });
   }
@@ -108,7 +111,7 @@ export class LoginPage {
   async onGoogle(): Promise<void> {
     this.serverError.set(null);
     this.googleLoading.set(true);
-    const { error } = await this.auth.signInWithGoogle();
+    const { error } = await this.auth.signInWithGoogle(this.redirect);
     if (error) {
       this.serverError.set(error);
       this.googleLoading.set(false);

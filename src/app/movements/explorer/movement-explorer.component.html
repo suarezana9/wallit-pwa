@@ -1,0 +1,175 @@
+<section class="summary" aria-labelledby="summary-title">
+  <div class="summary-head">
+    <h2 id="summary-title">{{ 'summary' | t }}</h2>
+    <span class="summary-period">
+      <ion-icon name="calendar-outline" aria-hidden="true" />
+      {{ periodLabel() }}
+    </span>
+  </div>
+  <div class="kpis">
+    <div class="kpi hero">
+      <span class="kpi-label">{{ 'expenses' | t }}</span>
+      <span class="kpi-value">{{ summary().gastos | money }}</span>
+      <span class="kpi-note">{{ 'movementsCount' | t: '' + filtered().length }}</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label"><span class="dot ingreso"></span>{{ 'income' | t }}</span>
+      <span class="kpi-value">{{ summary().ingresos | money }}</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label"><span class="dot ahorro"></span>{{ 'savings' | t }}</span>
+      <span class="kpi-value">{{ summary().ahorros | money }}</span>
+    </div>
+    <div class="kpi">
+      <span class="kpi-label"><span class="dot inversion"></span>{{ 'investments' | t }}</span>
+      <span class="kpi-value">{{ summary().inversiones | money }}</span>
+    </div>
+  </div>
+</section>
+
+<div class="content">
+  <section class="wl-panel list-panel" aria-labelledby="movements-title">
+    <div class="panel-head">
+      <h2 id="movements-title">{{ 'navMovements' | t }}</h2>
+      <ion-button class="wl-btn wl-btn-secondary export" fill="outline" size="small" [disabled]="!filtered().length || exporting()" (click)="exportExcel()">
+        <ion-icon slot="start" name="download-outline" />
+        {{ 'exportExcel' | t }}
+      </ion-button>
+    </div>
+
+    <div class="filters">
+      <div class="dates">
+        <label class="date-field">
+          <span>{{ 'dateFrom' | t }}</span>
+          <input type="date" [value]="dates().from" [max]="dates().to" (change)="setDate('from', $any($event.target).value)" />
+        </label>
+        <label class="date-field">
+          <span>{{ 'dateTo' | t }}</span>
+          <input type="date" [value]="dates().to" [min]="dates().from" (change)="setDate('to', $any($event.target).value)" />
+        </label>
+      </div>
+
+      <div class="search">
+        <ion-icon name="search-outline" aria-hidden="true" />
+        <input
+          type="search"
+          [placeholder]="(isGroup() ? 'searchPlaceholderGroup' : 'searchPlaceholder') | t"
+          [attr.aria-label]="'search' | t"
+          [value]="filters().text"
+          (input)="patch({ text: $any($event.target).value })"
+        />
+        @if (filters().text) {
+          <button type="button" class="clear-text" (click)="patch({ text: '' })" [attr.aria-label]="'clearFilters' | t">
+            <ion-icon name="close-circle" />
+          </button>
+        }
+      </div>
+
+      <div class="selects">
+        @if (isGroup()) {
+          <ion-select
+            class="filter-select"
+            interface="popover"
+            [attr.aria-label]="'person' | t"
+            [value]="filters().person"
+            (ionChange)="onSelect('person', $event)"
+          >
+            <ion-select-option value="todos">{{ 'allPeople' | t }}</ion-select-option>
+            @for (member of members(); track member.userId) {
+              <ion-select-option [value]="member.userId">{{ member.name }}</ion-select-option>
+            }
+          </ion-select>
+        }
+        <ion-select
+          class="filter-select"
+          interface="popover"
+          [attr.aria-label]="'category' | t"
+          [value]="filters().category"
+          (ionChange)="onSelect('category', $event)"
+        >
+          <ion-select-option value="todos">{{ 'allCategories' | t }}</ion-select-option>
+          @for (option of categoryOptions(); track option.value) {
+            <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
+    </div>
+
+    <div class="types">
+      <app-chip-picker [label]="'filterLabel' | t" [options]="typeOptions()" [value]="typeValue()" (valueChange)="onType($event)" />
+      @if (hasFilters()) {
+        <button type="button" class="clear" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
+      }
+    </div>
+
+    @if (data.error()) {
+      <div class="state">
+        <p>{{ 'loadError' | t }}</p>
+        <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="reload()">{{ 'retry' | t }}</ion-button>
+      </div>
+    } @else if (data.isLoading() && !data.hasValue()) {
+      @for (row of [1, 2, 3, 4, 5]; track row) {
+        <ion-skeleton-text [animated]="true" class="skeleton" />
+      }
+    } @else if (!filtered().length) {
+      <div class="state">
+        <p class="state-title">{{ (hasFilters() ? 'noResults' : 'noMovementsPeriod') | t }}</p>
+        @if (hasFilters()) {
+          <button type="button" class="clear" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
+        }
+      </div>
+    } @else {
+      @for (day of days(); track day.date) {
+        <div class="day">
+          <div class="day-head">
+            <span class="day-label">{{ dayLabel(day.date) }}</span>
+            @if (day.spent) {
+              <span class="day-total">−{{ day.spent | money }}</span>
+            }
+          </div>
+          <app-movement-list
+            [movements]="day.items"
+            [authors]="isGroup() ? names() : null"
+            [showDate]="false"
+            [emptyTitle]="''"
+            (selected)="selected.emit($event)"
+            (removed)="removed.emit($event)"
+          />
+        </div>
+      }
+    }
+  </section>
+
+  <aside class="side">
+    @if (isGroup() && people().length) {
+      <section class="wl-panel" aria-labelledby="by-person">
+        <h2 id="by-person">{{ 'byPerson' | t }}</h2>
+        <ul class="people">
+          @for (share of people(); track share.userId) {
+            <li>
+              <button type="button" class="person" [class.active]="filters().person === share.userId"
+                (click)="patch({ person: filters().person === share.userId ? 'todos' : share.userId })">
+                <span class="avatar" [style.background]="colorOf()[share.userId] ?? '#9ca3af'" aria-hidden="true">
+                  {{ (names()[share.userId] ?? '?').charAt(0).toUpperCase() }}
+                </span>
+                <span class="person-body">
+                  <span class="person-row">
+                    <span class="person-name">{{ names()[share.userId] ?? '—' }}</span>
+                    <span class="person-amount">{{ share.spent | money }}</span>
+                  </span>
+                  <span class="bar"><span [style.width.%]="share.percent" [style.background]="colorOf()[share.userId] ?? '#9ca3af'"></span></span>
+                  <span class="person-meta">{{ 'ofTotal' | t: '' + share.percent }} · {{ 'movementsCount' | t: '' + share.count }}</span>
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <section class="wl-panel" aria-labelledby="by-category">
+      <h2 id="by-category">{{ 'byCategory' | t }}</h2>
+      <app-category-breakdown [movements]="filtered()" [limit]="8" />
+    </section>
+  </aside>
+</div>

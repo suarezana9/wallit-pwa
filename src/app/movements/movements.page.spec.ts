@@ -1,33 +1,31 @@
 import { TestBed } from '@angular/core/testing';
-import { computed, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import { MovementsPage } from './movements.page';
-import { MovementsStore } from './movements-store';
-import { monthRange } from '../core/dates';
-import { summarize } from './movement.model';
-import type { Movimiento } from '../core/database.types';
-
-const mov = (id: string, tipo: Movimiento['tipo']): Movimiento => ({
-  id, group_id: null, user_id: 'u', amount: 100, category: 'Otros', description: id,
-  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null,
-});
+import { GroupsStore } from '../groups/groups-store';
+import { AuthStore } from '../core/auth-store';
+import { Supabase } from '../core/supabase';
 
 describe('MovementsPage', () => {
-  it('filtra por tipo y cuenta cada uno', () => {
-    const list = signal([mov('a', 'gasto'), mov('b', 'gasto'), mov('c', 'ingreso')]);
+  it('usa el espacio activo para el explorador', () => {
+    const query: Record<string, unknown> = {};
+    for (const m of ['select', 'eq', 'is', 'gte', 'lte', 'order', 'limit']) query[m] = () => query;
+    query['then'] = (resolve: (r: unknown) => unknown) => resolve({ data: [], error: null });
     TestBed.configureTestingModule({
-      providers: [{
-        provide: MovementsStore,
-        useValue: {
-          range: signal(monthRange(0)), label: signal('Octubre 2026'), list, summary: computed(() => summarize(list())),
-          movements: { error: signal(undefined), isLoading: signal(false), hasValue: signal(true), reload: vi.fn() },
-          previousMonth: vi.fn(), nextMonth: vi.fn(),
+      providers: [
+        { provide: Supabase, useValue: { client: { from: () => query, channel: () => ({ on: () => ({ subscribe: () => ({}) }) }), removeChannel: () => Promise.resolve() } } },
+        { provide: AuthStore, useValue: { user: signal({ id: 'u' }) } },
+        {
+          provide: GroupsStore,
+          useValue: {
+            list: signal([]), active: signal(null), contextId: signal('personal'), activeGroupId: signal(null),
+            memberNames: signal({}), activeMembers: { hasValue: () => false, value: () => [] },
+          },
         },
-      }],
+      ],
     });
-    const page = TestBed.createComponent(MovementsPage).componentInstance;
-    expect(page.filtered().length).toBe(3);
-    expect(page.filterOptions()[1].label).toBe('Gastos · 2');
-    page.filter.set('ingreso');
-    expect(page.filtered().map((m) => m.id)).toEqual(['c']);
+    const fixture = TestBed.createComponent(MovementsPage);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.groupId()).toBeNull();
+    expect(fixture.componentInstance.fileName()).toBe('wallit-personal');
   });
 });

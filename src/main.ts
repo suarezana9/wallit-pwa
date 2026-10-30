@@ -14,7 +14,8 @@ bootstrapApplication(AppComponent, {
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
     provideAppInitializer(() => inject(AuthStore).init()),
-    provideServiceWorker('ngsw-worker.js', {
+    // wallit-sw.js suma "Compartir con Wallit" y adentro importa ngsw-worker.js (caché offline y actualizaciones).
+    provideServiceWorker('wallit-sw.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
     }),

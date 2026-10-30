@@ -67,11 +67,11 @@ export class AuthStore {
    * prompt=select_account obliga a Google a mostrar el selector de cuentas aunque haya
    * una sola sesión abierta: en una compu compartida evita entrar con la cuenta equivocada.
    */
-  async signInWithGoogle(): Promise<AuthResult> {
+  async signInWithGoogle(redirect = '/inicio'): Promise<AuthResult> {
     const { error } = await this.supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/inicio`,
+        redirectTo: `${window.location.origin}${redirect}`,
         queryParams: { prompt: 'select_account' },
       },
     });

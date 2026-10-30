@@ -1,0 +1,154 @@
+<section
+  class="hero"
+  [class.compact]="summary() && session.mode() === 'idle'"
+  (dragover)="onDragOver($event)"
+  (dragleave)="dragging.set(false)"
+  (drop)="onDrop($event)"
+>
+  <span class="glow" aria-hidden="true"></span>
+
+  @switch (session.mode()) {
+    @case ('recording') {
+      <div class="state" role="status">
+        <div class="wave" aria-hidden="true">
+          @for (bar of session.wave(); track $index) {
+            <span [style.transform]="'scaleY(' + bar + ')'"></span>
+          }
+        </div>
+        <div class="row">
+          <span class="rec"><span class="dot" aria-hidden="true"></span>{{ 'aiListening' | t }} · {{ session.timer() }}</span>
+          <button type="button" class="solid" (click)="session.stopVoice()">
+            <ion-icon name="stop" aria-hidden="true" />
+            {{ 'aiStop' | t }}
+          </button>
+          <button type="button" class="ghost-icon" (click)="session.cancel()" [attr.aria-label]="'cancel' | t">
+            <ion-icon name="close-outline" />
+          </button>
+        </div>
+        <p class="hint">{{ 'aiVoiceExample' | t }}</p>
+      </div>
+    }
+
+    @case ('busy') {
+      <div class="state busy" role="status">
+        @if (session.preview(); as image) {
+          <div class="scan">
+            <img [src]="image" alt="" />
+            <span class="scanline" aria-hidden="true"></span>
+          </div>
+        } @else {
+          <div class="orb" aria-hidden="true"><ion-icon name="sparkles" /></div>
+        }
+        <div class="busy-text">
+          <strong>{{ session.busyLabel() }}</strong>
+          <span>{{ 'aiWait' | t }}</span>
+        </div>
+      </div>
+    }
+
+    @case ('text') {
+      <div class="state">
+        <form class="ask" (submit)="submitText($event)">
+          <input
+            type="text"
+            maxlength="300"
+            [placeholder]="'aiTextPlaceholder' | t"
+            [attr.aria-label]="'aiText' | t"
+            [value]="text()"
+            (input)="text.set($any($event.target).value)"
+            autofocus
+          />
+          <button type="submit" class="send" [disabled]="!text().trim()" [attr.aria-label]="'aiSend' | t">
+            <ion-icon name="arrow-up" />
+          </button>
+        </form>
+        <div class="examples">
+          @for (key of examples; track key) {
+            @let label = key | t;
+            <button type="button" class="example" (click)="useExample(label)">{{ label }}</button>
+          }
+          <button type="button" class="link" (click)="session.cancel()">{{ 'cancel' | t }}</button>
+        </div>
+      </div>
+    }
+
+    @default {
+      @if (summary(); as done) {
+        <div class="done">
+          <ion-icon name="checkmark-circle" class="done-icon" aria-hidden="true" />
+          <div class="done-text">
+            <strong>{{ 'aiDoneTitle' | t }}</strong>
+            @if (done.transcript) {
+              <span>{{ 'aiHeard' | t: done.transcript }}</span>
+            }
+            @if (done.missingAmount) {
+              <span class="warn">{{ 'aiNoAmount' | t }}</span>
+            }
+          </div>
+          <div class="mini-actions">
+            <label class="mini" [attr.aria-label]="(session.isTouch ? 'aiScanTouch' : 'aiUpload') | t">
+              <ion-icon [name]="session.isTouch ? 'camera-outline' : 'cloud-upload-outline'" />
+              <input type="file" accept="image/*" [attr.capture]="session.isTouch ? 'environment' : null" (change)="onFile($event)" />
+            </label>
+            @if (session.canRecord) {
+              <button type="button" class="mini" (click)="session.startVoice()" [attr.aria-label]="'aiVoice' | t">
+                <ion-icon name="mic-outline" />
+              </button>
+            }
+            <button type="button" class="mini" (click)="session.openText()" [attr.aria-label]="'aiText' | t">
+              <ion-icon name="create-outline" />
+            </button>
+          </div>
+        </div>
+      } @else {
+        <div class="head">
+          <span class="badge-icon" aria-hidden="true"><ion-icon name="sparkles" /></span>
+          <div>
+            <h2>{{ 'aiHeroTitle' | t }}</h2>
+            <p>{{ (session.isTouch ? 'aiHeroTextTouch' : 'aiHeroTextDesktop') | t }}</p>
+          </div>
+        </div>
+
+        <div class="tiles">
+          <label class="tile">
+            <span class="tile-icon"><ion-icon [name]="session.isTouch ? 'camera-outline' : 'cloud-upload-outline'" /></span>
+            <span class="tile-title">{{ (session.isTouch ? 'aiScanTouch' : 'aiUpload') | t }}</span>
+            <span class="tile-hint">{{ (session.isTouch ? 'aiScanTouchHint' : 'aiUploadHint') | t }}</span>
+            <input type="file" accept="image/*" [attr.capture]="session.isTouch ? 'environment' : null" (change)="onFile($event)" />
+          </label>
+          @if (session.canRecord) {
+            <button type="button" class="tile" (click)="session.startVoice()">
+              <span class="tile-icon"><ion-icon name="mic-outline" /></span>
+              <span class="tile-title">{{ 'aiVoice' | t }}</span>
+              <span class="tile-hint">{{ 'aiVoiceHint' | t }}</span>
+            </button>
+          }
+          <button type="button" class="tile" (click)="session.openText()">
+            <span class="tile-icon"><ion-icon name="create-outline" /></span>
+            <span class="tile-title">{{ 'aiText' | t }}</span>
+            <span class="tile-hint">{{ 'aiTextHint' | t }}</span>
+          </button>
+        </div>
+
+        @if (session.isTouch) {
+          <label class="gallery">
+            <ion-icon name="images-outline" aria-hidden="true" />
+            {{ 'aiGallery' | t }}
+            <input type="file" accept="image/*" (change)="onFile($event)" />
+          </label>
+        }
+      }
+    }
+  }
+
+  @if (dragging()) {
+    <div class="drop" aria-hidden="true">
+      <ion-icon name="cloud-upload-outline" />
+      {{ 'aiDropHere' | t }}
+    </div>
+  }
+</section>
+
+@if (session.error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}

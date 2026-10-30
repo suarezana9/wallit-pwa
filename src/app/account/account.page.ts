@@ -1,11 +1,11 @@
 import { Component, computed, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar,
   SelectCustomEvent,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { checkmarkCircle, logOutOutline } from 'ionicons/icons';
+import { checkmarkCircle, chevronForward, logOutOutline } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
 import { CURRENCIES } from '../core/currencies';
 import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
@@ -31,7 +31,7 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
 @Component({
   selector: 'app-account',
   imports: [
-    IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, TranslatePipe,
+    IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, RouterLink, TranslatePipe,
   ],
   templateUrl: 'account.page.html',
   styleUrls: ['account.page.scss'],
@@ -53,7 +53,7 @@ export class AccountPage {
   });
 
   constructor() {
-    addIcons({ checkmarkCircle, logOutOutline });
+    addIcons({ checkmarkCircle, chevronForward, logOutOutline });
   }
 
   onCurrency(event: SelectCustomEvent<string>): void {

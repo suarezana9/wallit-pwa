@@ -1,0 +1,102 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-title>{{ 'navGroups' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="wl-page">
+    <header class="wl-page-header">
+      <div class="wl-page-title ion-hide-lg-down">
+        <h1>{{ 'navGroups' | t }}</h1>
+        <p>{{ 'groupsSubtitle' | t }}</p>
+      </div>
+      @if (groups.list().length) {
+        <div class="header-actions">
+          <ion-button class="wl-btn wl-btn-secondary" fill="outline" (click)="dialog().open('join')">
+            <ion-icon slot="start" name="enter-outline" />
+            {{ 'joinGroup' | t }}
+          </ion-button>
+          <ion-button class="wl-btn wl-btn-primary" (click)="dialog().open('create')">
+            <ion-icon slot="start" name="add" />
+            {{ 'createGroup' | t }}
+          </ion-button>
+        </div>
+      }
+    </header>
+
+    @if (groups.groups.isLoading() && !groups.groups.hasValue()) {
+      <div class="grid">
+        @for (row of [1, 2]; track row) {
+          <ion-skeleton-text [animated]="true" class="skeleton" />
+        }
+      </div>
+    } @else if (!groups.list().length) {
+      <section class="empty">
+        <div class="empty-icon" aria-hidden="true"><ion-icon name="people-outline" /></div>
+        <h2>{{ 'noGroupsTitle' | t }}</h2>
+        <p>{{ 'noGroupsText' | t }}</p>
+        <div class="empty-actions">
+          <button type="button" class="option" (click)="dialog().open('create')">
+            <span class="option-icon" aria-hidden="true"><ion-icon name="add" /></span>
+            <span class="option-text">
+              <span class="option-title">{{ 'createGroup' | t }}</span>
+              <span class="option-hint">{{ 'createGroupText' | t }}</span>
+            </span>
+            <ion-icon name="chevron-forward" class="chevron" aria-hidden="true" />
+          </button>
+          <button type="button" class="option" (click)="dialog().open('join')">
+            <span class="option-icon" aria-hidden="true"><ion-icon name="enter-outline" /></span>
+            <span class="option-text">
+              <span class="option-title">{{ 'joinGroup' | t }}</span>
+              <span class="option-hint">{{ 'joinGroupText' | t }}</span>
+            </span>
+            <ion-icon name="chevron-forward" class="chevron" aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+    } @else {
+      <div class="grid">
+        @for (item of groups.list(); track item.group.id) {
+          <a class="card" [class.active]="groups.contextId() === item.group.id" [routerLink]="['/grupos', item.group.id]">
+            <div class="card-head">
+              <div class="group-icon" aria-hidden="true">{{ item.group.name.charAt(0).toUpperCase() }}</div>
+              <div class="card-title">
+                <h2>{{ item.group.name }}</h2>
+                <div class="badges">
+                  @if (groups.contextId() === item.group.id) {
+                    <span class="badge badge-active">{{ 'inUse' | t }}</span>
+                  }
+                  @if (item.role === 'admin') {
+                    <span class="badge">{{ 'admin' | t }}</span>
+                  }
+                </div>
+              </div>
+              <ion-icon name="chevron-forward" class="chevron" aria-hidden="true" />
+            </div>
+
+            <div class="stats">
+              <div class="stat">
+                <span class="stat-label">{{ 'expenses' | t }} · {{ 'thisMonth' | t }}</span>
+                <span class="stat-value">{{ (summary(item.group.id)?.gastos ?? 0) | money }}</span>
+              </div>
+              <div class="stat">
+                <span class="stat-label">{{ 'income' | t }}</span>
+                <span class="stat-value">{{ (summary(item.group.id)?.ingresos ?? 0) | money }}</span>
+              </div>
+            </div>
+
+            <div class="card-foot">
+              <app-member-avatars [groupId]="item.group.id" />
+              @if (groups.contextId() !== item.group.id) {
+                <button type="button" class="use" (click)="useGroup(item.group.id, $event)">{{ 'useGroup' | t }}</button>
+              }
+            </div>
+          </a>
+        }
+      </div>
+    }
+  </div>
+
+  <app-group-dialog (done)="onCreated($event)" />
+</ion-content>

@@ -4,7 +4,8 @@ import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { chevronDownOutline, chevronUpOutline } from 'ionicons/icons';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
-import { CATEGORIES, CategoryInfo } from './movement.model';
+import { CategoriesStore } from '../categories/categories-store';
+import { CategoryInfo } from './movement.model';
 
 const COLLAPSED = 11;
 
@@ -29,10 +30,12 @@ const COLLAPSED = 11;
           <span class="name">{{ names()[category.name] }}</span>
         </button>
       }
-      <button type="button" class="tile more" [attr.aria-expanded]="expanded()" (click)="expanded.set(!expanded())">
+      @if (hasMore()) {
+        <button type="button" class="tile more" [attr.aria-expanded]="expanded()" (click)="expanded.set(!expanded())">
         <span class="icon" aria-hidden="true"><ion-icon [name]="expanded() ? 'chevron-up-outline' : 'chevron-down-outline'" /></span>
         <span class="name">{{ (expanded() ? 'lessCategories' : 'moreCategories') | t }}</span>
       </button>
+      }
     </div>
   `,
   styles: `
@@ -65,6 +68,7 @@ const COLLAPSED = 11;
 })
 export class CategoryPickerComponent implements FormValueControl<string> {
   private readonly i18n = inject(I18n);
+  private readonly categories = inject(CategoriesStore);
 
   readonly value = model('');
   readonly label = input('');
@@ -73,14 +77,24 @@ export class CategoryPickerComponent implements FormValueControl<string> {
   readonly touched = input(false);
   readonly expanded = signal(false);
 
+  private readonly options = computed<readonly CategoryInfo[]>(() => {
+    const list = this.categories.visible();
+    const value = this.value();
+    if (!value || list.some((c) => c.name === value)) return list;
+    return [...list, this.categories.info(value)];
+  });
+
   readonly names = computed(() =>
-    Object.fromEntries(CATEGORIES.map((c) => [c.name, this.i18n.category(c.name)])) as Record<string, string>,
+    Object.fromEntries(this.options().map((c) => [c.name, this.i18n.category(c.name)])) as Record<string, string>,
   );
 
+  readonly hasMore = computed(() => this.options().length > COLLAPSED + 1);
+
   readonly visible = computed<readonly CategoryInfo[]>(() => {
-    if (this.expanded()) return CATEGORIES;
-    const first = CATEGORIES.slice(0, COLLAPSED);
-    const selected = CATEGORIES.find((c) => c.name === this.value());
+    const all = this.options();
+    if (this.expanded() || !this.hasMore()) return all;
+    const first = all.slice(0, COLLAPSED);
+    const selected = all.find((c) => c.name === this.value());
     if (!selected || first.includes(selected)) return first;
     return [...first.slice(0, COLLAPSED - 1), selected];
   });

@@ -11,6 +11,14 @@
 
 <ion-content class="ion-padding">
   <form id="movement-form" class="movement-form" (submit)="onSubmit($event)" novalidate>
+    @if (!isEdit()) {
+      <div class="ai-bar">
+        <app-ai-assist [summary]="aiSummary()" (result)="applyAi($event)" />
+        @if (!aiSummary()) {
+          <div class="manual-divider"><span>{{ 'aiManual' | t }}</span></div>
+        }
+      </div>
+    }
     <div class="col-primary" [style.--type-color]="currentType().color">
       <div class="amount">
         <span class="currency" aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
@@ -32,6 +40,13 @@
     </div>
 
     <div class="col-detail">
+      @if (showSpacePicker()) {
+        <div class="wl-field">
+          <span class="wl-field-label">{{ 'saveIn' | t }}</span>
+          <app-chip-picker [label]="'saveIn' | t" [options]="spaceOptions()" [(value)]="spaceId" />
+        </div>
+      }
+
       @if (!movementForm.category().hidden()) {
         <div class="wl-field">
           <span class="wl-field-label">{{ 'category' | t }}</span>
@@ -74,6 +89,48 @@
           }
         </div>
       </div>
+      <div class="wl-field">
+        <span class="wl-field-label">{{ 'receipt' | t }} <span class="optional">{{ 'optional' | t }}</span></span>
+        @if (receipt()) {
+          <div class="receipt">
+            <button type="button" class="receipt-thumb" [disabled]="!receiptSrc()" (click)="viewingReceipt.set(true)" [attr.aria-label]="'receiptView' | t">
+              @if (receiptSrc(); as src) {
+                <img [src]="src" alt="" />
+                <span class="zoom" aria-hidden="true"><ion-icon name="expand-outline" /></span>
+              } @else {
+                <ion-icon name="receipt-outline" aria-hidden="true" />
+              }
+            </button>
+            <div class="receipt-text">
+              <strong>{{ (receiptIsNew() ? 'receiptNew' : 'receiptSaved') | t }}</strong>
+              <span>{{ (receiptLoading() ? 'receiptLoading' : receiptSrc() ? 'receiptHint' : 'receiptUnavailable') | t }}</span>
+            </div>
+            <div class="receipt-actions">
+              <label class="link">
+                {{ 'receiptReplace' | t }}
+                <input type="file" accept="image/*" (change)="attachReceipt($event)" />
+              </label>
+              <button type="button" class="link danger" (click)="removeReceipt()">{{ 'receiptRemove' | t }}</button>
+            </div>
+          </div>
+        } @else {
+          <label class="receipt-add">
+            <ion-icon name="attach-outline" aria-hidden="true" />
+            <span>{{ 'receiptAttach' | t }}</span>
+            <input type="file" accept="image/*" (change)="attachReceipt($event)" />
+          </label>
+        }
+      </div>
+
+      @if (showSplit()) {
+        <app-group-split
+          [members]="members()"
+          [amount]="model().amount"
+          [meId]="meId()"
+          [(paidBy)]="paidBy"
+          [(division)]="division"
+        />
+      }
     </div>
   </form>
 </ion-content>
@@ -94,3 +151,12 @@
     </ion-button>
   </div>
 </ion-footer>
+
+@if (viewingReceipt() && receiptSrc(); as src) {
+  <div class="viewer" role="dialog" [attr.aria-label]="'receipt' | t" (click)="viewingReceipt.set(false)">
+    <img [src]="src" [alt]="'receipt' | t" (click)="$event.stopPropagation()" />
+    <button type="button" class="viewer-close" (click)="viewingReceipt.set(false)" [attr.aria-label]="'close' | t">
+      <ion-icon name="close-outline" />
+    </button>
+  </div>
+}

@@ -1,0 +1,68 @@
+<div
+  class="bar"
+  [class.active]="session.mode() !== 'idle'"
+  [class.dragging]="dragging()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="dragging.set(false)"
+  (drop)="onDrop($event)"
+>
+  @switch (session.mode()) {
+    @case ('recording') {
+      <span class="dot" aria-hidden="true"></span>
+      <div class="wave" aria-hidden="true">
+        @for (bar of session.wave(); track $index) {
+          <span [style.transform]="'scaleY(' + bar + ')'"></span>
+        }
+      </div>
+      <span class="timer" role="status">{{ session.timer() }}</span>
+      <button type="button" class="primary" (click)="session.stopVoice()">
+        <ion-icon name="stop" aria-hidden="true" />
+        {{ 'aiStop' | t }}
+      </button>
+      <button type="button" class="icon" (click)="session.cancel()" [attr.aria-label]="'cancel' | t">
+        <ion-icon name="close-outline" />
+      </button>
+    }
+    @case ('busy') {
+      @if (session.preview(); as image) {
+        <img class="thumb" [src]="image" alt="" />
+      } @else {
+        <ion-spinner name="crescent" />
+      }
+      <span class="busy-label" role="status">{{ session.busyLabel() }}</span>
+    }
+    @default {
+      <span class="spark" aria-hidden="true"><ion-icon name="sparkles" /></span>
+      <form class="ask" (submit)="submit($event)">
+        <input
+          type="text"
+          maxlength="300"
+          [placeholder]="'aiQuickPlaceholder' | t"
+          [attr.aria-label]="'aiQuickPlaceholder' | t"
+          [value]="text()"
+          (input)="text.set($any($event.target).value)"
+          (paste)="onPaste($event)"
+        />
+      </form>
+      @if (text().trim()) {
+        <button type="button" class="primary send" (click)="submit($event)" [attr.aria-label]="'aiSend' | t">
+          <ion-icon name="arrow-up" />
+        </button>
+      } @else {
+        @if (session.canRecord) {
+          <button type="button" class="icon" (click)="session.startVoice()" [attr.aria-label]="'aiVoice' | t" [title]="'aiVoice' | t">
+            <ion-icon name="mic-outline" />
+          </button>
+        }
+        <label class="icon pill" [title]="(session.isTouch ? 'aiScanTouch' : 'aiUpload') | t">
+          <ion-icon [name]="session.isTouch ? 'camera-outline' : 'attach-outline'" aria-hidden="true" />
+          <span class="pill-label">{{ (session.isTouch ? 'aiScanTouch' : 'aiUpload') | t }}</span>
+          <input type="file" accept="image/*" [attr.capture]="session.isTouch ? 'environment' : null" (change)="onFile($event)" />
+        </label>
+      }
+    }
+  }
+</div>
+@if (session.error(); as message) {
+  <p class="error" role="alert">{{ message }}</p>
+}

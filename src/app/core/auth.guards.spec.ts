@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
 import { Router, UrlTree, provideRouter } from '@angular/router';
-import { authGuard, guestGuard } from './auth.guards';
+import { authGuard, guestGuard, safeRedirect } from './auth.guards';
 import { AuthStore } from './auth-store';
 
 function setup(loggedIn: boolean) {
@@ -26,6 +26,18 @@ describe('authGuard', () => {
     const { run, router } = setup(false);
     const result = run(authGuard) as UrlTree;
     expect(router.serializeUrl(result)).toBe('/login');
+  });
+
+  it('recuerda el destino para volver después del login', () => {
+    const { router } = setup(false);
+    const result = TestBed.runInInjectionContext(() => authGuard({} as never, { url: '/unirse/ab12' } as never)) as UrlTree;
+    expect(router.serializeUrl(result)).toBe('/login?redirect=%2Funirse%2Fab12');
+  });
+
+  it('ignora destinos externos', () => {
+    expect(safeRedirect('//evil.com')).toBeNull();
+    expect(safeRedirect('https://evil.com')).toBeNull();
+    expect(safeRedirect('/grupos')).toBe('/grupos');
   });
 });
 

@@ -1,0 +1,92 @@
+<ion-modal class="wl-dialog" [isOpen]="isOpen()" (didDismiss)="close()">
+  <ng-template>
+    <div class="ion-page">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title>{{ title() }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="close()" [attr.aria-label]="'close' | t">
+              <ion-icon slot="icon-only" name="close-outline" />
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form id="budget-form" class="budget-form" (submit)="onSubmit($event)" novalidate>
+          <div class="col-main">
+            <div class="wl-field">
+              <span class="wl-field-label">{{ 'budgetName' | t }}</span>
+              <ion-input
+                class="wl-input"
+                [attr.aria-label]="'budgetName' | t"
+                [placeholder]="'budgetNamePlaceholder' | t"
+                maxlength="40"
+                [formField]="budgetForm.name"
+              />
+              @if (errorOf(budgetForm.name); as error) {
+                <p class="wl-field-error">{{ error }}</p>
+              }
+            </div>
+
+            <div class="wl-field">
+              <span class="wl-field-label">{{ 'budgetLimit' | t }}</span>
+              <div class="limit">
+                <span class="currency" aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
+                <ion-input
+                  class="wl-input wl-no-spin"
+                  type="number"
+                  inputmode="decimal"
+                  placeholder="0"
+                  [attr.aria-label]="'budgetLimit' | t"
+                  [formField]="budgetForm.limit"
+                />
+              </div>
+              @if (errorOf(budgetForm.limit); as error) {
+                <p class="wl-field-error">{{ error }}</p>
+              }
+            </div>
+
+            @if (serverError(); as error) {
+              <p class="wl-notice wl-notice-error" role="alert">{{ error }}</p>
+            }
+          </div>
+
+          <div class="wl-field col-categories">
+            <span class="wl-field-label">{{ 'budgetCategories' | t }}</span>
+            <app-category-multi-picker
+              [label]="'budgetCategories' | t"
+              [invalid]="!!errorOf(budgetForm.categories)"
+              [value]="model().categories"
+              (valueChange)="budgetForm.categories().value.set($event); budgetForm.categories().markAsTouched()"
+            />
+            @if (errorOf(budgetForm.categories); as error) {
+              <p class="wl-field-error">{{ error }}</p>
+            }
+            <a class="manage" routerLink="/categorias" (click)="close()">
+              <ion-icon name="settings-outline" aria-hidden="true" />
+              {{ 'manageCategories' | t }}
+            </a>
+          </div>
+        </form>
+      </ion-content>
+
+      <ion-footer class="ion-no-border">
+        <div class="actions">
+          @if (editing(); as budget) {
+            <ion-button class="wl-btn delete" fill="clear" color="danger" [disabled]="saving()" (click)="confirmRemove(budget)">
+              {{ 'deleteBudget' | t }}
+            </ion-button>
+          }
+          <ion-button class="wl-btn wl-btn-primary save" type="submit" form="budget-form" [disabled]="saving()">
+            @if (saving()) {
+              <ion-spinner name="crescent" />
+            } @else {
+              {{ (editing() ? 'saveChanges' : 'createBudget') | t }}
+            }
+          </ion-button>
+        </div>
+      </ion-footer>
+    </div>
+  </ng-template>
+</ion-modal>

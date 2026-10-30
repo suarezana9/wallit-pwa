@@ -1,0 +1,95 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-title>{{ 'navBudgets' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
+    <ion-refresher-content />
+  </ion-refresher>
+
+  <div class="wl-page">
+    <app-context-switcher class="switcher ion-hide-lg-up" />
+    <header class="wl-page-header">
+      <div class="wl-page-title ion-hide-lg-down">
+        <h1>{{ 'navBudgets' | t }}</h1>
+        <p>{{ activeGroup()?.name ?? ('budgetsSubtitle' | t) }}</p>
+      </div>
+      <app-month-nav />
+      @if (store.canEdit()) {
+        <ion-button class="wl-btn wl-btn-primary ion-hide-lg-down" (click)="editor().openNew()">
+          <ion-icon slot="start" name="add" />
+          {{ 'newBudget' | t }}
+        </ion-button>
+      }
+    </header>
+
+    @if (!store.canEdit()) {
+      <p class="wl-notice wl-notice-info">{{ 'onlyAdminBudgets' | t }}</p>
+    }
+
+    @if (store.budgets.isLoading() && !store.budgets.hasValue()) {
+      <div class="grid">
+        @for (row of [1, 2, 3]; track row) {
+          <ion-skeleton-text [animated]="true" class="skeleton" />
+        }
+      </div>
+    } @else if (!store.progress().length) {
+      <section class="empty">
+        <div class="empty-icon" aria-hidden="true"><ion-icon name="pie-chart-outline" /></div>
+        <h2>{{ 'noBudgetsTitle' | t }}</h2>
+        <p>{{ (store.canEdit() ? 'noBudgetsText' : 'noBudgetsMember') | t }}</p>
+        @if (store.canEdit()) {
+          <div class="empty-actions">
+            <ion-button class="wl-btn wl-btn-primary" (click)="editor().openNew()">
+              <ion-icon slot="start" name="add" />
+              {{ 'newBudget' | t }}
+            </ion-button>
+            @if (canCopy()) {
+              <ion-button class="wl-btn wl-btn-secondary" fill="outline" [disabled]="copying()" (click)="copyPrevious()">
+                <ion-icon slot="start" name="copy-outline" />
+                {{ 'copyPrevious' | t }}
+              </ion-button>
+            }
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="overview" [attr.aria-label]="'monthSummary' | t">
+        <div class="overview-item">
+          <span class="label">{{ 'budgeted' | t }}</span>
+          <span class="value">{{ store.totals().limit | money }}</span>
+        </div>
+        <div class="overview-item">
+          <span class="label">{{ 'spentLabel' | t }}</span>
+          <span class="value">{{ store.totals().spent | money }}</span>
+        </div>
+        <div class="overview-item">
+          <span class="label">{{ 'remainingLabel' | t }}</span>
+          <span class="value" [class.negative]="remaining() < 0">{{ remaining() | money }}</span>
+        </div>
+        <div class="overview-bar" aria-hidden="true"><span [style.width.%]="usedPercent()"></span></div>
+      </section>
+
+      <div class="grid">
+        @for (item of store.progress(); track item.budget.id) {
+          <button type="button" class="card-button" (click)="openDetail(item.budget)">
+            <app-budget-card [progress]="item" />
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  @if (store.canEdit()) {
+    <ion-fab slot="fixed" vertical="bottom" horizontal="end" class="ion-hide-lg-up">
+      <ion-fab-button (click)="editor().openNew()" [attr.aria-label]="'newBudget' | t">
+        <ion-icon name="add" />
+      </ion-fab-button>
+    </ion-fab>
+  }
+
+  <app-budget-editor (changed)="checkPrevious()" />
+  <app-budget-detail (edit)="editFromDetail($event)" />
+</ion-content>

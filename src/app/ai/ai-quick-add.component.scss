@@ -1,0 +1,209 @@
+:host {
+  display: block;
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 60px;
+  padding: 8px 8px 8px 10px;
+  border-radius: 18px;
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--ion-background-color), var(--ion-background-color)) padding-box,
+    linear-gradient(120deg, #a78bfa, #6c47ff 45%, #38bdf8) border-box;
+  box-shadow: 0 8px 28px rgba(108, 71, 255, 0.16);
+  transition: box-shadow 0.15s ease;
+
+  &:focus-within,
+  &.active {
+    box-shadow: 0 10px 34px rgba(108, 71, 255, 0.28);
+  }
+
+  &.dragging {
+    background:
+      linear-gradient(rgba(108, 71, 255, 0.08), rgba(108, 71, 255, 0.08)) padding-box,
+      linear-gradient(120deg, #a78bfa, #6c47ff 45%, #38bdf8) border-box;
+  }
+}
+
+.spark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  font-size: 19px;
+  color: #fff;
+  background: linear-gradient(135deg, #7c5cff, #4338ca);
+}
+
+.ask {
+  flex: 1;
+  min-width: 0;
+
+  input {
+    width: 100%;
+    height: 42px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--ion-text-color);
+    background: transparent;
+    border: 0;
+    outline: none;
+
+    &::placeholder {
+      color: var(--wl-muted);
+    }
+  }
+}
+
+.icon {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0 10px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  border: 0;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  &:hover {
+    background: rgba(var(--ion-color-primary-rgb), 0.14);
+  }
+}
+
+.primary {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  min-width: 42px;
+  padding: 0 14px;
+  border-radius: 12px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: var(--ion-color-primary);
+  border: 0;
+  cursor: pointer;
+
+  &.send {
+    padding: 0;
+    font-size: 20px;
+  }
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-left: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.wave {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 34px;
+  overflow: hidden;
+
+  span {
+    flex: 1;
+    max-width: 5px;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--ion-color-primary);
+    transform-origin: center;
+    transition: transform 0.08s linear;
+  }
+}
+
+.timer {
+  font-variant-numeric: tabular-nums;
+  color: var(--wl-muted);
+}
+
+.thumb {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  margin-left: 2px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+ion-spinner {
+  margin-left: 10px;
+  color: var(--ion-color-primary);
+}
+
+.busy-label {
+  flex: 1;
+  font-weight: 600;
+  background: linear-gradient(90deg, var(--wl-muted), var(--ion-color-primary), var(--wl-muted));
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.6s linear infinite;
+}
+
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.error {
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--ion-color-danger);
+  background: rgba(var(--ion-color-danger-rgb), 0.08);
+}
+
+@media (max-width: 600px) {
+  .pill-label {
+    display: none;
+  }
+
+  .icon.pill {
+    padding: 0;
+  }
+}

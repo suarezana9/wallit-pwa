@@ -1,0 +1,111 @@
+<ion-header class="ion-no-border ion-hide-lg-up">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/cuenta" [text]="''" />
+    </ion-buttons>
+    <ion-title>{{ 'categoriesTitle' | t }}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="wl-page">
+    <header class="wl-page-header ion-hide-lg-down">
+      <div class="wl-page-title">
+        <h1>{{ 'categoriesTitle' | t }}</h1>
+        <p>{{ 'categoriesSubtitle' | t }}</p>
+      </div>
+    </header>
+
+    <div class="layout">
+      <section class="wl-panel" aria-labelledby="builtin-title">
+        <div class="panel-head">
+          <div>
+            <h2 id="builtin-title">{{ 'defaultCategories' | t }}</h2>
+            <span class="count">{{ 'activeCount' | t: '' + activeCount() : '' + builtin.length }}</span>
+          </div>
+          <button type="button" class="link" (click)="toggleAll()">{{ (allActive() ? 'hideAll' : 'showAll') | t }}</button>
+        </div>
+        <p class="hint">{{ 'hiddenHint' | t }}</p>
+        <div class="grid">
+          @for (category of builtin; track category.name) {
+            <button
+              type="button"
+              class="tile"
+              role="switch"
+              [class.off]="store.hidden().has(category.name)"
+              [attr.aria-checked]="!store.hidden().has(category.name)"
+              [style.--cat-color]="category.color"
+              (click)="toggle(category.name)"
+            >
+              <span class="icon" aria-hidden="true">{{ category.emoji }}</span>
+              <span class="name">{{ i18n.category(category.name) }}</span>
+              <span class="switch" aria-hidden="true"><span></span></span>
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="wl-panel" aria-labelledby="custom-title">
+        <h2 id="custom-title">{{ 'myCategories' | t }}</h2>
+        @if (store.custom().length) {
+          <ul class="custom-list">
+            @for (category of store.custom(); track category.id) {
+              <li>
+                <span class="icon" [style.--cat-color]="category.color" aria-hidden="true">{{ category.emoji }}</span>
+                <span class="custom-name">{{ category.nombre }}</span>
+                <ion-button fill="clear" color="medium" (click)="confirmRemove(category)" [attr.aria-label]="'delete' | t">
+                  <ion-icon slot="icon-only" name="trash-outline" />
+                </ion-button>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="hint">{{ 'noCustomCategories' | t }}</p>
+        }
+
+        <form class="new" (submit)="addCustom($event)" novalidate>
+          <h3>{{ 'newCategory' | t }}</h3>
+          <div class="preview-row">
+            <span class="icon big" [style.--cat-color]="color()" aria-hidden="true">{{ emoji() }}</span>
+            <div class="wl-field grow">
+              <span class="wl-field-label" aria-hidden="true">{{ 'categoryName' | t }}</span>
+              <ion-input
+                class="wl-input"
+                [class.has-error]="!!error()"
+                [attr.aria-label]="'categoryName' | t"
+                [placeholder]="'categoryNamePlaceholder' | t"
+                maxlength="24"
+                [value]="name()"
+                (ionInput)="onName($event.detail.value)"
+              />
+            </div>
+          </div>
+          @if (error(); as message) {
+            <p class="wl-field-error" role="alert">{{ message }}</p>
+          }
+
+          <span class="wl-field-label">{{ 'icon' | t }}</span>
+          <div class="emojis" role="radiogroup" [attr.aria-label]="'icon' | t">
+            @for (item of emojis; track item) {
+              <button type="button" role="radio" [class.selected]="emoji() === item" [attr.aria-checked]="emoji() === item" (click)="emoji.set(item)">
+                {{ item }}
+              </button>
+            }
+          </div>
+
+          <span class="wl-field-label">{{ 'color' | t }}</span>
+          <div class="colors" role="radiogroup" [attr.aria-label]="'color' | t">
+            @for (item of colors; track item) {
+              <button type="button" role="radio" [style.background]="item" [class.selected]="color() === item" [attr.aria-checked]="color() === item" [attr.aria-label]="item" (click)="color.set(item)"></button>
+            }
+          </div>
+
+          <ion-button class="wl-btn wl-btn-primary" type="submit" expand="block" [disabled]="saving()">
+            <ion-icon slot="start" name="add" />
+            {{ 'addCategory' | t }}
+          </ion-button>
+        </form>
+      </section>
+    </div>
+  </div>
+</ion-content>

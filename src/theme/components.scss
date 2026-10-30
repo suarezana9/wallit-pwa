@@ -122,8 +122,13 @@ ion-menu.wl-sidebar::part(container) {
 @media (min-width: 768px) {
   ion-modal.wl-dialog {
     --width: min(820px, 94vw);
-    --height: min(520px, 90vh);
+    --height: min(600px, 92vh);
     --border-radius: 20px;
+  }
+
+  ion-modal.wl-dialog.wl-dialog-sm {
+    --width: 440px;
+    --height: 330px;
   }
 }
 
@@ -171,4 +176,15 @@ ion-menu.wl-sidebar::part(container) {
     border-radius: 16px;
     border: 1px solid var(--wl-field-border);
   }
+}
+
+ion-toolbar ion-button {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+// Hoja del selector de espacio en celular: se adapta a la altura del contenido.
+ion-modal.space-sheet {
+  --height: auto;
+  --border-radius: 20px;
 }

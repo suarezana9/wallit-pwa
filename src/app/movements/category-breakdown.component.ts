@@ -2,7 +2,7 @@ import { Component, computed, inject, input } from '@angular/core';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MoneyPipe } from '../core/money';
 import type { Movimiento } from '../core/database.types';
-import { categoryInfo } from './movement.model';
+import { CategoriesStore } from '../categories/categories-store';
 
 interface CategoryRow {
   name: string;
@@ -45,6 +45,7 @@ export class CategoryBreakdownComponent {
   readonly movements = input.required<readonly Movimiento[]>();
   readonly limit = input(6);
   private readonly i18n = inject(I18n);
+  private readonly categories = inject(CategoriesStore);
 
   readonly rows = computed<CategoryRow[]>(() => {
     const totals = new Map<string, number>();
@@ -57,7 +58,7 @@ export class CategoryBreakdownComponent {
       .sort((a, b) => b[1] - a[1])
       .slice(0, this.limit())
       .map(([name, total]) => {
-        const info = categoryInfo(name);
+        const info = this.categories.info(name);
         return { name, label: this.i18n.category(name), emoji: info.emoji, color: info.color, total, percent: sum ? Math.round((total / sum) * 100) : 0 };
       });
   });

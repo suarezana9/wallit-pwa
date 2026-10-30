@@ -14,6 +14,17 @@ export const routes: Routes = [
   },
   { path: 'home', redirectTo: 'inicio', pathMatch: 'full' },
   {
+    path: 'unirse/:code',
+    canActivate: [authGuard],
+    loadComponent: () => import('./groups/join.page').then((m) => m.JoinPage),
+  },
+  {
+    // Destino de "Compartir con Wallit" (el service worker redirige acá después del POST).
+    path: 'compartir',
+    canActivate: [authGuard],
+    loadComponent: () => import('./share/share.page').then((m) => m.SharePage),
+  },
+  {
     path: '',
     canActivate: [authGuard],
     loadComponent: () => import('./tabs/tabs.page').then((m) => m.TabsPage),
@@ -25,6 +36,22 @@ export const routes: Routes = [
       {
         path: 'movimientos',
         loadComponent: () => import('./movements/movements.page').then((m) => m.MovementsPage),
+      },
+      {
+        path: 'presupuestos',
+        loadComponent: () => import('./budgets/budgets.page').then((m) => m.BudgetsPage),
+      },
+      {
+        path: 'categorias',
+        loadComponent: () => import('./categories/categories.page').then((m) => m.CategoriesPage),
+      },
+      {
+        path: 'grupos',
+        loadComponent: () => import('./groups/groups.page').then((m) => m.GroupsPage),
+      },
+      {
+        path: 'grupos/:id',
+        loadComponent: () => import('./groups/group-detail.page').then((m) => m.GroupDetailPage),
       },
       {
         path: 'cuenta',

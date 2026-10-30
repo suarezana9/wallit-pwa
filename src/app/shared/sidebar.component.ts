@@ -2,20 +2,26 @@ import { Component, computed, inject } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { IonButton, IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { homeOutline, listOutline, logOutOutline, personCircleOutline } from 'ionicons/icons';
+import {
+  homeOutline, listOutline, logOutOutline, peopleOutline, personCircleOutline, pieChartOutline, swapHorizontalOutline,
+} from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
 import { ProfileStore } from '../core/profile-store';
 import { WallitLogoComponent } from './wallit-logo';
 import { TranslatePipe } from '../core/i18n/i18n';
+import { ContextSwitcherComponent } from '../groups/context-switcher.component';
+import { GroupsStore } from '../groups/groups-store';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [IonButton, IonIcon, RouterLink, RouterLinkActive, TranslatePipe, WallitLogoComponent],
+  imports: [ContextSwitcherComponent, IonButton, IonIcon, RouterLink, RouterLinkActive, TranslatePipe, WallitLogoComponent],
   template: `
     <div class="brand">
       <app-wallit-logo [size]="32" />
       <span>Wallit</span>
     </div>
+
+    <app-context-switcher variant="sidebar" class="switcher" />
 
     <nav aria-label="Principal">
       <a class="nav-item" routerLink="/inicio" routerLinkActive="active">
@@ -26,10 +32,26 @@ import { TranslatePipe } from '../core/i18n/i18n';
         <ion-icon name="list-outline" aria-hidden="true" />
         {{ 'navMovements' | t }}
       </a>
+      <a class="nav-item" routerLink="/presupuestos" routerLinkActive="active">
+        <ion-icon name="pie-chart-outline" aria-hidden="true" />
+        {{ 'navBudgets' | t }}
+      </a>
+      @if (groups.activeGroupId(); as groupId) {
+        <a class="nav-item" [routerLink]="['/grupos', groupId]" routerLinkActive="active">
+          <ion-icon name="swap-horizontal-outline" aria-hidden="true" />
+          {{ 'navAccounts' | t }}
+        </a>
+      } @else {
+        <a class="nav-item" routerLink="/grupos" routerLinkActive="active">
+          <ion-icon name="people-outline" aria-hidden="true" />
+          {{ 'navGroups' | t }}
+        </a>
+      }
       <a class="nav-item" routerLink="/cuenta" routerLinkActive="active">
         <ion-icon name="person-circle-outline" aria-hidden="true" />
         {{ 'navAccount' | t }}
       </a>
+
     </nav>
 
     <div class="user">
@@ -45,8 +67,8 @@ import { TranslatePipe } from '../core/i18n/i18n';
   `,
   styles: `
     :host { display: flex; flex-direction: column; height: 100%; padding: 24px 16px 16px; }
-    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 28px; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
-    nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+    .brand { display: flex; align-items: center; gap: 10px; padding: 0 8px 20px; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+    nav { display: flex; flex-direction: column; gap: 4px; flex: 1; min-height: 0; overflow-y: auto; }
     .nav-item {
       display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px;
       color: var(--wl-muted); font-weight: 600; text-decoration: none;
@@ -54,6 +76,7 @@ import { TranslatePipe } from '../core/i18n/i18n';
     }
     .nav-item ion-icon { font-size: 19px; }
     .nav-item:hover { background: var(--wl-field-bg); color: var(--ion-text-color); }
+    .switcher { margin-bottom: 20px; }
     .nav-item.active { background: rgba(var(--ion-color-primary-rgb), 0.1); color: var(--ion-color-primary); }
     .user {
       display: flex; align-items: center; gap: 10px; padding: 10px 4px 10px 10px;
@@ -72,12 +95,13 @@ import { TranslatePipe } from '../core/i18n/i18n';
 export class SidebarComponent {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
+  readonly groups = inject(GroupsStore);
   readonly displayName = inject(ProfileStore).displayName;
   readonly email = computed(() => this.auth.user()?.email ?? '');
   readonly initial = computed(() => (this.displayName() || this.email()).charAt(0).toUpperCase());
 
   constructor() {
-    addIcons({ homeOutline, listOutline, logOutOutline, personCircleOutline });
+    addIcons({ homeOutline, listOutline, logOutOutline, peopleOutline, personCircleOutline, pieChartOutline, swapHorizontalOutline });
   }
 
   async logout(): Promise<void> {

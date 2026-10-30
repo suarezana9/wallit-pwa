@@ -29,12 +29,17 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "public"
+              },
+              {
+                "glob": "**/*",
                 "input": "src/assets",
                 "output": "assets"
               }
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss", "src/theme/components.scss"],
             "scripts": [],
+            "allowedCommonJsDependencies": ["qrcode-generator"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -47,7 +52,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kb",
+                  "maximumWarning": "6kb",
                   "maximumError": "8kb"
                 }
               ],

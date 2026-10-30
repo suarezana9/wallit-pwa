@@ -3,6 +3,7 @@ import { AuthStore } from '../core/auth-store';
 import { Supabase } from '../core/supabase';
 import { monthName, monthRange } from '../core/dates';
 import { PreferencesStore } from '../core/preferences-store';
+import { GroupsStore } from '../groups/groups-store';
 import { MovementsStore } from './movements-store';
 
 export interface MonthPoint {
@@ -31,20 +32,26 @@ export class InsightsStore {
   private readonly auth = inject(AuthStore);
   private readonly movements = inject(MovementsStore);
   private readonly preferences = inject(PreferencesStore);
+  private readonly groups = inject(GroupsStore);
 
   private readonly history = resource({
     params: () => {
       const userId = this.auth.user()?.id;
       if (!userId) return undefined;
       const offset = this.movements.monthOffset();
-      return { userId, from: monthRange(offset - MONTHS_BACK).from, to: monthRange(offset - 1).to };
+      return {
+        userId,
+        groupId: this.groups.activeGroupId(),
+        from: monthRange(offset - MONTHS_BACK).from,
+        to: monthRange(offset - 1).to,
+      };
     },
     loader: async ({ params }) => {
-      const { data, error } = await this.supabase
-        .from('expenses')
-        .select('date, amount, tipo')
-        .eq('user_id', params.userId)
-        .is('group_id', null)
+      const base = this.supabase.from('expenses').select('date, amount, tipo');
+      const scoped = params.groupId
+        ? base.eq('group_id', params.groupId)
+        : base.eq('user_id', params.userId).is('group_id', null);
+      const { data, error } = await scoped
         .gte('date', params.from)
         .lte('date', params.to);
       if (error) throw error;
