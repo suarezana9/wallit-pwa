@@ -250,28 +250,36 @@ ion-footer {
 }
 
 @media (min-width: 768px) {
-  .ai-bar {
-    grid-column: 1 / -1;
-  }
-
+  // Una sola columna centrada: arriba el "qué" (tipo y monto) en una tarjeta, abajo el detalle.
+  // Con dos columnas, la del monto quedaba corta y dejaba un hueco vacío al lado del formulario.
   .movement-form {
-    max-width: none;
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 28px;
-    align-items: start;
+    max-width: 600px;
+    gap: 24px;
   }
 
   .col-primary {
-    gap: 16px;
-    padding: 20px 16px;
-    border-radius: 16px;
+    gap: 4px;
+    padding: 16px 16px 8px;
+    border-radius: 20px;
     background: color-mix(in srgb, var(--type-color) 6%, var(--wl-field-bg));
-    transition: background 0.15s ease;
+    border: 1px solid color-mix(in srgb, var(--type-color) 18%, transparent);
+    transition: background 0.15s ease, border-color 0.15s ease;
   }
 
-  .amount-input {
-    font-size: 38px;
+  app-type-picker {
+    order: -1;
+  }
+
+  .amount {
+    padding: 12px 0 8px;
+  }
+
+  .center {
+    margin: -4px 0 8px;
+  }
+
+  .col-detail {
+    gap: 22px;
   }
 
   .row {
@@ -285,7 +293,7 @@ ion-footer {
   }
 
   .date {
-    width: 170px;
+    width: 180px;
   }
 
   .actions {

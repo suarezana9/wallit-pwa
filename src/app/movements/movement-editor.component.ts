@@ -19,7 +19,7 @@ import { PreferencesStore } from '../core/preferences-store';
   selector: 'app-movement-editor',
   imports: [BulkReviewComponent, IonModal, MovementFormComponent],
   template: `
-    <ion-modal class="wl-dialog" [isOpen]="isOpen()" (didDismiss)="close()">
+    <ion-modal class="wl-dialog wl-dialog-form" [isOpen]="isOpen()" (didDismiss)="close()">
       <ng-template>
         <app-movement-form
           [movement]="editing()"

@@ -40,6 +40,12 @@ import { MOVEMENT_TYPES } from './movement.model';
       transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
     .type ion-icon { font-size: 20px; }
+    /* Con lugar (escritorio), una fila tipo pestañas: ícono y texto en línea. */
+    @container (min-width: 480px) {
+      .types { gap: 6px; }
+      .type { flex-direction: row; justify-content: center; gap: 8px; padding: 10px 8px; font-size: 14px; background: var(--ion-background-color, #fff); }
+      .type ion-icon { font-size: 18px; }
+    }
     .type.selected {
       color: var(--type-color);
       border-color: var(--type-color);

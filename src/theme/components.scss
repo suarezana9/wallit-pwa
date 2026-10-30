@@ -126,6 +126,12 @@ ion-menu.wl-sidebar::part(container) {
     --border-radius: 20px;
   }
 
+  // Nuevo/editar movimiento: una columna, más angosto y más alto.
+  ion-modal.wl-dialog.wl-dialog-form {
+    --width: min(680px, 94vw);
+    --height: min(820px, 92vh);
+  }
+
   ion-modal.wl-dialog.wl-dialog-sm {
     --width: 440px;
     --height: 330px;
