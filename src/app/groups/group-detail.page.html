@@ -192,6 +192,10 @@
                   </label>
                 </div>
               }
+              <div class="split-mode">
+                <span class="split-mode-label">{{ 'splitModeTitle' | t }}</span>
+                <app-split-mode-picker [(value)]="draftDivide" />
+              </div>
               @if (settingsChanged()) {
                 <ion-button class="wl-btn wl-btn-primary" size="small" (click)="saveSettings()">{{ 'saveChanges' | t }}</ion-button>
               }

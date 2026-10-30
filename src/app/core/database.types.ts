@@ -7,10 +7,12 @@ export type Categoria =
   | 'Ocio' | 'Restaurantes' | 'Ropa' | 'Tecnología'
   | 'Hogar' | 'Mascotas' | 'Viajes' | 'Suscripciones' | 'Deporte'
   | 'Belleza' | 'Auto' | 'Farmacia' | 'Regalos' | 'Delivery'
-  | 'Bar' | 'Banco' | 'Trabajo' | 'Otros'
+  | 'Bar' | 'Banco' | 'Tarjeta de crédito' | 'Trabajo' | 'Otros'
   | (string & {}); // categorías personalizadas
 
-export type TipoMovimiento = 'gasto' | 'ingreso' | 'ahorro' | 'inversion';
+/** 'pago_tarjeta' (migración 016): pago del resumen con las compras ya cargadas; no suma a gastos. */
+export type TipoMovimiento = 'gasto' | 'ingreso' | 'ahorro' | 'inversion' | 'pago_tarjeta';
+export type MedioPago = 'efectivo' | 'debito' | 'credito' | 'transferencia';
 export type FuenteIngreso = 'sueldo' | 'freelance' | 'alquiler' | 'otro';
 export type RolGrupo = 'admin' | 'member';
 export type TipoGrupo = 'hogar' | 'viaje';
@@ -68,11 +70,14 @@ export interface Database {
           fecha_inicio: string | null;
           fecha_fin: string | null;
           archivado: boolean;
+          /** Migración 016: true = dividen gastos (saldos y deudas), false = bolsa común. */
+          divide_gastos: boolean;
         };
         Insert: Omit<
           Database['public']['Tables']['groups']['Row'],
-          'id' | 'created_at' | 'invite_code' | 'tipo' | 'fecha_inicio' | 'fecha_fin' | 'archivado'
+          'id' | 'created_at' | 'invite_code' | 'tipo' | 'fecha_inicio' | 'fecha_fin' | 'archivado' | 'divide_gastos'
         > & {
+          divide_gastos?: boolean;
           invite_code?: string;
           tipo?: TipoGrupo;
           fecha_inicio?: string | null;
@@ -112,10 +117,16 @@ export interface Database {
           paid_by: string | null;
           /** Cómo se divide un gasto de grupo; null = no se divide. */
           division: Division | null;
+          /** Ticket, lo que no era tuyo y reintegros (migración 015). */
+          detalle: Json | null;
+          /** Migración 016. */
+          medio_pago: MedioPago | null;
         };
-        Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at' | 'paid_by' | 'division'> & {
+        Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at' | 'paid_by' | 'division' | 'detalle' | 'medio_pago'> & {
+          medio_pago?: MedioPago | null;
           paid_by?: string | null;
           division?: Division | null;
+          detalle?: Json | null;
         };
         Update: Partial<Database['public']['Tables']['expenses']['Row']>;
         Relationships: [];

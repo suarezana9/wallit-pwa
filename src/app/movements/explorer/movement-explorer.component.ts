@@ -1,36 +1,51 @@
 import { Component, computed, effect, inject, input, output, resource, signal } from '@angular/core';
-import {
-  IonButton, IonIcon, IonSelect, IonSelectOption, IonSkeletonText, SelectCustomEvent,
-} from '@ionic/angular';
+import { IonButton, IonIcon, IonModal, IonSkeletonText } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { calendarOutline, closeCircle, downloadOutline, searchOutline } from 'ionicons/icons';
+import { calendarOutline, close, closeCircle, downloadOutline, optionsOutline, searchOutline } from 'ionicons/icons';
 import { AuthStore } from '../../core/auth-store';
-import { monthRange, parseIsoDate, toIsoDate } from '../../core/dates';
+import { parseIsoDate, toIsoDate } from '../../core/dates';
 import type { Movimiento, TipoMovimiento } from '../../core/database.types';
-import { I18n, TranslatePipe } from '../../core/i18n/i18n';
+import { I18n, TranslatePipe, TranslationKey } from '../../core/i18n/i18n';
 import { MoneyPipe } from '../../core/money';
 import { PreferencesStore } from '../../core/preferences-store';
 import { Supabase } from '../../core/supabase';
 import type { GroupMember } from '../../groups/groups-store';
+import { MonthNavComponent } from '../../shared/month-nav.component';
 import { CategoryBreakdownComponent } from '../category-breakdown.component';
-import { ChipOption, ChipPickerComponent } from '../chip-picker.component';
 import { MovementListComponent } from '../movement-list.component';
+import { MovementsStore } from '../movements-store';
 import { CategoriesStore } from '../../categories/categories-store';
-import { MOVEMENT_TYPES, summarize, typeInfo } from '../movement.model';
+import { CARD_PAYMENT_TYPE, MOVEMENT_TYPES, PAYMENT_METHODS, TypeInfo, typeInfo } from '../movement.model';
 import {
-  ALL, DateRange, EMPTY_FILTERS, ExplorerFilters, applyFilters, groupByDay, isFiltered, normalizeRange,
-  spendingByPerson, toSheetRows,
+  ALL, DateRange, EMPTY_FILTERS, ExplorerFilters, PeriodPreset, activeFilterCount, applyDateEdge, applyFilters, groupByDay,
+  isFiltered, normalizeRange, presetRange, spendingByPerson, toSheetRows,
 } from './explorer.model';
 
 export const MEMBER_COLORS = ['#6c47ff', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444'];
 
+interface StatTile {
+  type: TypeInfo;
+  total: number;
+  count: number;
+}
+
+interface ActiveChip {
+  key: 'person' | 'category' | 'payment' | 'range';
+  label: string;
+}
+
+/**
+ * Pantalla de movimientos: período (el mismo mes que Inicio), totales que filtran por tipo, buscador,
+ * filtros en una hoja aparte y la lista por día. Lo que no se usa siempre (fechas a medida, categoría,
+ * persona, medio de pago, exportar) no ocupa lugar hasta que hace falta.
+ */
 @Component({
   selector: 'app-movement-explorer',
   templateUrl: 'movement-explorer.component.html',
   styleUrls: ['movement-explorer.component.scss'],
   imports: [
-    CategoryBreakdownComponent, ChipPickerComponent, IonButton, IonIcon, IonSelect, IonSelectOption,
-    IonSkeletonText, MoneyPipe, MovementListComponent, TranslatePipe,
+    CategoryBreakdownComponent, IonButton, IonIcon, IonModal, IonSkeletonText, MoneyPipe, MonthNavComponent,
+    MovementListComponent, TranslatePipe,
   ],
 })
 export class MovementExplorerComponent {
@@ -46,17 +61,24 @@ export class MovementExplorerComponent {
   private readonly i18n = inject(I18n);
   private readonly preferences = inject(PreferencesStore);
   private readonly categories = inject(CategoriesStore);
+  /** El mes es el mismo que en Inicio: si allá pasaste a noviembre, acá también. */
+  readonly month = inject(MovementsStore);
 
-  readonly dates = signal<DateRange>(this.defaultRange());
+  /** Rango a medida (desde el filtro). null = el mes elegido arriba. */
+  readonly customRange = signal<DateRange | null>(null);
   readonly filters = signal<ExplorerFilters>(EMPTY_FILTERS);
+  readonly sheetOpen = signal(false);
+  /** En pantallas anchas los filtros abren como diálogo; en el celular, como hoja desde abajo. */
+  readonly wide = typeof matchMedia === 'function' && matchMedia('(min-width: 768px)').matches;
 
-  readonly range = computed(() => normalizeRange(this.dates()));
-  readonly isDefaultRange = computed(() => {
-    const d = this.defaultRange();
-    return this.dates().from === d.from && this.dates().to === d.to;
+  readonly range = computed(() => {
+    const custom = this.customRange();
+    if (custom) return normalizeRange(custom);
+    const { from, to } = this.month.range();
+    return { from, to };
   });
 
-  readonly periodLabel = computed(() => {
+  readonly rangeLabel = computed(() => {
     const locale = this.preferences.locale();
     const { from, to } = this.range();
     const sameYear = from.slice(0, 4) === to.slice(0, 4);
@@ -101,6 +123,7 @@ export class MovementExplorerComponent {
     return { categoryName: (n: string) => this.i18n.category(n), authorName: (id: string) => names[id] ?? '' };
   });
 
+  /** Todo menos el tipo: así los totales de arriba no se vacían cuando tocás uno. */
   private readonly withoutType = computed(() =>
     applyFilters(this.all(), { ...this.filters(), type: ALL }, this.filterContext()),
   );
@@ -111,30 +134,71 @@ export class MovementExplorerComponent {
     return type === ALL ? list : list.filter((m) => m.tipo === type);
   });
 
-  readonly summary = computed(() => summarize(this.filtered()));
-  readonly days = computed(() => groupByDay(this.filtered()));
-  readonly people = computed(() => spendingByPerson(this.filtered()));
-  readonly hasFilters = computed(() => isFiltered(this.filters()) || !this.isDefaultRange());
-
-  readonly typeOptions = computed<ChipOption[]>(() => {
+  readonly stats = computed<StatTile[]>(() => {
     const list = this.withoutType();
-    return [
-      { value: ALL, label: `${this.i18n.t('filterAll')} · ${list.length}` },
-      ...MOVEMENT_TYPES.map((t) => ({
-        value: t.id,
-        label: `${this.i18n.t(t.pluralKey)} · ${list.filter((m) => m.tipo === t.id).length}`,
-      })),
-    ];
+    const tile = (type: TypeInfo): StatTile => {
+      const items = list.filter((m) => m.tipo === type.id);
+      return { type, total: items.reduce((sum, m) => sum + Number(m.amount), 0), count: items.length };
+    };
+    const tiles = MOVEMENT_TYPES.map(tile);
+    const card = tile(CARD_PAYMENT_TYPE);
+    return card.count ? [...tiles, card] : tiles;
   });
 
-  readonly typeValue = computed(() => this.filters().type as string);
+  readonly days = computed(() => groupByDay(this.filtered()));
+  readonly people = computed(() => spendingByPerson(this.filtered()));
+  readonly hasFilters = computed(() => isFiltered(this.filters()) || this.customRange() !== null);
+  readonly filterCount = computed(() => activeFilterCount(this.filters(), this.customRange() !== null));
+
+  readonly typeOptions = computed(() => [
+    { value: ALL, label: this.i18n.t('filterAll') },
+    ...this.stats().map((s) => ({ value: s.type.id as string, label: this.i18n.t(s.type.pluralKey) })),
+  ]);
 
   readonly categoryOptions = computed(() => {
     const used = [...new Set(this.all().filter((m) => m.tipo === 'gasto').map((m) => m.category))];
     return used
       .map((name) => this.categories.info(name))
-      .map((c) => ({ value: c.name, label: `${c.emoji} ${this.i18n.category(c.name)}` }))
+      .map((c) => ({ value: c.name, emoji: c.emoji, label: this.i18n.category(c.name) }))
       .sort((a, b) => a.label.localeCompare(b.label));
+  });
+
+  readonly paymentOptions = PAYMENT_METHODS;
+  readonly presets: { id: PeriodPreset; label: TranslationKey }[] = [
+    { id: 'thisMonth', label: 'presetThisMonth' },
+    { id: 'lastMonth', label: 'presetLastMonth' },
+    { id: 'last3', label: 'presetLast3' },
+    { id: 'thisYear', label: 'presetThisYear' },
+  ];
+
+  readonly activePreset = computed<PeriodPreset | 'custom'>(() => {
+    const custom = this.customRange();
+    const today = new Date();
+    if (!custom) {
+      const offset = this.month.monthOffset();
+      return offset === 0 ? 'thisMonth' : offset === -1 ? 'lastMonth' : 'custom';
+    }
+    for (const id of ['last3', 'thisYear'] as const) {
+      const r = presetRange(id, today) as DateRange;
+      if (r.from === custom.from && r.to === custom.to) return id;
+    }
+    return 'custom';
+  });
+
+  /** Filtros elegidos, como chips que se pueden quitar de a uno. */
+  readonly activeChips = computed<ActiveChip[]>(() => {
+    const f = this.filters();
+    const chips: ActiveChip[] = [];
+    if (f.category !== ALL) {
+      const c = this.categories.info(f.category);
+      chips.push({ key: 'category', label: `${c.emoji} ${this.i18n.category(c.name)}` });
+    }
+    if (f.person !== ALL) chips.push({ key: 'person', label: this.names()[f.person] ?? '—' });
+    if (f.payment !== ALL) {
+      const p = PAYMENT_METHODS.find((o) => o.id === f.payment);
+      if (p) chips.push({ key: 'payment', label: `${p.emoji} ${this.i18n.t(p.labelKey)}` });
+    }
+    return chips;
   });
 
   readonly colorOf = computed(() => {
@@ -143,8 +207,10 @@ export class MovementExplorerComponent {
     return colors;
   });
 
+  readonly typeName = (id: TipoMovimiento) => this.i18n.t(typeInfo(id).labelKey);
+
   constructor() {
-    addIcons({ calendarOutline, closeCircle, downloadOutline, searchOutline });
+    addIcons({ calendarOutline, close, closeCircle, downloadOutline, optionsOutline, searchOutline });
 
     effect((onCleanup) => {
       const groupId = this.groupId();
@@ -163,31 +229,53 @@ export class MovementExplorerComponent {
     this.data.reload();
   }
 
-  setDate(edge: 'from' | 'to', value: string | null | undefined): void {
-    if (!value) return;
-    this.dates.update((r) => ({ ...r, [edge]: value }));
-  }
-
   patch(change: Partial<ExplorerFilters>): void {
     this.filters.update((f) => ({ ...f, ...change }));
   }
 
-  onType(value: string): void {
-    this.patch({ type: value as TipoMovimiento | typeof ALL });
+  /** Tocar un total filtra por ese tipo; tocarlo de nuevo vuelve a "todos". */
+  toggleType(type: TipoMovimiento): void {
+    this.patch({ type: this.filters().type === type ? ALL : type });
   }
 
-  onSelect(key: 'person' | 'category', event: SelectCustomEvent<string>): void {
-    this.patch({ [key]: event.detail.value ?? ALL });
+  /** En la hoja de filtros: tocar la opción elegida la deselecciona. */
+  pick(key: 'type' | 'category' | 'person' | 'payment', value: string): void {
+    const current = this.filters()[key];
+    this.patch({ [key]: current === value && value !== ALL ? ALL : value } as Partial<ExplorerFilters>);
+  }
+
+  removeChip(key: ActiveChip['key']): void {
+    if (key === 'range') this.customRange.set(null);
+    else this.patch({ [key]: ALL });
+  }
+
+  applyPreset(id: PeriodPreset): void {
+    const result = presetRange(id, new Date());
+    if ('monthOffset' in result) {
+      this.customRange.set(null);
+      this.month.monthOffset.set(result.monthOffset);
+    } else {
+      this.customRange.set(result);
+    }
+  }
+
+  /**
+   * Cambia "Desde" o "Hasta" sin que se crucen: si elegís un Desde posterior al Hasta, el Hasta se mueve
+   * a esa misma fecha (y al revés). Una fecha incompleta o fuera de rango se descarta y el campo vuelve al valor anterior.
+   */
+  setDate(edge: 'from' | 'to', field: HTMLInputElement): void {
+    const current = this.range();
+    const next = applyDateEdge(current, edge, field.value);
+    if (!next) {
+      field.value = current[edge];
+      return;
+    }
+    this.customRange.set(next);
   }
 
   clearFilters(): void {
     this.filters.set(EMPTY_FILTERS);
-    this.dates.set(this.defaultRange());
-  }
-
-  private defaultRange(): DateRange {
-    const { from, to } = monthRange(0);
-    return { from, to };
+    this.customRange.set(null);
   }
 
   dayLabel(iso: string): string {
@@ -249,5 +337,4 @@ export class MovementExplorerComponent {
     link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
-
 }

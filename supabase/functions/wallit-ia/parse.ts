@@ -12,7 +12,16 @@ export interface ParsedMovement {
   categoria: string;
   fuente: Fuente | null;
   fecha: string;
+  /** Solo en tickets: los productos, para que la persona pueda sacar lo que no es suyo. */
+  items?: TicketItem[];
 }
+
+export interface TicketItem {
+  descripcion: string;
+  monto: number;
+}
+
+export const MAX_ITEMS = 60;
 
 export interface PromptContext {
   lang: Lang;
@@ -88,7 +97,11 @@ export function imagePrompt(ctx: PromptContext): string {
     ctx.lang === 'en'
       ? 'Analyze this receipt, invoice or payment voucher and extract ONE transaction (a single item in the list). Use the TOTAL amount paid (not subtotals or taxes). Use the store or service name in the description.'
       : 'Analizá este ticket, factura o comprobante y extraé UN movimiento (un solo ítem en la lista). Usá el TOTAL pagado (no subtotales ni impuestos). Poné el nombre del comercio o servicio en la descripción.';
-  return `${intro}\n\n${rules(ctx)}`;
+  const items =
+    ctx.lang === 'en'
+      ? 'If the receipt lists products, also add "items": an array of {"descripcion", "monto"} with each product and the amount it adds to the total. If a product has a discount line right after it (2x1, % off), subtract it from that product. Skip subtotals, taxes and payment lines. If you cannot read the products, omit "items".'
+      : 'Si el ticket detalla productos, agregá también "items": una lista de {"descripcion", "monto"} con cada producto y lo que suma al total. Si un producto tiene una línea de descuento justo debajo (2x1, % de descuento), restásela a ese producto. No incluyas subtotales, impuestos ni medios de pago. Si no se leen los productos, no pongas "items".';
+  return `${intro}\n\n${items}\n\n${rules(ctx)}`;
 }
 
 function extractJson(raw: string): Record<string, unknown> {
@@ -132,7 +145,26 @@ function sanitizeItem(data: Record<string, unknown>, ctx: PromptContext, fallbac
       ? data.descripcion.trim().slice(0, 120)
       : fallbackDescription.slice(0, 120);
   const fuente = tipo === 'ingreso' && FUENTES.includes(data.fuente as Fuente) ? (data.fuente as Fuente) : null;
-  return { tipo, monto: toAmount(data.monto), descripcion, categoria, fuente, fecha };
+  const movement: ParsedMovement = { tipo, monto: toAmount(data.monto), descripcion, categoria, fuente, fecha };
+  const items = sanitizeTicketItems(data.items);
+  if (items.length) movement.items = items;
+  return movement;
+}
+
+/** Productos del ticket: descripción corta y monto (puede ser negativo si es un descuento suelto). */
+export function sanitizeTicketItems(raw: unknown): TicketItem[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+    .map((item) => {
+      const value = typeof item.monto === 'string' ? parseLocaleNumber(item.monto) : Number(item.monto);
+      return {
+        descripcion: typeof item.descripcion === 'string' ? item.descripcion.trim().slice(0, 60) : '',
+        monto: Number.isFinite(value) ? Math.round(value * 100) / 100 : NaN,
+      };
+    })
+    .filter((item) => item.descripcion && Number.isFinite(item.monto) && item.monto !== 0)
+    .slice(0, MAX_ITEMS);
 }
 
 /** Acepta {"movimientos": [...]} o un objeto suelto (por si el modelo se olvida del envoltorio). */

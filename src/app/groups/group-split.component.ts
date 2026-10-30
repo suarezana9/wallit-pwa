@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, model } from '@angular/core';
+import { Component, computed, inject, input, linkedSignal, model, untracked } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { alertCircle, checkmarkCircle, peopleOutline } from 'ionicons/icons';
@@ -10,12 +10,15 @@ import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component
 import { defaultDivision, divisionGap, divisionIsValid, equalShares } from './balances.model';
 import type { GroupMember } from './groups-store';
 
-/** "¿Quién pagó?" y "¿Entre quiénes se divide?" para un gasto de grupo. */
+/**
+ * "¿Quién pagó?" y "Dividir este gasto" para un gasto de grupo. La división se muestra resumida
+ * ("Partes iguales entre todos · $X c/u") y solo se abre el detalle si querés cambiarla.
+ */
 @Component({
   selector: 'app-group-split',
   imports: [IonIcon, MoneyPipe, TranslatePipe],
   template: `
-    <div class="wl-field">
+    <div class="paid">
       <span class="wl-field-label">{{ 'paidBy' | t }}</span>
       <div class="chips" role="radiogroup" [attr.aria-label]="'paidBy' | t">
         @for (member of people(); track member.userId) {
@@ -34,86 +37,119 @@ import type { GroupMember } from './groups-store';
       </div>
     </div>
 
-    <div class="wl-field">
-      <div class="split-head">
-        <span class="wl-field-label">{{ 'splitBetween' | t }}</span>
-        @if (division()) {
-          <div class="modes" role="radiogroup" [attr.aria-label]="'splitBetween' | t">
-            <button type="button" role="radio" [class.selected]="mode() === 'iguales'" [attr.aria-checked]="mode() === 'iguales'" (click)="setMode('iguales')">
-              {{ 'splitEqual' | t }}
-            </button>
-            <button type="button" role="radio" [class.selected]="mode() === 'montos'" [attr.aria-checked]="mode() === 'montos'" (click)="setMode('montos')">
-              {{ 'splitAmounts' | t }}
-            </button>
+    <div class="split" [class.on]="!!division()">
+      <button type="button" class="switch-row" role="switch" [attr.aria-checked]="!!division()" (click)="toggleSplit()">
+        <ion-icon name="people-outline" class="lead" aria-hidden="true" />
+        <span class="switch-text">
+          <strong>{{ 'splitEnable' | t }}</strong>
+          <span>{{ switchHint() }}</span>
+        </span>
+        <span class="switch" aria-hidden="true"><span></span></span>
+      </button>
+
+      @if (division()) {
+        <button type="button" class="summary" [attr.aria-expanded]="editing()" (click)="editing.set(!editing())">
+          <span class="faces" aria-hidden="true">
+            @for (member of includedPeople(); track member.userId) {
+              <span class="dot" [style.background]="member.color">{{ member.initial }}</span>
+            }
+          </span>
+          <span class="summary-text" [class.bad]="!valid()">{{ summaryText() }}</span>
+          <span class="edit">{{ (editing() ? 'splitDone' : 'edit') | t }}</span>
+        </button>
+
+        @if (editing()) {
+          <div class="editor">
+            <div class="modes" role="radiogroup" [attr.aria-label]="'splitBetween' | t">
+              <button type="button" role="radio" [class.selected]="mode() === 'iguales'" [attr.aria-checked]="mode() === 'iguales'" (click)="setMode('iguales')">
+                {{ 'splitEqual' | t }}
+              </button>
+              <button type="button" role="radio" [class.selected]="mode() === 'montos'" [attr.aria-checked]="mode() === 'montos'" (click)="setMode('montos')">
+                {{ 'splitAmounts' | t }}
+              </button>
+            </div>
+            <ul class="people">
+              @for (member of people(); track member.userId) {
+                <li [class.off]="mode() === 'iguales' && !included(member.userId)">
+                  @if (mode() === 'iguales') {
+                    <label class="row">
+                      <input type="checkbox" [checked]="included(member.userId)" (change)="toggle(member.userId)" />
+                      <span class="dot" [style.background]="member.color" aria-hidden="true">{{ member.initial }}</span>
+                      <span class="name">{{ member.label }}</span>
+                      <span class="share">{{ included(member.userId) ? (equal()[member.userId] ?? 0 | money) : '—' }}</span>
+                    </label>
+                  } @else {
+                    <div class="row">
+                      <span class="dot" [style.background]="member.color" aria-hidden="true">{{ member.initial }}</span>
+                      <span class="name">{{ member.label }}</span>
+                      <span class="amount-input">
+                        <span aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
+                        <input
+                          type="number"
+                          inputmode="decimal"
+                          min="0"
+                          step="any"
+                          class="wl-no-spin"
+                          placeholder="0"
+                          [attr.aria-label]="'splitAmountFor' | t: member.label"
+                          [value]="part(member.userId) ?? ''"
+                          (input)="setPart(member.userId, $any($event.target).value)"
+                        />
+                      </span>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+            <p class="status" [class.ok]="valid()" role="status">
+              <ion-icon [name]="valid() ? 'checkmark-circle' : 'alert-circle'" aria-hidden="true" />
+              {{ statusText() }}
+            </p>
           </div>
         }
-      </div>
-
-      @if (!division()) {
-        <button type="button" class="enable" (click)="division.set(defaults())">
-          <ion-icon name="people-outline" aria-hidden="true" />
-          {{ 'splitEnable' | t }}
-        </button>
-      } @else {
-        <ul class="people">
-          @for (member of people(); track member.userId) {
-            <li [class.off]="mode() === 'iguales' && !included(member.userId)">
-              @if (mode() === 'iguales') {
-                <label class="row">
-                  <input type="checkbox" [checked]="included(member.userId)" (change)="toggle(member.userId)" />
-                  <span class="dot" [style.background]="member.color" aria-hidden="true">{{ member.initial }}</span>
-                  <span class="name">{{ member.label }}</span>
-                  <span class="share">{{ included(member.userId) ? (equal()[member.userId] ?? 0 | money) : '—' }}</span>
-                </label>
-              } @else {
-                <div class="row">
-                  <span class="dot" [style.background]="member.color" aria-hidden="true">{{ member.initial }}</span>
-                  <span class="name">{{ member.label }}</span>
-                  <span class="amount-input">
-                    <span aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
-                    <input
-                      type="number"
-                      inputmode="decimal"
-                      min="0"
-                      step="any"
-                      class="wl-no-spin"
-                      placeholder="0"
-                      [attr.aria-label]="'splitAmountFor' | t: member.label"
-                      [value]="part(member.userId) ?? ''"
-                      (input)="setPart(member.userId, $any($event.target).value)"
-                    />
-                  </span>
-                </div>
-              }
-            </li>
-          }
-        </ul>
-        <p class="status" [class.ok]="valid()" role="status">
-          <ion-icon [name]="valid() ? 'checkmark-circle' : 'alert-circle'" aria-hidden="true" />
-          {{ statusText() }}
-        </p>
       }
     </div>
   `,
   styles: `
-    :host { display: flex; flex-direction: column; gap: 20px; padding: 16px; border-radius: 16px; background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); }
+    :host { display: flex; flex-direction: column; gap: 14px; padding: 14px; border-radius: 16px; background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); }
+    .paid { display: flex; flex-direction: column; gap: 8px; }
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
-      display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 5px; border-radius: 999px;
+      display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px;
       font: inherit; font-size: 14px; font-weight: 600; color: var(--wl-muted); cursor: pointer;
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border);
     }
     .chip.selected { color: var(--ion-color-primary); border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
     .dot { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
-    .split-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-    .modes { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); }
-    .modes button { padding: 5px 10px; border: 0; border-radius: 8px; font: inherit; font-size: 12px; font-weight: 600; color: var(--wl-muted); background: none; cursor: pointer; }
-    .modes button.selected { color: #fff; background: var(--ion-color-primary); }
-    .enable {
-      display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; padding: 8px 14px; border-radius: 10px;
-      font: inherit; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
-      background: rgba(var(--ion-color-primary-rgb), 0.08); border: 0;
+    .split { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--wl-field-border); }
+    .switch-row {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 0; border: 0; background: none;
+      font: inherit; text-align: left; color: inherit; cursor: pointer;
     }
+    .lead { flex: none; font-size: 20px; color: var(--wl-muted); }
+    .on .lead { color: var(--ion-color-primary); }
+    .switch-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+    .switch-text strong { font-size: 14px; }
+    .switch-text span { font-size: 12px; line-height: 1.35; color: var(--wl-muted); }
+    .switch { flex: none; position: relative; width: 42px; height: 24px; border-radius: 999px; background: var(--wl-field-border); transition: background 0.15s ease; }
+    .switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform 0.15s ease; }
+    .on .switch { background: var(--ion-color-primary); }
+    .on .switch span { transform: translateX(18px); }
+    .summary {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 12px;
+      font: inherit; text-align: left; color: inherit; cursor: pointer;
+      background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border);
+    }
+    .faces { flex: none; display: flex; }
+    .faces .dot { width: 24px; height: 24px; font-size: 11px; border: 2px solid var(--ion-background-color, #fff); }
+    .faces .dot + .dot { margin-left: -8px; }
+    .summary-text { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
+    .summary-text.bad { color: var(--ion-color-danger); }
+    .edit { flex: none; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); }
+    .editor { display: flex; flex-direction: column; gap: 10px; }
+    .modes { display: inline-flex; align-self: flex-start; padding: 3px; border-radius: 10px; background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); }
+    .modes button { padding: 5px 12px; border: 0; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--wl-muted); background: none; cursor: pointer; }
+    .modes button.selected { color: #fff; background: var(--ion-color-primary); }
     .people { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
     .people li.off { opacity: 0.5; }
     .row { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; }
@@ -126,7 +162,7 @@ import type { GroupMember } from './groups-store';
     }
     .amount-input:focus-within { border-color: var(--ion-color-primary); }
     .amount-input input { width: 100%; min-width: 0; border: 0; outline: none; background: none; font: inherit; color: inherit; text-align: right; }
-    .status { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; font-size: 13px; font-weight: 600; color: var(--ion-color-danger); }
+    .status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; color: var(--ion-color-danger); }
     .status.ok { color: var(--wl-type-ingreso); }
   `,
 })
@@ -134,6 +170,8 @@ export class GroupSplitComponent {
   readonly members = input<readonly GroupMember[]>([]);
   readonly amount = input<number | null>(null);
   readonly meId = input('');
+  /** El grupo divide gastos (false = bolsa común): cambia el texto de ayuda. */
+  readonly splitsByDefault = input(true);
   readonly paidBy = model.required<string>();
   readonly division = model.required<Division | null>();
 
@@ -152,6 +190,37 @@ export class GroupSplitComponent {
   });
 
   readonly mode = computed(() => this.division()?.tipo ?? 'iguales');
+  /** Se abre solo si la división no es la de siempre (todos en partes iguales) o si está mal. */
+  readonly editing = linkedSignal({
+    source: () => this.members().length,
+    computation: () => untracked(() => this.isCustom(this.division())),
+  });
+
+  readonly switchHint = computed(() => {
+    if (this.division()) return this.i18n.t('splitOnHint');
+    return this.i18n.t(this.splitsByDefault() ? 'splitOffHint' : 'splitSharedHint');
+  });
+
+  readonly includedPeople = computed(() => {
+    const division = this.division();
+    if (!division) return [];
+    const ids = division.tipo === 'iguales' ? division.entre : Object.keys(division.partes).filter((id) => division.partes[id] > 0);
+    return this.people().filter((p) => ids.includes(p.userId));
+  });
+
+  readonly summaryText = computed(() => {
+    const division = this.division();
+    if (!division) return '';
+    if (division.tipo === 'montos') return this.valid() ? this.i18n.t('splitByAmounts') : this.statusText();
+    const count = division.entre.length;
+    if (!count) return this.i18n.t('splitPickSomeone');
+    const each = (this.amount() ?? 0) / count;
+    const money = `${this.preferences.currencyInfo().symbol}${each.toLocaleString(this.preferences.locale(), { maximumFractionDigits: 2 })}`;
+    if (count === this.members().length) return this.i18n.t('splitAllEqual', String(count), money);
+    const labels = this.includedPeople().map((p) => (p.userId === this.meId() ? this.i18n.t('you') : p.label));
+    const names = labels.length > 1 ? `${labels.slice(0, -1).join(', ')} ${this.i18n.t('and')} ${labels.at(-1)}` : labels[0];
+    return count === 1 ? this.i18n.t('splitOnlyOne', names) : this.i18n.t('splitSomeEqual', names, money);
+  });
   readonly defaults = computed(() => defaultDivision(this.members().map((m) => m.userId)));
 
   readonly equal = computed(() => {
@@ -175,6 +244,16 @@ export class GroupSplitComponent {
 
   constructor() {
     addIcons({ alertCircle, checkmarkCircle, peopleOutline });
+  }
+
+  toggleSplit(): void {
+    this.division.set(this.division() ? null : this.defaults());
+  }
+
+  private isCustom(division: Division | null): boolean {
+    if (!division) return false;
+    if (division.tipo === 'montos') return true;
+    return division.entre.length !== this.members().length || division.entre.length === 0;
   }
 
   included(userId: string): boolean {

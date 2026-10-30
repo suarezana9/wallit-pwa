@@ -14,7 +14,7 @@ import { GroupsStore } from './groups-store';
   imports: [IonIcon, MoneyPipe, RouterLink, TranslatePipe],
   template: `
     @if (groupId(); as id) {
-      @if (accounts.data.hasValue()) {
+      @if (accounts.data.hasValue() && visible()) {
         <a class="banner" [class.owed]="net() > 0" [class.owes]="net() < 0" [routerLink]="['/grupos', id]">
           <span class="icon" aria-hidden="true"><ion-icon name="swap-horizontal-outline" /></span>
           <span class="text">
@@ -55,6 +55,8 @@ export class GroupBalanceBannerComponent {
   readonly accounts = injectGroupAccounts(() => this.groupId(), () => this.memberIds());
   readonly net = this.accounts.myBalance;
   readonly abs = Math.abs;
+  /** En bolsa común no hay cuentas que mostrar, salvo que dividieron algún gasto puntual y quedó un saldo. */
+  readonly visible = computed(() => this.groups.active()?.group.divide_gastos !== false || this.net() !== 0);
 
   constructor() {
     addIcons({ chevronForward, swapHorizontalOutline });

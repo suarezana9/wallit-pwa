@@ -39,6 +39,8 @@ export interface GroupMember {
 
 export interface GroupSettings {
   tipo: TipoGrupo;
+  /** true = dividen gastos (saldos y deudas); false = bolsa común. */
+  divide_gastos: boolean;
   fecha_inicio: string | null;
   fecha_fin: string | null;
 }
@@ -170,7 +172,7 @@ export class GroupsStore {
     }));
   }
 
-  async create(name: string, settings: GroupSettings = { tipo: 'hogar', fecha_inicio: null, fecha_fin: null }): Promise<{ id?: string; error?: string }> {
+  async create(name: string, settings: GroupSettings = { tipo: 'hogar', divide_gastos: false, fecha_inicio: null, fecha_fin: null }): Promise<{ id?: string; error?: string }> {
     const userId = this.auth.user()?.id;
     if (!userId) return { error: this.i18n.t('errSessionExpired') };
     const { error } = await this.supabase

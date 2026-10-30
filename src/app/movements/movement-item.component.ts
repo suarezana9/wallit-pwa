@@ -8,7 +8,7 @@ import { I18n } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
 import type { Movimiento } from '../core/database.types';
 import { CategoriesStore } from '../categories/categories-store';
-import { incomeSourceKey, typeInfo } from './movement.model';
+import { incomeSourceKey, paymentMethodKey, typeInfo } from './movement.model';
 
 @Component({
   selector: 'app-movement-item',
@@ -67,6 +67,11 @@ export class MovementItemComponent {
 
   readonly receiptLabel = computed(() => this.i18n.t('receipt'));
 
+  private payment(id: string | null): string {
+    const key = paymentMethodKey(id);
+    return key ? this.i18n.t(key) : '';
+  }
+
   readonly view = computed(() => {
     const m = this.movement();
     const date = !this.showDate() ? '' : relativeDate(m.date, new Date(), this.preferences.locale(), {
@@ -81,9 +86,21 @@ export class MovementItemComponent {
         icon: '',
         color: category.color,
         title: m.description || name,
-        subtitle: [name, this.author(), date].filter(Boolean).join(' · '),
+        subtitle: [name, this.payment(m.medio_pago), this.author(), date].filter(Boolean).join(' · '),
         isIncome: false,
         amountColor: null,
+      };
+    }
+    if (m.tipo === 'pago_tarjeta') {
+      const label = this.i18n.t('typePagoTarjeta');
+      return {
+        emoji: '💳',
+        icon: '',
+        color: '#0F766E',
+        title: m.description || label,
+        subtitle: [label, this.i18n.t('notCounted'), this.author(), date].filter(Boolean).join(' · '),
+        isIncome: false,
+        amountColor: 'var(--wl-muted)',
       };
     }
     const type = typeInfo(m.tipo);

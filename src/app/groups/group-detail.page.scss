@@ -389,3 +389,15 @@
     border: 1px solid var(--wl-field-border);
   }
 }
+
+.split-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.split-mode-label {
+  font-size: 13px;
+  font-weight: 600;
+}

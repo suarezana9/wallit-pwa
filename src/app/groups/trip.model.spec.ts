@@ -3,7 +3,7 @@ import { formatTripRange, tripStatus, tripSummary } from './trip.model';
 
 const gasto = (amount: number, date: string, category = 'Restaurantes', extra: Partial<Movimiento> = {}): Movimiento => ({
   id: date + amount, group_id: 'g', user_id: 'u', amount, category, description: '', date, is_private: false,
-  receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null, ...extra,
+  receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null, ...extra,
 });
 
 describe('trip.model', () => {

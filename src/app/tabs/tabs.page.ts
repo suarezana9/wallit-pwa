@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { IonIcon, IonLabel, IonTabBar, IonTabButton, IonTabs } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
@@ -28,8 +28,8 @@ import { TranslatePipe } from '../core/i18n/i18n';
         <!-- En un grupo, esta pestaña lleva a sus cuentas; en Personal, a la lista de grupos. -->
         @if (groups.activeGroupId(); as groupId) {
           <ion-tab-button [tab]="'grupos/' + groupId">
-            <ion-icon name="swap-horizontal-outline" aria-hidden="true" />
-            <ion-label>{{ 'navAccounts' | t }}</ion-label>
+            <ion-icon [name]="sharedPot() ? 'people-outline' : 'swap-horizontal-outline'" aria-hidden="true" />
+            <ion-label>{{ (sharedPot() ? 'navGroup' : 'navAccounts') | t }}</ion-label>
           </ion-tab-button>
         } @else {
           <ion-tab-button tab="grupos">
@@ -47,6 +47,8 @@ import { TranslatePipe } from '../core/i18n/i18n';
 })
 export class TabsPage {
   readonly groups = inject(GroupsStore);
+  /** En bolsa común no hay saldos: la pestaña lleva al grupo. */
+  readonly sharedPot = computed(() => this.groups.active()?.group.divide_gastos === false);
 
   constructor() {
     addIcons({ homeOutline, listOutline, peopleOutline, personCircleOutline, pieChartOutline, swapHorizontalOutline });

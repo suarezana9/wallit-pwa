@@ -11,11 +11,49 @@ export interface ExplorerFilters {
   type: TipoMovimiento | 'todos';
   person: string;
   category: string;
+  /** Medio de pago (efectivo, débito, crédito, transferencia) o ALL. */
+  payment: string;
 }
 
 export const ALL = 'todos';
 
-export const EMPTY_FILTERS: ExplorerFilters = { text: '', type: ALL, person: ALL, category: ALL };
+export const EMPTY_FILTERS: ExplorerFilters = { text: '', type: ALL, person: ALL, category: ALL, payment: ALL };
+
+/** Atajos de período del filtro. */
+export type PeriodPreset = 'thisMonth' | 'lastMonth' | 'last3' | 'thisYear';
+
+export function presetRange(preset: PeriodPreset, today: Date): DateRange | { monthOffset: number } {
+  const y = today.getFullYear();
+  const m = today.getMonth();
+  const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  switch (preset) {
+    case 'thisMonth':
+      return { monthOffset: 0 };
+    case 'lastMonth':
+      return { monthOffset: -1 };
+    case 'last3':
+      return { from: iso(new Date(y, m - 2, 1)), to: iso(new Date(y, m + 1, 0)) };
+    case 'thisYear':
+      return { from: `${y}-01-01`, to: `${y}-12-31` };
+  }
+}
+
+/** Cuántos filtros hay activos (para el globito del botón "Filtros"). El texto y el tipo se ven aparte. */
+export function activeFilterCount(filters: ExplorerFilters, customRange: boolean): number {
+  return [filters.person, filters.category, filters.payment].filter((v) => v !== ALL).length + (customRange ? 1 : 0);
+}
+
+const ISO_DATE = /^(\d{4})-\d{2}-\d{2}$/;
+
+/** Aplica un cambio de Desde/Hasta manteniendo Desde ≤ Hasta. null = fecha inválida (se ignora). */
+export function applyDateEdge(range: DateRange, edge: 'from' | 'to', value: string): DateRange | null {
+  const match = ISO_DATE.exec(value);
+  if (!match) return null;
+  const year = Number(match[1]);
+  if (year < 2000 || year > 2100) return null;
+  if (edge === 'from') return { from: value, to: value > range.to ? value : range.to };
+  return { from: value < range.from ? value : range.from, to: value };
+}
 
 export function normalizeRange(range: DateRange): DateRange {
   return range.from <= range.to ? range : { from: range.to, to: range.from };
@@ -36,6 +74,7 @@ export function applyFilters(list: readonly Movimiento[], filters: ExplorerFilte
     if (filters.type !== ALL && m.tipo !== filters.type) return false;
     if (filters.person !== ALL && payerOf(m) !== filters.person) return false;
     if (filters.category !== ALL && (m.tipo !== 'gasto' || m.category !== filters.category)) return false;
+    if (filters.payment !== ALL && m.medio_pago !== filters.payment) return false;
     if (!query) return true;
     const haystack = normalize(`${m.description} ${ctx.categoryName(m.category)} ${ctx.authorName(payerOf(m))}`);
     return haystack.includes(query);
@@ -43,7 +82,9 @@ export function applyFilters(list: readonly Movimiento[], filters: ExplorerFilte
 }
 
 export function isFiltered(filters: ExplorerFilters): boolean {
-  return !!filters.text.trim() || filters.type !== ALL || filters.person !== ALL || filters.category !== ALL;
+  return (
+    !!filters.text.trim() || filters.type !== ALL || filters.person !== ALL || filters.category !== ALL || filters.payment !== ALL
+  );
 }
 
 export interface DayGroup {

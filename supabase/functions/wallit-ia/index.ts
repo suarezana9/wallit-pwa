@@ -53,7 +53,7 @@ async function requireUser(req: Request): Promise<string> {
   return data.user.id;
 }
 
-async function groqChat(model: string, content: unknown, reasoning: 'low' | 'none'): Promise<string> {
+async function groqChat(model: string, content: unknown, reasoning: 'low' | 'none', maxTokens = 2048): Promise<string> {
   const res = await fetch(`${GROQ_URL}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${GROQ_API_KEY}`, 'Content-Type': 'application/json' },
@@ -61,7 +61,7 @@ async function groqChat(model: string, content: unknown, reasoning: 'low' | 'non
       model,
       messages: [{ role: 'user', content }],
       temperature: 0.1,
-      max_completion_tokens: 2048,
+      max_completion_tokens: maxTokens,
       response_format: { type: 'json_object' },
       reasoning_effort: reasoning,
     }),
@@ -153,6 +153,7 @@ async function handle(req: Request): Promise<Response> {
         { type: 'image_url', image_url: { url: image } },
       ],
       'none',
+      4096, // los tickets largos traen muchos productos
     );
     return result(parseOrLog(raw, ctx, ctx.lang === 'en' ? 'Receipt' : 'Ticket').slice(0, 1));
   }

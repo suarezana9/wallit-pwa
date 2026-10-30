@@ -19,6 +19,7 @@ import { PreferencesStore } from '../core/preferences-store';
 import type { TipoGrupo } from '../core/database.types';
 import { spaceColor } from './space-color';
 import { GroupsStore } from './groups-store';
+import { SplitModePickerComponent } from './split-mode-picker.component';
 
 @Component({
   selector: 'app-group-detail',
@@ -26,7 +27,7 @@ import { GroupsStore } from './groups-store';
   styleUrls: ['group-detail.page.scss'],
   imports: [
     GroupAccountsComponent, GroupActivityComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
-    IonSkeletonText, IonTitle, IonToolbar, RouterLink, TranslatePipe,
+    IonSkeletonText, IonTitle, IonToolbar, RouterLink, SplitModePickerComponent, TranslatePipe,
   ],
 })
 export class GroupDetailPage {
@@ -39,7 +40,10 @@ export class GroupDetailPage {
   private readonly toasts = inject(ToastController);
   readonly groups = inject(GroupsStore);
   readonly colors = MEMBER_COLORS;
-  readonly tab = signal<'accounts' | 'activity' | 'members'>('accounts');
+  /** En bolsa común no hay saldos que mirar: arranca en la actividad. */
+  readonly tab = linkedSignal<'accounts' | 'activity' | 'members'>(() =>
+    this.group()?.divide_gastos === false ? 'activity' : 'accounts',
+  );
 
   readonly entry = computed(() => this.groups.list().find((g) => g.group.id === this.id()) ?? null);
   readonly group = computed(() => this.entry()?.group ?? null);
@@ -56,10 +60,12 @@ export class GroupDetailPage {
   readonly draftKind = linkedSignal<TipoGrupo>(() => this.group()?.tipo ?? 'hogar');
   readonly draftFrom = linkedSignal(() => this.group()?.fecha_inicio ?? '');
   readonly draftTo = linkedSignal(() => this.group()?.fecha_fin ?? '');
+  readonly draftDivide = linkedSignal(() => this.group()?.divide_gastos ?? true);
   readonly settingsChanged = computed(() => {
     const group = this.group();
     if (!group) return false;
     return this.draftKind() !== group.tipo
+      || this.draftDivide() !== group.divide_gastos
       || (this.draftKind() === 'viaje' && ((this.draftFrom() || null) !== group.fecha_inicio || (this.draftTo() || null) !== group.fecha_fin));
   });
   readonly isAdmin = computed(() => this.entry()?.role === 'admin');
@@ -154,7 +160,9 @@ export class GroupDetailPage {
       await this.toast(this.i18n.t('errTripDates'), 'danger');
       return;
     }
-    const error = await this.groups.updateSettings(this.id(), { tipo: this.draftKind(), fecha_inicio: from, fecha_fin: to });
+    const error = await this.groups.updateSettings(this.id(), {
+      tipo: this.draftKind(), divide_gastos: this.draftDivide(), fecha_inicio: from, fecha_fin: to,
+    });
     await this.toast(error ?? this.i18n.t('changesSaved'), error ? 'danger' : 'dark');
   }
 

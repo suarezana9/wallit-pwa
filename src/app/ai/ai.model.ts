@@ -8,6 +8,8 @@ export interface AiMovement {
   categoria: string;
   fuente: FuenteIngreso | null;
   fecha: string;
+  /** Solo en tickets: productos para poder sacar lo que no era tuyo. */
+  items?: { descripcion: string; monto: number }[];
 }
 
 export interface AiResult {

@@ -8,6 +8,7 @@ import { airplaneOutline, closeOutline, homeOutline } from 'ionicons/icons';
 import type { TipoGrupo } from '../core/database.types';
 import { I18n, TranslatePipe, TranslationKey } from '../core/i18n/i18n';
 import { GroupsStore } from './groups-store';
+import { SplitModePickerComponent } from './split-mode-picker.component';
 
 export type GroupDialogMode = 'create' | 'join';
 
@@ -15,7 +16,7 @@ export type GroupDialogMode = 'create' | 'join';
   selector: 'app-group-dialog',
   imports: [
     IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonModal, IonSpinner,
-    IonTitle, IonToolbar, TranslatePipe,
+    IonTitle, IonToolbar, SplitModePickerComponent, TranslatePipe,
   ],
   template: `
     <ion-modal class="wl-dialog wl-dialog-sm" [class.wl-dialog-md]="mode() === 'create'" [isOpen]="mode() !== null" (didDismiss)="close()">
@@ -61,7 +62,7 @@ export type GroupDialogMode = 'create' | 'join';
                         class="kind-option"
                         [class.selected]="tipo() === option.id"
                         [attr.aria-checked]="tipo() === option.id"
-                        (click)="tipo.set(option.id)"
+                        (click)="setKind(option.id)"
                       >
                         <ion-icon [name]="option.icon" aria-hidden="true" />
                         <span class="kind-title">{{ option.title | t }}</span>
@@ -83,6 +84,11 @@ export type GroupDialogMode = 'create' | 'join';
                   </div>
                   <p class="hint">{{ 'tripDatesHint' | t }}</p>
                 }
+                <div class="wl-field kind">
+                  <span class="wl-field-label">{{ 'splitModeTitle' | t }}</span>
+                  <app-split-mode-picker [value]="divide()" (valueChange)="divideTouched = true; divide.set($event)" />
+                  <p class="hint">{{ 'splitModeChangeLater' | t }}</p>
+                </div>
               }
             </form>
           </ion-content>
@@ -138,6 +144,9 @@ export class GroupDialogComponent {
   readonly error = signal<string | null>(null);
   readonly busy = signal(false);
   readonly tipo = signal<TipoGrupo>('hogar');
+  /** Hogar arranca en bolsa común y viaje en dividir; si la persona lo elige a mano, se respeta. */
+  readonly divide = signal(false);
+  divideTouched = false;
   readonly from = signal('');
   readonly to = signal('');
   readonly kinds: { id: TipoGrupo; icon: string; title: TranslationKey; hint: TranslationKey }[] = [
@@ -153,6 +162,8 @@ export class GroupDialogComponent {
   open(mode: GroupDialogMode, value = ''): void {
     this.value.set(value);
     this.tipo.set('hogar');
+    this.divide.set(false);
+    this.divideTouched = false;
     this.from.set('');
     this.to.set('');
     this.error.set(null);
@@ -161,6 +172,11 @@ export class GroupDialogComponent {
 
   close(): void {
     this.mode.set(null);
+  }
+
+  setKind(kind: TipoGrupo): void {
+    this.tipo.set(kind);
+    if (!this.divideTouched) this.divide.set(kind === 'viaje');
   }
 
   onInput(value: string | null | undefined): void {
@@ -187,6 +203,7 @@ export class GroupDialogComponent {
         ? await this.groups.join(value)
         : await this.groups.create(value, {
             tipo: this.tipo(),
+            divide_gastos: this.divide(),
             fecha_inicio: trip ? this.from() || null : null,
             fecha_fin: trip ? this.to() || null : null,
           });

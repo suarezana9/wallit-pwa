@@ -1,4 +1,4 @@
-import { Component, inject, output, signal } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { AlertController, IonModal, ToastController } from '@ionic/angular';
 import type { Movimiento } from '../core/database.types';
 import { AuthStore } from '../core/auth-store';
@@ -12,6 +12,8 @@ import { BulkReviewComponent } from './bulk-review.component';
 import { MovementFormComponent } from './movement-form.component';
 import { MovementInput } from './movement.model';
 import { MovementsStore } from './movements-store';
+import { isInRange, parseIsoDate } from '../core/dates';
+import { PreferencesStore } from '../core/preferences-store';
 
 @Component({
   selector: 'app-movement-editor',
@@ -23,6 +25,7 @@ import { MovementsStore } from './movements-store';
           [movement]="editing()"
           [saving]="saving()"
           [prefill]="prefill()"
+          [defaultDate]="defaultDate()"
           (save)="save($event)"
           (remove)="confirmRemove($event)"
           (multiple)="openBulk($event)"
@@ -40,6 +43,7 @@ import { MovementsStore } from './movements-store';
 })
 export class MovementEditorComponent {
   private readonly store = inject(MovementsStore);
+  private readonly preferences = inject(PreferencesStore);
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastController);
   private readonly i18n = inject(I18n);
@@ -55,6 +59,8 @@ export class MovementEditorComponent {
   readonly saving = signal(false);
   /** Resultado de la IA con varios movimientos, en revisión. */
   readonly bulk = signal<AiResult | null>(null);
+  /** Si estás mirando otro mes, el movimiento nuevo arranca con una fecha de ese mes. */
+  readonly defaultDate = computed(() => (this.store.range().isCurrent ? null : this.store.range().from));
 
   openNew(prefill: AiResult | null = null): void {
     if (prefill && prefill.movements.length > 1) {
@@ -117,12 +123,18 @@ export class MovementEditorComponent {
     void this.receipts.remove(plan.discard);
     this.close();
     this.changed.emit();
-    await this.toast(editing ? this.i18n.t('changesSaved') : this.savedMessage(input.group_id));
+    await this.toast(editing ? this.i18n.t('changesSaved') : this.savedMessage(input.group_id, input.date));
   }
 
   /** Si se guardó en otro espacio que el activo, se avisa dónde quedó (si no, parece que desapareció). */
-  private savedMessage(groupId: string | null | undefined): string {
-    if (groupId === undefined || groupId === this.groups.activeGroupId()) return this.i18n.t('saved');
+  private savedMessage(groupId: string | null | undefined, date: string): string {
+    const sameSpace = groupId === undefined || groupId === this.groups.activeGroupId();
+    if (sameSpace && !isInRange(date, this.store.range())) {
+      // Lo cargaste para otro mes: avisamos cuál, porque en la pantalla actual no aparece.
+      const month = parseIsoDate(date).toLocaleDateString(this.preferences.locale(), { month: 'long', year: 'numeric' });
+      return this.i18n.t('savedInMonth', month);
+    }
+    if (sameSpace) return this.i18n.t('saved');
     const name = groupId ? this.groups.list().find((g) => g.group.id === groupId)?.group.name : this.i18n.t('personal');
     return this.i18n.t('savedIn', name ?? '');
   }

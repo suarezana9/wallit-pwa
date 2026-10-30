@@ -14,7 +14,7 @@ import type { Movimiento } from '../core/database.types';
 
 const mov = (id: string, tipo: Movimiento['tipo'], amount: number, description: string): Movimiento => ({
   id, group_id: null, user_id: 'u', amount, category: 'Supermercado', description,
-  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null,
+  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null,
 });
 
 describe('HomePage', () => {
@@ -43,6 +43,8 @@ describe('HomePage', () => {
           provide: MovementsStore,
           useValue: {
             range: signal(monthRange(0)),
+            monthOffset: signal(0),
+            goToCurrentMonth: vi.fn(),
             label: signal('Octubre 2026'),
             list,
             summary: computed(() => summarize(list())),

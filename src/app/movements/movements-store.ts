@@ -9,6 +9,8 @@ import { GroupsStore } from '../groups/groups-store';
 import { ReceiptsService } from '../receipts/receipts.service';
 import { MovementInput, sortMovements, summarize } from './movement.model';
 
+export const MAX_MONTHS_AHEAD = 12;
+
 @Service()
 export class MovementsStore {
   private readonly supabase = inject(Supabase).client;
@@ -65,8 +67,13 @@ export class MovementsStore {
     this.monthOffset.update((o) => o - 1);
   }
 
+  /** Se puede ir hasta un año adelante, para cargar gastos o ingresos ya previstos. */
   nextMonth(): void {
-    this.monthOffset.update((o) => Math.min(o + 1, 0));
+    this.monthOffset.update((o) => Math.min(o + 1, MAX_MONTHS_AHEAD));
+  }
+
+  goToCurrentMonth(): void {
+    this.monthOffset.set(0);
   }
 
   async create(input: MovementInput): Promise<string | null> {

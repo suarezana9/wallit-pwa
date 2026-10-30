@@ -55,6 +55,50 @@
             <p class="wl-field-error">{{ error }}</p>
           }
         </div>
+
+        @if (isCardCategory()) {
+          <div class="wl-field card-question">
+            <span class="wl-field-label">{{ 'cardQuestion' | t }}</span>
+            <div class="card-options" role="radiogroup" [attr.aria-label]="'cardQuestion' | t">
+              <button type="button" role="radio" class="card-option" [class.selected]="purchasesLoaded()" [attr.aria-checked]="purchasesLoaded()" (click)="cardAnswer.set(true)">
+                <span class="radio" aria-hidden="true"></span>
+                <span class="card-text">
+                  <strong>{{ 'cardLoadedYes' | t }}</strong>
+                  <span>{{ 'cardLoadedYesHint' | t }}</span>
+                </span>
+              </button>
+              <button type="button" role="radio" class="card-option" [class.selected]="!purchasesLoaded()" [attr.aria-checked]="!purchasesLoaded()" (click)="cardAnswer.set(false)">
+                <span class="radio" aria-hidden="true"></span>
+                <span class="card-text">
+                  <strong>{{ 'cardLoadedNo' | t }}</strong>
+                  <span>{{ 'cardLoadedNoHint' | t }}</span>
+                </span>
+              </button>
+            </div>
+            @if (creditSpentValue() > 0) {
+              <p class="card-hint">{{ 'cardCreditSpent' | t }} <strong>{{ creditSpentValue() | money }}</strong></p>
+            }
+          </div>
+        } @else {
+          <div class="wl-field">
+            <span class="wl-field-label">{{ 'paymentMethod' | t }} <span class="optional">{{ 'optional' | t }}</span></span>
+            <div class="pay-chips" role="radiogroup" [attr.aria-label]="'paymentMethod' | t">
+              @for (option of paymentOptions; track option.id) {
+                <button
+                  type="button"
+                  role="radio"
+                  class="pay-chip"
+                  [class.selected]="model().medioPago === option.id"
+                  [attr.aria-checked]="model().medioPago === option.id"
+                  (click)="setPayment(option.id)"
+                >
+                  <span aria-hidden="true">{{ option.emoji }}</span>
+                  {{ option.labelKey | t }}
+                </button>
+              }
+            </div>
+          </div>
+        }
       }
 
       @if (!movementForm.fuente().hidden()) {
@@ -122,11 +166,16 @@
         }
       </div>
 
+      @if (model().tipo === 'gasto' && !isCardPayment()) {
+        <app-ticket-adjust [detalle]="detalleView()" [amount]="model().amount" (changed)="onDetalle($event)" />
+      }
+
       @if (showSplit()) {
         <app-group-split
           [members]="members()"
           [amount]="model().amount"
           [meId]="meId()"
+          [splitsByDefault]="splitsByDefault()"
           [(paidBy)]="paidBy"
           [(division)]="division"
         />

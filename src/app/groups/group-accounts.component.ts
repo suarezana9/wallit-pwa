@@ -39,72 +39,82 @@ interface Person {
           (archive)="archive.emit()"
         />
       }
-      <section class="hero" [class.owed]="myBalance() > 0" [class.owes]="myBalance() < 0">
-        @if (myBalance() === 0) {
-          <ion-icon name="checkmark-circle" class="hero-icon" aria-hidden="true" />
+      @if (sharedMode() && !transfers().length) {
+        <section class="wl-panel shared">
+          <span class="shared-emoji" aria-hidden="true">🫙</span>
           <div>
-            <h2>{{ 'allSettled' | t }}</h2>
-            <p>{{ (transfers().length ? 'allSettledOthers' : 'allSettledText') | t }}</p>
+            <h2>{{ 'sharedPotTitle' | t }}</h2>
+            <p>{{ 'sharedPotText' | t }}</p>
           </div>
-        } @else {
-          <div>
-            <span class="hero-label">{{ (myBalance() > 0 ? 'youAreOwed' : 'youOwe') | t }}</span>
-            <strong class="hero-amount">{{ abs(myBalance()) | money }}</strong>
-            <p>{{ (myBalance() > 0 ? 'youAreOwedHint' : 'youOweHint') | t }}</p>
-          </div>
-        }
-      </section>
-
-      <div class="columns">
-        <section class="wl-panel">
-          <h2>{{ 'settleTitle' | t }}</h2>
-          @if (transfers().length) {
-            <p class="hint">{{ 'settleHint' | t }}</p>
-            <ul class="transfers">
-              @for (transfer of transfers(); track transfer.from + transfer.to) {
-                @let from = person(transfer.from);
-                @let to = person(transfer.to);
-                <li [class.mine]="from.isMe || to.isMe">
-                  <span class="avatar" [style.background]="from.color" aria-hidden="true">{{ from.initial }}</span>
-                  <span class="who">
-                    <span class="names">{{ from.name }} <ion-icon name="arrow-forward" aria-hidden="true" /> {{ to.name }}</span>
-                    <strong>{{ transfer.amount | money }}</strong>
-                  </span>
-                  @if (from.isMe || to.isMe) {
-                    <ion-button class="wl-btn" size="small" fill="outline" (click)="register(transfer)">
-                      {{ 'registerPayment' | t }}
-                    </ion-button>
-                  }
-                </li>
-              }
-            </ul>
+        </section>
+      } @else {
+        <section class="hero" [class.owed]="myBalance() > 0" [class.owes]="myBalance() < 0">
+          @if (myBalance() === 0) {
+            <ion-icon name="checkmark-circle" class="hero-icon" aria-hidden="true" />
+            <div>
+              <h2>{{ 'allSettled' | t }}</h2>
+              <p>{{ (transfers().length ? 'allSettledOthers' : 'allSettledText') | t }}</p>
+            </div>
           } @else {
-            <p class="empty">{{ 'settleEmpty' | t }}</p>
+            <div>
+              <span class="hero-label">{{ (myBalance() > 0 ? 'youAreOwed' : 'youOwe') | t }}</span>
+              <strong class="hero-amount">{{ abs(myBalance()) | money }}</strong>
+              <p>{{ (myBalance() > 0 ? 'youAreOwedHint' : 'youOweHint') | t }}</p>
+            </div>
           }
         </section>
 
-        <section class="wl-panel">
-          <h2>{{ 'balancesTitle' | t }}</h2>
-          <ul class="balances">
-            @for (balance of accounts.balances(); track balance.userId) {
-              @let who = person(balance.userId);
-              <li>
-                <span class="avatar" [style.background]="who.color" aria-hidden="true">{{ who.initial }}</span>
-                <span class="who">
-                  <span class="names">{{ who.name }}</span>
-                  <span class="bar" aria-hidden="true">
-                    <span [class.neg]="balance.net < 0" [style.width.%]="barWidth(balance.net)"></span>
-                  </span>
-                </span>
-                <span class="net" [class.pos]="balance.net > 0" [class.neg]="balance.net < 0">
-                  {{ balance.net > 0 ? '+' : '' }}{{ balance.net | money }}
-                </span>
-              </li>
+        <div class="columns">
+          <section class="wl-panel">
+            <h2>{{ 'settleTitle' | t }}</h2>
+            @if (transfers().length) {
+              <p class="hint">{{ 'settleHint' | t }}</p>
+              <ul class="transfers">
+                @for (transfer of transfers(); track transfer.from + transfer.to) {
+                  @let from = person(transfer.from);
+                  @let to = person(transfer.to);
+                  <li [class.mine]="from.isMe || to.isMe">
+                    <span class="avatar" [style.background]="from.color" aria-hidden="true">{{ from.initial }}</span>
+                    <span class="who">
+                      <span class="names">{{ from.name }} <ion-icon name="arrow-forward" aria-hidden="true" /> {{ to.name }}</span>
+                      <strong>{{ transfer.amount | money }}</strong>
+                    </span>
+                    @if (from.isMe || to.isMe) {
+                      <ion-button class="wl-btn" size="small" fill="outline" (click)="register(transfer)">
+                        {{ 'registerPayment' | t }}
+                      </ion-button>
+                    }
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty">{{ 'settleEmpty' | t }}</p>
             }
-          </ul>
-          <p class="hint small">{{ 'balancesHint' | t }}</p>
-        </section>
-      </div>
+          </section>
+
+          <section class="wl-panel">
+            <h2>{{ 'balancesTitle' | t }}</h2>
+            <ul class="balances">
+              @for (balance of accounts.balances(); track balance.userId) {
+                @let who = person(balance.userId);
+                <li>
+                  <span class="avatar" [style.background]="who.color" aria-hidden="true">{{ who.initial }}</span>
+                  <span class="who">
+                    <span class="names">{{ who.name }}</span>
+                    <span class="bar" aria-hidden="true">
+                      <span [class.neg]="balance.net < 0" [style.width.%]="barWidth(balance.net)"></span>
+                    </span>
+                  </span>
+                  <span class="net" [class.pos]="balance.net > 0" [class.neg]="balance.net < 0">
+                    {{ balance.net > 0 ? '+' : '' }}{{ balance.net | money }}
+                  </span>
+                </li>
+              }
+            </ul>
+            <p class="hint small">{{ 'balancesHint' | t }}</p>
+          </section>
+        </div>
+      }
 
       @if (accounts.payments().length) {
         <section class="wl-panel">
@@ -128,7 +138,7 @@ interface Person {
         </section>
       }
 
-      @if (accounts.unsplitCount() > 0) {
+      @if (accounts.unsplitCount() > 0 && !sharedMode()) {
         <p class="note">
           <ion-icon name="information-circle-outline" aria-hidden="true" />
           {{ 'unsplitNote' | t: String(accounts.unsplitCount()) }}
@@ -138,6 +148,10 @@ interface Person {
   `,
   styles: `
     :host { display: flex; flex-direction: column; gap: 16px; }
+    .shared { display: flex; align-items: flex-start; gap: 14px; }
+    .shared h2 { margin: 0 0 4px; }
+    .shared p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
+    .shared-emoji { font-size: 28px; line-height: 1; }
     .skeleton { height: 140px; border-radius: 20px; }
     .hero {
       display: flex; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 20px; color: #fff;
@@ -202,6 +216,7 @@ export class GroupAccountsComponent {
   readonly userId = computed(() => this.auth.user()?.id ?? '');
   readonly myBalance = this.accounts.myBalance;
   readonly transfers = this.accounts.transfers;
+  readonly sharedMode = computed(() => this.group()?.divide_gastos === false);
   readonly String = String;
   readonly abs = Math.abs;
 

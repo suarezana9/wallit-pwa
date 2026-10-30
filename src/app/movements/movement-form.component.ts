@@ -7,10 +7,12 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { attachOutline, closeOutline, expandOutline, receiptOutline } from 'ionicons/icons';
-import { toIsoDate } from '../core/dates';
+import { monthRange, toIsoDate } from '../core/dates';
+import { MoneyPipe } from '../core/money';
+import { Supabase } from '../core/supabase';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
-import type { FuenteIngreso, Movimiento, TipoMovimiento } from '../core/database.types';
+import type { FuenteIngreso, MedioPago, Movimiento, TipoMovimiento } from '../core/database.types';
 import { AiAssistComponent, AiSummary } from '../ai/ai-assist.component';
 import { AiResult, applyAiMovement } from '../ai/ai.model';
 import { imageToJpegDataUrl } from '../ai/media';
@@ -25,7 +27,9 @@ import { ReceiptsService } from '../receipts/receipts.service';
 import { CategoryPickerComponent } from './category-picker.component';
 import { ChipOption, ChipPickerComponent } from './chip-picker.component';
 import { TypePickerComponent } from './type-picker.component';
-import { INCOME_SOURCES, MovementInput, typeInfo } from './movement.model';
+import { TicketAdjustComponent } from './ticket-adjust.component';
+import { Detalle, fromTicket, netAmount, parseDetalle, toJson, withAmount } from './detalle.model';
+import { CARD_CATEGORY, INCOME_SOURCES, MovementInput, PAYMENT_METHODS, typeInfo } from './movement.model';
 
 export interface MovementFormModel {
   tipo: TipoMovimiento;
@@ -35,20 +39,26 @@ export interface MovementFormModel {
   description: string;
   date: string;
   isPrivate: boolean;
+  medioPago: string;
 }
 
 export function toFormModel(movement: Movimiento | null): MovementFormModel {
   if (!movement) {
-    return { tipo: 'gasto', amount: null, category: '', fuente: '', description: '', date: toIsoDate(new Date()), isPrivate: false };
+    return {
+      tipo: 'gasto', amount: null, category: '', fuente: '', description: '', date: toIsoDate(new Date()), isPrivate: false, medioPago: '',
+    };
   }
+  // El pago de tarjeta se edita como un gasto en "Tarjeta de crédito" (con "ya cargué las compras" marcado).
+  const card = movement.tipo === 'pago_tarjeta';
   return {
-    tipo: movement.tipo,
+    tipo: card ? 'gasto' : movement.tipo,
     amount: Number(movement.amount),
-    category: movement.tipo === 'gasto' ? movement.category : '',
+    category: card ? CARD_CATEGORY : movement.tipo === 'gasto' ? movement.category : '',
     fuente: movement.fuente ?? '',
     description: movement.description,
     date: movement.date,
     isPrivate: movement.is_private,
+    medioPago: movement.medio_pago ?? '',
   };
 }
 
@@ -65,7 +75,14 @@ export function toMovementInput(model: MovementFormModel): MovementInput {
     description: model.description.trim(),
     date: model.date,
     is_private: model.tipo === 'gasto' && model.isPrivate,
+    medio_pago: model.tipo === 'gasto' && model.medioPago ? (model.medioPago as MedioPago) : null,
   };
+}
+
+/** Lo que se guarda para un gasto en "Tarjeta de crédito": si las compras ya están cargadas, es un pago que no suma. */
+export function asCardPayment(input: MovementInput, purchasesLoaded: boolean): MovementInput {
+  if (input.tipo !== 'gasto' || input.category !== CARD_CATEGORY || !purchasesLoaded) return input;
+  return { ...input, tipo: 'pago_tarjeta', medio_pago: null, is_private: false, division: null, detalle: null };
 }
 
 @Component({
@@ -75,7 +92,8 @@ export function toMovementInput(model: MovementFormModel): MovementInput {
   host: { class: 'ion-page', '(document:keydown.escape)': 'viewingReceipt.set(false)' },
   imports: [
     AiAssistComponent, CategoryPickerComponent, ChipPickerComponent, FormField, GroupSplitComponent, IonButton, IonButtons,
-    IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar, TranslatePipe, TypePickerComponent,
+    IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar, MoneyPipe, TicketAdjustComponent, TranslatePipe,
+    TypePickerComponent,
   ],
 })
 export class MovementFormComponent {
@@ -122,19 +140,82 @@ export class MovementFormComponent {
     const movement = this.movement();
     return movement ? (movement.paid_by ?? movement.user_id) : this.meId();
   });
+  /** Bolsa común (false): los gastos arrancan sin dividir. Grupos que dividen: entre todos en partes iguales. */
+  readonly splitsByDefault = computed(() => {
+    const id = this.targetGroupId();
+    return this.groups.list().find((g) => g.group.id === id)?.group.divide_gastos ?? true;
+  });
   readonly division = linkedSignal<Division | null>(() => {
     const movement = this.movement();
     if (movement && movement.group_id === this.targetGroupId()) return movement.division;
-    return defaultDivision(this.members().map((m) => m.userId));
+    return this.splitsByDefault() ? defaultDivision(this.members().map((m) => m.userId)) : null;
   });
-  readonly showSplit = computed(() => this.targetGroupId() !== null && this.model().tipo === 'gasto' && this.members().length > 1);
+  readonly showSplit = computed(
+    () => this.targetGroupId() !== null && this.model().tipo === 'gasto' && !this.isCardPayment() && this.members().length > 1,
+  );
   readonly splitInvalid = computed(() => this.showSplit() && !divisionIsValid(Number(this.model().amount ?? 0), this.division()));
 
+  /** Fecha sugerida para un movimiento nuevo (si estás viendo otro mes, el primer día de ese mes). */
+  readonly defaultDate = input<string | null>(null);
+
   readonly model = linkedSignal(() => {
-    const base = toFormModel(this.movement());
+    const movement = this.movement();
+    const defaultDate = this.defaultDate();
+    const base = { ...toFormModel(movement), ...(!movement && defaultDate ? { date: defaultDate } : {}) };
     const first = this.prefill()?.movements[0];
     return first ? applyAiMovement(base, first, untracked(() => this.categoryNames())) : base;
   });
+
+  // ---------- Tarjeta de crédito ----------
+
+  readonly isCardCategory = computed(() => this.model().tipo === 'gasto' && this.model().category === CARD_CATEGORY);
+  /** Respuesta a "¿Ya cargaste las compras?". null = sin responder (se sugiere según lo cargado con crédito). */
+  readonly cardAnswer = linkedSignal<boolean | null>(() => {
+    const movement = this.movement();
+    return movement ? movement.tipo === 'pago_tarjeta' : null;
+  });
+  private readonly supabase = inject(Supabase).client;
+  /** Lo que cargaste con crédito en los últimos dos meses: si hay, lo más probable es que el pago no deba sumar. */
+  readonly creditSpent = resource({
+    params: () => {
+      if (!this.isCardCategory() || this.isEdit()) return undefined;
+      return { groupId: this.targetGroupId(), userId: this.meId() };
+    },
+    loader: async ({ params }) => {
+      const from = monthRange(-1).from;
+      const base = this.supabase.from('expenses').select('amount').eq('tipo', 'gasto').eq('medio_pago', 'credito').gte('date', from);
+      const { data } = await (params.groupId ? base.eq('group_id', params.groupId) : base.eq('user_id', params.userId).is('group_id', null));
+      return (data ?? []).reduce((sum, r) => sum + Number(r.amount), 0);
+    },
+  });
+  readonly creditSpentValue = computed(() => (this.creditSpent.hasValue() ? this.creditSpent.value() : 0));
+  readonly purchasesLoaded = computed(() => this.cardAnswer() ?? this.creditSpentValue() > 0);
+  readonly isCardPayment = computed(() => this.isCardCategory() && this.purchasesLoaded());
+
+  readonly paymentOptions = PAYMENT_METHODS;
+
+  setPayment(id: MedioPago): void {
+    this.model.update((m) => ({ ...m, medioPago: m.medioPago === id ? '' : id }));
+  }
+
+  /** Productos del ticket y reintegros (solo gastos). El monto del formulario es el neto. */
+  private readonly detalle = linkedSignal<Detalle | null>(() => {
+    const movement = this.movement();
+    if (movement) return parseDetalle(movement.detalle);
+    const first = this.prefill()?.movements[0];
+    return first ? fromTicket(first.monto, first.items) : null;
+  });
+  /** El detalle siempre acompaña al monto: si se edita el monto a mano, el total del ticket se reacomoda. */
+  readonly detalleView = computed(() => {
+    const d = this.detalle();
+    const amount = this.model().amount;
+    return d && amount !== null && Number.isFinite(Number(amount)) ? withAmount(d, Number(amount)) : d;
+  });
+
+  onDetalle(next: Detalle | null): void {
+    this.detalle.set(next);
+    if (next) this.model.update((m) => ({ ...m, amount: netAmount(next) }));
+  }
 
   readonly receipt = linkedSignal<ReceiptDraft>(() => {
     const prefill = this.prefill()?.receipt;
@@ -205,12 +286,16 @@ export class MovementFormComponent {
     await submit(this.movementForm, async () => {
       const groupId = this.targetGroupId();
       const split = this.showSplit();
-      const input = {
-        ...toMovementInput(this.model()),
-        ...(this.isEdit() ? {} : { group_id: groupId }),
-        paid_by: split && this.paidBy() !== this.meId() ? this.paidBy() : null,
-        division: split ? this.division() : null,
-      };
+      const input = asCardPayment(
+        {
+          ...toMovementInput(this.model()),
+          ...(this.isEdit() ? {} : { group_id: groupId }),
+          paid_by: split && this.paidBy() !== this.meId() ? this.paidBy() : null,
+          division: split ? this.division() : null,
+          detalle: this.model().tipo === 'gasto' ? toJson(this.detalleView()) : null,
+        },
+        this.isCardCategory() && this.purchasesLoaded(),
+      );
       this.save.emit({ input, receipt: this.receipt() });
     });
   }
@@ -221,6 +306,7 @@ export class MovementFormComponent {
       return;
     }
     this.model.update((m) => applyAiMovement(m, result.movements[0], this.categoryNames()));
+    this.detalle.set(fromTicket(result.movements[0].monto, result.movements[0].items));
     this.aiSummary.set(summaryOf(result));
     if (result.receipt) this.receipt.set({ kind: 'new', dataUrl: result.receipt });
   }

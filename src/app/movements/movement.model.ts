@@ -1,4 +1,4 @@
-import type { Division, FuenteIngreso, Movimiento, TipoMovimiento } from '../core/database.types';
+import type { Division, FuenteIngreso, Json, MedioPago, Movimiento, TipoMovimiento } from '../core/database.types';
 import type { TranslationKey } from '../core/i18n/i18n';
 
 export interface TypeInfo {
@@ -17,8 +17,31 @@ export const MOVEMENT_TYPES: readonly TypeInfo[] = [
   { id: 'inversion', labelKey: 'typeInversion', pluralKey: 'investments', placeholderKey: 'placeholderInversion', icon: 'trending-up-outline', color: 'var(--wl-type-inversion)' },
 ];
 
+/**
+ * Pago del resumen de la tarjeta cuando las compras ya están cargadas. No se elige en el selector de tipo:
+ * sale de cargar un gasto en "Tarjeta de crédito" y responder que las compras ya estaban.
+ */
+export const CARD_PAYMENT_TYPE: TypeInfo = {
+  id: 'pago_tarjeta', labelKey: 'typePagoTarjeta', pluralKey: 'cardPayments', placeholderKey: 'placeholderGasto',
+  icon: 'card-outline', color: 'var(--wl-muted)',
+};
+
+export const CARD_CATEGORY = 'Tarjeta de crédito';
+
 export function typeInfo(id: TipoMovimiento): TypeInfo {
+  if (id === 'pago_tarjeta') return CARD_PAYMENT_TYPE;
   return MOVEMENT_TYPES.find((t) => t.id === id) ?? MOVEMENT_TYPES[0];
+}
+
+export const PAYMENT_METHODS: readonly { id: MedioPago; labelKey: TranslationKey; emoji: string }[] = [
+  { id: 'efectivo', labelKey: 'payCash', emoji: '💵' },
+  { id: 'debito', labelKey: 'payDebit', emoji: '🏧' },
+  { id: 'credito', labelKey: 'payCredit', emoji: '💳' },
+  { id: 'transferencia', labelKey: 'payTransfer', emoji: '📲' },
+];
+
+export function paymentMethodKey(id: string | null | undefined): TranslationKey | null {
+  return PAYMENT_METHODS.find((p) => p.id === id)?.labelKey ?? null;
 }
 
 export interface CategoryInfo {
@@ -49,6 +72,7 @@ export const CATEGORIES: readonly CategoryInfo[] = [
   { name: 'Delivery', emoji: '🛵', color: '#EA580C' },
   { name: 'Bar', emoji: '☕', color: '#92400E' },
   { name: 'Banco', emoji: '🏦', color: '#1D4ED8' },
+  { name: 'Tarjeta de crédito', emoji: '💳', color: '#0F766E' },
   { name: 'Trabajo', emoji: '💼', color: '#374151' },
   { name: 'Otros', emoji: '📦', color: '#9CA3AF' },
 ];
@@ -86,6 +110,10 @@ export interface MovementInput {
   paid_by?: string | null;
   /** Cómo se divide (solo gastos de grupo). */
   division?: Division | null;
+  /** Ticket con productos y reintegros (expenses.detalle). */
+  detalle?: Json | null;
+  /** Cómo se pagó (opcional). */
+  medio_pago?: MedioPago | null;
 }
 
 export interface MonthSummary {

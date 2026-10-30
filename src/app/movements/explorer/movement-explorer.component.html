@@ -1,54 +1,47 @@
-<section class="summary" aria-labelledby="summary-title">
-  <div class="summary-head">
-    <h2 id="summary-title">{{ 'summary' | t }}</h2>
-    <span class="summary-period">
+<div class="period">
+  @if (customRange()) {
+    <div class="custom-range">
       <ion-icon name="calendar-outline" aria-hidden="true" />
-      {{ periodLabel() }}
-    </span>
-  </div>
-  <div class="kpis">
-    <div class="kpi hero">
-      <span class="kpi-label">{{ 'expenses' | t }}</span>
-      <span class="kpi-value">{{ summary().gastos | money }}</span>
-      <span class="kpi-note">{{ 'movementsCount' | t: '' + filtered().length }}</span>
+      <span>{{ rangeLabel() }}</span>
+      <button type="button" (click)="customRange.set(null)" [attr.aria-label]="'backToMonth' | t">
+        <ion-icon name="close" />
+      </button>
     </div>
-    <div class="kpi">
-      <span class="kpi-label"><span class="dot ingreso"></span>{{ 'income' | t }}</span>
-      <span class="kpi-value">{{ summary().ingresos | money }}</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi-label"><span class="dot ahorro"></span>{{ 'savings' | t }}</span>
-      <span class="kpi-value">{{ summary().ahorros | money }}</span>
-    </div>
-    <div class="kpi">
-      <span class="kpi-label"><span class="dot inversion"></span>{{ 'investments' | t }}</span>
-      <span class="kpi-value">{{ summary().inversiones | money }}</span>
-    </div>
-  </div>
+  } @else {
+    <app-month-nav class="month-nav" />
+  }
+</div>
+
+<section class="stats" [attr.aria-label]="'summary' | t">
+  @for (stat of stats(); track stat.type.id) {
+    <button
+      type="button"
+      class="stat"
+      [class.main]="stat.type.id === 'gasto'"
+      [class.selected]="filters().type === stat.type.id"
+      [class.dim]="filters().type !== 'todos' && filters().type !== stat.type.id"
+      [attr.aria-pressed]="filters().type === stat.type.id"
+      [style.--stat-color]="stat.type.color"
+      (click)="toggleType(stat.type.id)"
+    >
+      <span class="stat-label"><span class="dot" aria-hidden="true"></span>{{ stat.type.pluralKey | t }}</span>
+      <span class="stat-value">{{ stat.total | money }}</span>
+      <span class="stat-count">
+        @if (stat.type.id === 'pago_tarjeta') {
+          {{ 'notCounted' | t }}
+        } @else {
+          {{ 'movementsCount' | t: '' + stat.count }}
+        }
+      </span>
+    </button>
+  }
 </section>
 
 <div class="content">
-  <section class="wl-panel list-panel" aria-labelledby="movements-title">
-    <div class="panel-head">
-      <h2 id="movements-title">{{ 'navMovements' | t }}</h2>
-      <ion-button class="wl-btn wl-btn-secondary export" fill="outline" size="small" [disabled]="!filtered().length || exporting()" (click)="exportExcel()">
-        <ion-icon slot="start" name="download-outline" />
-        {{ 'exportExcel' | t }}
-      </ion-button>
-    </div>
+  <section class="list-panel" aria-labelledby="movements-title">
+    <h2 id="movements-title" class="visually-hidden">{{ 'navMovements' | t }}</h2>
 
-    <div class="filters">
-      <div class="dates">
-        <label class="date-field">
-          <span>{{ 'dateFrom' | t }}</span>
-          <input type="date" [value]="dates().from" [max]="dates().to" (change)="setDate('from', $any($event.target).value)" />
-        </label>
-        <label class="date-field">
-          <span>{{ 'dateTo' | t }}</span>
-          <input type="date" [value]="dates().to" [min]="dates().from" (change)="setDate('to', $any($event.target).value)" />
-        </label>
-      </div>
-
+    <div class="toolbar">
       <div class="search">
         <ion-icon name="search-outline" aria-hidden="true" />
         <input
@@ -59,47 +52,43 @@
           (input)="patch({ text: $any($event.target).value })"
         />
         @if (filters().text) {
-          <button type="button" class="clear-text" (click)="patch({ text: '' })" [attr.aria-label]="'clearFilters' | t">
+          <button type="button" class="clear-text" (click)="patch({ text: '' })" [attr.aria-label]="'clear' | t">
             <ion-icon name="close-circle" />
           </button>
         }
       </div>
-
-      <div class="selects">
-        @if (isGroup()) {
-          <ion-select
-            class="filter-select"
-            interface="popover"
-            [attr.aria-label]="'person' | t"
-            [value]="filters().person"
-            (ionChange)="onSelect('person', $event)"
-          >
-            <ion-select-option value="todos">{{ 'allPeople' | t }}</ion-select-option>
-            @for (member of members(); track member.userId) {
-              <ion-select-option [value]="member.userId">{{ member.name }}</ion-select-option>
-            }
-          </ion-select>
+      <button type="button" class="filter-btn" [class.active]="filterCount() > 0" (click)="sheetOpen.set(true)">
+        <ion-icon name="options-outline" aria-hidden="true" />
+        <span class="filter-text">{{ 'filters' | t }}</span>
+        @if (filterCount() > 0) {
+          <span class="badge">{{ filterCount() }}</span>
         }
-        <ion-select
-          class="filter-select"
-          interface="popover"
-          [attr.aria-label]="'category' | t"
-          [value]="filters().category"
-          (ionChange)="onSelect('category', $event)"
-        >
-          <ion-select-option value="todos">{{ 'allCategories' | t }}</ion-select-option>
-          @for (option of categoryOptions(); track option.value) {
-            <ion-select-option [value]="option.value">{{ option.label }}</ion-select-option>
-          }
-        </ion-select>
-      </div>
+      </button>
     </div>
 
-    <div class="types">
-      <app-chip-picker [label]="'filterLabel' | t" [options]="typeOptions()" [value]="typeValue()" (valueChange)="onType($event)" />
-      @if (hasFilters()) {
-        <button type="button" class="clear" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
-      }
+    @if (activeChips().length || filters().type !== 'todos') {
+      <div class="chips">
+        @let type = filters().type;
+        @if (type !== 'todos') {
+          <button type="button" class="chip" (click)="patch({ type: 'todos' })">
+            {{ typeName(type) }} <ion-icon name="close" aria-hidden="true" />
+          </button>
+        }
+        @for (chip of activeChips(); track chip.key) {
+          <button type="button" class="chip" (click)="removeChip(chip.key)" [attr.aria-label]="('removeFilter' | t) + ' ' + chip.label">
+            {{ chip.label }} <ion-icon name="close" aria-hidden="true" />
+          </button>
+        }
+        <button type="button" class="clear-all" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
+      </div>
+    }
+
+    <div class="list-head">
+      <span>{{ 'movementsCount' | t: '' + filtered().length }}</span>
+      <button type="button" class="export" [disabled]="!filtered().length || exporting()" (click)="exportExcel()">
+        <ion-icon name="download-outline" aria-hidden="true" />
+        {{ 'exportShort' | t }}
+      </button>
     </div>
 
     @if (data.error()) {
@@ -113,9 +102,10 @@
       }
     } @else if (!filtered().length) {
       <div class="state">
+        <span class="state-emoji" aria-hidden="true">{{ hasFilters() ? '🔍' : '🗓️' }}</span>
         <p class="state-title">{{ (hasFilters() ? 'noResults' : 'noMovementsPeriod') | t }}</p>
         @if (hasFilters()) {
-          <button type="button" class="clear" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
+          <button type="button" class="clear-all" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
         }
       </div>
     } @else {
@@ -148,7 +138,7 @@
           @for (share of people(); track share.userId) {
             <li>
               <button type="button" class="person" [class.active]="filters().person === share.userId"
-                (click)="patch({ person: filters().person === share.userId ? 'todos' : share.userId })">
+                (click)="pick('person', share.userId)">
                 <span class="avatar" [style.background]="colorOf()[share.userId] ?? '#9ca3af'" aria-hidden="true">
                   {{ (names()[share.userId] ?? '?').charAt(0).toUpperCase() }}
                 </span>
@@ -173,3 +163,103 @@
     </section>
   </aside>
 </div>
+
+<ion-modal
+  class="filter-sheet"
+  [class.wl-dialog]="wide"
+  [class.wl-dialog-sm]="wide"
+  [isOpen]="sheetOpen()"
+  [breakpoints]="wide ? undefined : [0, 0.85, 1]"
+  [initialBreakpoint]="wide ? undefined : 0.85"
+  [expandToScroll]="false"
+  (didDismiss)="sheetOpen.set(false)"
+>
+  <ng-template>
+    <div class="sheet">
+      <header class="sheet-head">
+        <h2>{{ 'filters' | t }}</h2>
+        <button type="button" class="sheet-close" (click)="sheetOpen.set(false)" [attr.aria-label]="'close' | t">
+          <ion-icon name="close" />
+        </button>
+      </header>
+
+      <div class="sheet-body">
+        <section class="group">
+          <h3>{{ 'period' | t }}</h3>
+          <div class="options">
+            @for (preset of presets; track preset.id) {
+              <button type="button" class="option" [class.selected]="activePreset() === preset.id" (click)="applyPreset(preset.id)">
+                {{ preset.label | t }}
+              </button>
+            }
+          </div>
+          <div class="dates">
+            <label>
+              <span>{{ 'dateFrom' | t }}</span>
+              <input type="date" [value]="range().from" (change)="setDate('from', $any($event.target))" />
+            </label>
+            <label>
+              <span>{{ 'dateTo' | t }}</span>
+              <input type="date" [value]="range().to" (change)="setDate('to', $any($event.target))" />
+            </label>
+          </div>
+        </section>
+
+        <section class="group">
+          <h3>{{ 'csvType' | t }}</h3>
+          <div class="options">
+            @for (option of typeOptions(); track option.value) {
+              <button type="button" class="option" [class.selected]="filters().type === option.value" (click)="pick('type', option.value)">
+                {{ option.label }}
+              </button>
+            }
+          </div>
+        </section>
+
+        @if (categoryOptions().length) {
+          <section class="group">
+            <h3>{{ 'category' | t }}</h3>
+            <div class="options">
+              @for (option of categoryOptions(); track option.value) {
+                <button type="button" class="option" [class.selected]="filters().category === option.value" (click)="pick('category', option.value)">
+                  <span aria-hidden="true">{{ option.emoji }}</span> {{ option.label }}
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (isGroup() && members().length > 1) {
+          <section class="group">
+            <h3>{{ 'paidByShort' | t }}</h3>
+            <div class="options">
+              @for (member of members(); track member.userId) {
+                <button type="button" class="option" [class.selected]="filters().person === member.userId" (click)="pick('person', member.userId)">
+                  {{ member.name }}
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        <section class="group">
+          <h3>{{ 'paymentMethodFilter' | t }}</h3>
+          <div class="options">
+            @for (option of paymentOptions; track option.id) {
+              <button type="button" class="option" [class.selected]="filters().payment === option.id" (click)="pick('payment', option.id)">
+                <span aria-hidden="true">{{ option.emoji }}</span> {{ option.labelKey | t }}
+              </button>
+            }
+          </div>
+        </section>
+      </div>
+
+      <footer class="sheet-foot">
+        <button type="button" class="reset" [disabled]="!hasFilters()" (click)="clearFilters()">{{ 'clearFilters' | t }}</button>
+        <ion-button class="wl-btn wl-btn-primary" (click)="sheetOpen.set(false)">
+          {{ 'showResults' | t: '' + filtered().length }}
+        </ion-button>
+      </footer>
+    </div>
+  </ng-template>
+</ion-modal>

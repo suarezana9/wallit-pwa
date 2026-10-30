@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { MovementFormComponent, toMovementInput } from './movement-form.component';
+import { MovementFormComponent, asCardPayment, toFormModel, toMovementInput } from './movement-form.component';
 
 describe('MovementFormComponent', () => {
   function create() {
@@ -60,7 +60,28 @@ describe('MovementFormComponent', () => {
   });
 
   it('un ingreso se guarda con categoría Otros', () => {
-    const input = toMovementInput({ tipo: 'ingreso', amount: 10, category: 'Ocio', fuente: 'sueldo', description: '', date: '2026-10-01', isPrivate: true });
-    expect(input).toMatchObject({ category: 'Otros', fuente: 'sueldo', is_private: false });
+    const input = toMovementInput({ tipo: 'ingreso', amount: 10, category: 'Ocio', fuente: 'sueldo', description: '', date: '2026-10-01', isPrivate: true, medioPago: 'credito' });
+    expect(input).toMatchObject({ category: 'Otros', fuente: 'sueldo', is_private: false, medio_pago: null });
+  });
+
+  it('pago de tarjeta: con las compras cargadas no suma; sin ellas, es un gasto', () => {
+    const base = toMovementInput({
+      tipo: 'gasto', amount: 250000, category: 'Tarjeta de crédito', fuente: '', description: 'Visa', date: '2026-11-05', isPrivate: false, medioPago: 'debito',
+    });
+    expect(asCardPayment({ ...base, division: { tipo: 'iguales', entre: ['a'] } }, true)).toMatchObject({
+      tipo: 'pago_tarjeta', medio_pago: null, division: null, category: 'Tarjeta de crédito',
+    });
+    expect(asCardPayment(base, false)).toMatchObject({ tipo: 'gasto', medio_pago: 'debito' });
+    const other = { ...base, category: 'Supermercado' };
+    expect(asCardPayment(other, true).tipo).toBe('gasto');
+  });
+
+  it('un pago de tarjeta se edita como gasto en Tarjeta de crédito', () => {
+    const model = toFormModel({
+      id: 'p', group_id: null, user_id: 'u', amount: 1000, category: 'Tarjeta de crédito', description: '', date: '2026-11-05',
+      is_private: false, receipt_url: null, created_at: '', tipo: 'pago_tarjeta', fuente: null, paid_by: null, division: null,
+      detalle: null, medio_pago: null,
+    });
+    expect(model).toMatchObject({ tipo: 'gasto', category: 'Tarjeta de crédito', medioPago: '' });
   });
 });

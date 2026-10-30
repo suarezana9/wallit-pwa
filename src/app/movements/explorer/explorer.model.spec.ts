@@ -1,9 +1,10 @@
 import type { Movimiento } from '../../core/database.types';
-import { EMPTY_FILTERS, applyFilters, groupByDay, normalizeRange, spendingByPerson, toSheetRows } from './explorer.model';
+import {
+  activeFilterCount, applyDateEdge, EMPTY_FILTERS, applyFilters, groupByDay, normalizeRange, presetRange, spendingByPerson, toSheetRows } from './explorer.model';
 
 const mov = (over: Partial<Movimiento>): Movimiento => ({
   id: Math.random().toString(), group_id: 'g1', user_id: 'ana', amount: 100, category: 'Supermercado',
-  description: '', date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null,
+  description: '', date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null,
   ...over,
 });
 
@@ -64,5 +65,37 @@ describe('explorer.model con quién pagó', () => {
   it('el gasto por persona y el filtro usan paid_by', () => {
     const list = [mov({ user_id: 'ana', paid_by: 'juan', amount: 100 })];
     expect(spendingByPerson(list)[0].userId).toBe('juan');
+  });
+});
+
+describe('rango de fechas del explorador', () => {
+  const range = { from: '2026-10-01', to: '2026-10-31' };
+  it('nunca deja Desde después de Hasta', () => {
+    expect(applyDateEdge(range, 'from', '2026-11-15')).toEqual({ from: '2026-11-15', to: '2026-11-15' });
+    expect(applyDateEdge(range, 'to', '2026-09-10')).toEqual({ from: '2026-09-10', to: '2026-09-10' });
+    expect(applyDateEdge(range, 'to', '2026-12-31')).toEqual({ from: '2026-10-01', to: '2026-12-31' });
+  });
+  it('descarta fechas incompletas o absurdas', () => {
+    expect(applyDateEdge(range, 'from', '')).toBeNull();
+    expect(applyDateEdge(range, 'from', '0202-10-01')).toBeNull();
+  });
+});
+
+describe('explorer.model: períodos y filtros nuevos', () => {
+  it('atajos de período', () => {
+    const today = new Date(2026, 9, 30);
+    expect(presetRange('thisMonth', today)).toEqual({ monthOffset: 0 });
+    expect(presetRange('lastMonth', today)).toEqual({ monthOffset: -1 });
+    expect(presetRange('last3', today)).toEqual({ from: '2026-08-01', to: '2026-10-31' });
+    expect(presetRange('thisYear', new Date(2026, 0, 1))).toEqual({ from: '2026-01-01', to: '2026-12-31' });
+    expect(presetRange('last3', new Date(2026, 0, 15))).toEqual({ from: '2025-11-01', to: '2026-01-31' });
+  });
+
+  it('cuenta filtros activos y filtra por medio de pago', () => {
+    expect(activeFilterCount(EMPTY_FILTERS, false)).toBe(0);
+    expect(activeFilterCount({ ...EMPTY_FILTERS, category: 'Bar', payment: 'credito', text: 'x' }, true)).toBe(3);
+    const credit = mov({ id: 'a', medio_pago: 'credito' });
+    const cash = mov({ id: 'b', medio_pago: 'efectivo' });
+    expect(applyFilters([credit, cash], { ...EMPTY_FILTERS, payment: 'credito' }, ctx).map((m) => m.id)).toEqual(['a']);
   });
 });

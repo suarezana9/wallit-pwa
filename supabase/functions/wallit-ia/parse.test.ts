@@ -1,7 +1,7 @@
 import { deepStrictEqual as assertEquals, ok } from 'node:assert';
 const assertStringIncludes = (text: string, part: string) => ok(text.includes(part), part);
 import {
-  DEFAULT_CATEGORIES, MAX_MOVEMENTS, imagePrompt, parseLocaleNumber, readContext, sanitize, sanitizeMany, textPrompt,
+  DEFAULT_CATEGORIES, MAX_MOVEMENTS, imagePrompt, sanitizeTicketItems, parseLocaleNumber, readContext, sanitize, sanitizeMany, textPrompt,
 } from './parse.ts';
 
 const ctx = readContext({ lang: 'es', currency: 'ARS', today: '2026-10-22', categories: [...DEFAULT_CATEGORIES, 'Bebé'] });
@@ -61,4 +61,13 @@ Deno.test('acepta un objeto suelto y corta en el máximo', () => {
   assertEquals(sanitizeMany('{"tipo":"gasto","monto":10}', ctx, 'x').length, 1);
   const many = JSON.stringify({ movimientos: Array.from({ length: 15 }, (_, i) => ({ tipo: 'gasto', monto: i + 1 })) });
   assertEquals(sanitizeMany(many, ctx, 'x').length, MAX_MOVEMENTS);
+});
+
+Deno.test('productos del ticket', () => {
+  const raw = '{"tipo":"gasto","monto":"49.352,25","descripcion":"Dia","categoria":"Supermercado","items":[{"descripcion":"Leche condensada","monto":"3.500,00"},{"descripcion":"Choco con leche","monto":1880},{"descripcion":"","monto":5},{"descripcion":"Raro","monto":"x"}]}';
+  const m = sanitize(raw, ctx, 'x');
+  assertEquals(m.monto, 49352.25);
+  assertEquals(m.items, [{ descripcion: 'Leche condensada', monto: 3500 }, { descripcion: 'Choco con leche', monto: 1880 }]);
+  assertEquals(sanitizeTicketItems('nada'), []);
+  ok(imagePrompt(ctx).includes('"items"'));
 });

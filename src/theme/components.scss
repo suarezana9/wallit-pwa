@@ -133,7 +133,7 @@ ion-menu.wl-sidebar::part(container) {
 
   // Crear grupo: el diálogo crece para el tipo de grupo y las fechas del viaje.
   ion-modal.wl-dialog.wl-dialog-sm.wl-dialog-md {
-    --height: min(610px, 92vh);
+    --height: min(780px, 92vh);
   }
 }
 

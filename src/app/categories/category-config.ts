@@ -44,7 +44,12 @@ export function customToInfo(custom: CustomCategory): CategoryInfo {
 /** Categorías disponibles para cargar: predeterminadas no ocultas + propias. */
 export function visibleCategories(config: CategoryConfig): CategoryInfo[] {
   const hidden = new Set(config.ocultas);
-  return [...CATEGORIES.filter((c) => !hidden.has(c.name)), ...config.personalizadas.map(customToInfo)];
+  // Si alguien ya se había creado una propia con el nombre de una predeterminada nueva, no se duplica.
+  const builtin = new Set(CATEGORIES.map((c) => c.name));
+  return [
+    ...CATEGORIES.filter((c) => !hidden.has(c.name)),
+    ...config.personalizadas.filter((c) => !builtin.has(c.nombre)).map(customToInfo),
+  ];
 }
 
 export function lookupCategory(name: string, config: CategoryConfig): CategoryInfo {
