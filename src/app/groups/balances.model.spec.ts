@@ -3,7 +3,7 @@ import { computeBalances, divisionGap, equalShares, settleUp, sharesOf } from '.
 
 const gasto = (amount: number, userId: string, division: Division | null, extra: Partial<Movimiento> = {}): Movimiento => ({
   id: Math.random().toString(), group_id: 'g', user_id: userId, amount, category: 'Otros', description: '', date: '2026-10-01',
-  is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division, detalle: null, medio_pago: null, ...extra,
+  is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division, detalle: null, medio_pago: null, compra_id: null, cuota_num: null, cuotas_total: null, recurrente_id: null, ...extra,
 });
 
 const all = ['ana', 'luigi', 'sol'];

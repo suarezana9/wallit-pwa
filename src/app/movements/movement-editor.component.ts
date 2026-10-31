@@ -14,7 +14,8 @@ import { MovementInput } from './movement.model';
 import { MovementsStore } from './movements-store';
 import { isInRange, parseIsoDate } from '../core/dates';
 import { PreferencesStore } from '../core/preferences-store';
-
+import { buildInstallments } from './installments.model';
+import { RecurringStore } from './recurring-store';
 @Component({
   selector: 'app-movement-editor',
   imports: [BulkReviewComponent, IonModal, MovementFormComponent],
@@ -50,6 +51,7 @@ export class MovementEditorComponent {
   private readonly auth = inject(AuthStore);
   readonly groups = inject(GroupsStore);
   private readonly receipts = inject(ReceiptsService);
+  private readonly recurring = inject(RecurringStore);
 
   readonly changed = output<void>();
 
@@ -99,7 +101,7 @@ export class MovementEditorComponent {
    * Orden: primero se sube la foto (si hay una nueva), después se guarda el movimiento con su ruta
    * y recién ahí se borra la foto vieja. Si falla el guardado, se borra la foto recién subida.
    */
-  async save({ input, receipt }: MovementSave): Promise<void> {
+  async save({ input, receipt, installments, repeat }: MovementSave): Promise<void> {
     this.saving.set(true);
     const editing = this.editing();
     const plan = receiptPlan(editing?.receipt_url ?? null, receipt);
@@ -112,8 +114,20 @@ export class MovementEditorComponent {
         return;
       }
     }
-    const row = { ...input, receipt_url: receiptUrl };
-    const error = editing ? await this.store.update(editing.id, row) : await this.store.create(row);
+    const row: MovementInput = { ...input, receipt_url: receiptUrl };
+    let error: string | null;
+    if (editing) {
+      error = await this.store.update(editing.id, row);
+      if (!error && editing.compra_id) await this.store.updatePurchaseDetails(editing.compra_id, editing.id, row);
+    } else if (installments) {
+      const rows = buildInstallments(row, installments.count, { ...installments, compraId: crypto.randomUUID() });
+      error = await this.store.createMany(rows);
+    } else {
+      // "Todos los meses": primero el fijo, así el movimiento de este mes ya queda enlazado y no aparece como pendiente.
+      const recurrenteId = repeat ? await this.recurring.create(row) : null;
+      error = await this.store.create(recurrenteId ? { ...row, recurrente_id: recurrenteId } : row);
+      if (error && recurrenteId) void this.recurring.remove(recurrenteId);
+    }
     this.saving.set(false);
     if (error) {
       if (plan.upload) void this.receipts.remove(receiptUrl);
@@ -123,7 +137,14 @@ export class MovementEditorComponent {
     void this.receipts.remove(plan.discard);
     this.close();
     this.changed.emit();
-    await this.toast(editing ? this.i18n.t('changesSaved') : this.savedMessage(input.group_id, input.date));
+    const message = editing
+      ? this.i18n.t('changesSaved')
+      : installments
+        ? this.i18n.t('savedInstallments', String(installments.count))
+        : repeat
+          ? this.i18n.t('savedRepeat')
+          : this.savedMessage(input.group_id, input.date);
+    await this.toast(message);
   }
 
   /** Si se guardó en otro espacio que el activo, se avisa dónde quedó (si no, parece que desapareció). */
@@ -156,7 +177,23 @@ export class MovementEditorComponent {
     await this.toast(this.i18n.t('savedMany', String(inputs.length)));
   }
 
-  async confirmRemove(id: string): Promise<void> {
+  async confirmRemove(movement: Movimiento): Promise<void> {
+    const id = movement.id;
+    if (movement.compra_id && movement.cuotas_total) {
+      const compraId = movement.compra_id;
+      const alert = await this.alerts.create({
+        header: this.i18n.t('deleteInstallmentTitle'),
+        message: this.i18n.t('deleteInstallmentText', String(movement.cuota_num), String(movement.cuotas_total)),
+        cssClass: 'wl-alert-stacked',
+        buttons: [
+          { text: this.i18n.t('deleteAllInstallments'), role: 'destructive', handler: () => this.remove(id, compraId) },
+          { text: this.i18n.t('deleteOnlyThis'), handler: () => this.remove(id) },
+          { text: this.i18n.t('cancel'), role: 'cancel' },
+        ],
+      });
+      await alert.present();
+      return;
+    }
     const alert = await this.alerts.create({
       header: this.i18n.t('deleteConfirm'),
       message: this.i18n.t('cannotUndo'),
@@ -168,8 +205,8 @@ export class MovementEditorComponent {
     await alert.present();
   }
 
-  private async remove(id: string): Promise<void> {
-    const error = await this.store.remove(id);
+  private async remove(id: string, compraId?: string): Promise<void> {
+    const error = compraId ? await this.store.removePurchase(compraId) : await this.store.remove(id);
     if (error) {
       await this.toast(error, 'danger');
       return;

@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, resource, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, resource, signal, viewChild } from '@angular/core';
 import { IonButton, IonIcon, IonModal, IonSkeletonText } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { calendarOutline, close, closeCircle, downloadOutline, optionsOutline, searchOutline } from 'ionicons/icons';
@@ -13,6 +13,7 @@ import type { GroupMember } from '../../groups/groups-store';
 import { MonthNavComponent } from '../../shared/month-nav.component';
 import { CategoryBreakdownComponent } from '../category-breakdown.component';
 import { MovementListComponent } from '../movement-list.component';
+import { InstallmentsPanelComponent } from '../installments-panel.component';
 import { MovementsStore } from '../movements-store';
 import { CategoriesStore } from '../../categories/categories-store';
 import { CARD_PAYMENT_TYPE, MOVEMENT_TYPES, PAYMENT_METHODS, TypeInfo, typeInfo } from '../movement.model';
@@ -44,7 +45,7 @@ interface ActiveChip {
   templateUrl: 'movement-explorer.component.html',
   styleUrls: ['movement-explorer.component.scss'],
   imports: [
-    CategoryBreakdownComponent, IonButton, IonIcon, IonModal, IonSkeletonText, MoneyPipe, MonthNavComponent,
+    CategoryBreakdownComponent, InstallmentsPanelComponent, IonButton, IonIcon, IonModal, IonSkeletonText, MoneyPipe, MonthNavComponent,
     MovementListComponent, TranslatePipe,
   ],
 })
@@ -54,7 +55,7 @@ export class MovementExplorerComponent {
   readonly fileName = input('wallit');
 
   readonly selected = output<Movimiento>();
-  readonly removed = output<string>();
+  readonly removed = output<Movimiento>();
 
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
@@ -225,8 +226,11 @@ export class MovementExplorerComponent {
     });
   }
 
+  private readonly installments = viewChild(InstallmentsPanelComponent);
+
   reload(): void {
     this.data.reload();
+    this.installments()?.reload();
   }
 
   patch(change: Partial<ExplorerFilters>): void {

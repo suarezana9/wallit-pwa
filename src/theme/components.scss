@@ -199,3 +199,13 @@ ion-modal.space-sheet {
   --height: auto;
   --border-radius: 20px;
 }
+
+// Alertas con varias opciones (por ejemplo, borrar una cuota): botones uno debajo del otro.
+ion-alert.wl-alert-stacked .alert-button-group {
+  flex-direction: column;
+}
+
+ion-alert.wl-alert-stacked .alert-button {
+  margin-inline-end: 0;
+  text-align: end;
+}

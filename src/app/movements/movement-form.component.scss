@@ -391,3 +391,130 @@ ion-footer {
     background: rgba(var(--ion-color-primary-rgb), 0.08);
   }
 }
+
+.custom-count {
+  width: 72px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.08);
+  border: 1px solid var(--ion-color-primary);
+  outline: none;
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(var(--ion-color-primary-rgb), 0.06);
+
+  p {
+    margin: 0;
+    font-size: 14px;
+
+    span { color: var(--wl-muted); }
+  }
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--ion-color-primary);
+  }
+}
+
+.plan-hint {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--wl-muted);
+}
+
+.cuota-note {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--wl-muted);
+  background: var(--wl-field-bg);
+}
+
+.repeat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  background: var(--wl-field-bg);
+  border: 1px solid var(--wl-field-border);
+
+  &.on {
+    border-color: rgba(var(--ion-color-primary-rgb), 0.5);
+    background: rgba(var(--ion-color-primary-rgb), 0.06);
+  }
+}
+
+.repeat-icon {
+  flex: none;
+  font-size: 20px;
+}
+
+.repeat-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong { font-size: 14px; }
+  span { font-size: 12px; line-height: 1.35; color: var(--wl-muted); }
+}
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--wl-field-border);
+  transition: background 0.15s ease;
+
+  span {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+  }
+}
+
+.repeat.on .switch {
+  background: var(--ion-color-primary);
+
+  span { transform: translateX(18px); }
+}

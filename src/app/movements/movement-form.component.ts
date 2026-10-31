@@ -29,6 +29,7 @@ import { ChipOption, ChipPickerComponent } from './chip-picker.component';
 import { TypePickerComponent } from './type-picker.component';
 import { TicketAdjustComponent } from './ticket-adjust.component';
 import { Detalle, fromTicket, netAmount, parseDetalle, toJson, withAmount } from './detalle.model';
+import { INSTALLMENT_PRESETS, MAX_INSTALLMENTS, installmentPlan } from './installments.model';
 import { CARD_CATEGORY, INCOME_SOURCES, MovementInput, PAYMENT_METHODS, typeInfo } from './movement.model';
 
 export interface MovementFormModel {
@@ -106,7 +107,7 @@ export class MovementFormComponent {
   readonly prefill = input<AiResult | null>(null);
 
   readonly save = output<MovementSave>();
-  readonly remove = output<string>();
+  readonly remove = output<Movimiento>();
   readonly dismiss = output<void>();
   /** La IA encontró varios movimientos: el editor cambia a la revisión en lote. */
   readonly multiple = output<AiResult>();
@@ -193,6 +194,62 @@ export class MovementFormComponent {
   readonly isCardPayment = computed(() => this.isCardCategory() && this.purchasesLoaded());
 
   readonly paymentOptions = PAYMENT_METHODS;
+
+  // ---------- Cuotas y fijos (solo al crear) ----------
+
+  readonly installmentPresets = INSTALLMENT_PRESETS;
+  /** Cantidad de cuotas; 1 = sin cuotas. Se reinicia al abrir otro movimiento. */
+  readonly installments = linkedSignal(() => {
+    this.movement();
+    this.prefill();
+    return 1;
+  });
+  readonly customInstallments = linkedSignal(() => {
+    this.movement();
+    return false;
+  });
+  readonly startNextMonth = linkedSignal(() => {
+    this.movement();
+    return false;
+  });
+  readonly repeat = linkedSignal(() => {
+    this.movement();
+    this.prefill();
+    return false;
+  });
+
+  /** Las cuotas aparecen al elegir "Crédito": es donde se usan. */
+  readonly showInstallments = computed(
+    () => !this.isEdit() && this.model().tipo === 'gasto' && !this.isCardCategory() && this.model().medioPago === 'credito',
+  );
+  readonly installmentCount = computed(() => (this.showInstallments() ? this.installments() : 1));
+  readonly showRepeat = computed(() => !this.isEdit() && !this.isCardCategory() && this.installmentCount() === 1);
+
+  readonly plan = computed(() => {
+    const count = this.installmentCount();
+    const amount = Number(this.model().amount ?? 0);
+    if (count < 2 || !(amount > 0) || !this.model().date) return null;
+    const plan = installmentPlan(amount, count, this.model().date, this.startNextMonth());
+    const fmt = (iso: string) =>
+      new Date(`${iso}T12:00:00`).toLocaleDateString(this.preferences.locale(), { month: 'short', year: 'numeric' }).replace('.', '');
+    return { each: plan.amounts.at(-1) ?? 0, from: fmt(plan.dates[0]), to: fmt(plan.dates.at(-1)!) };
+  });
+
+  /** Al editar una cuota: "Cuota 3 de 12". */
+  readonly editingInstallment = computed(() => {
+    const m = this.movement();
+    return m?.compra_id && m.cuota_num && m.cuotas_total ? { num: m.cuota_num, total: m.cuotas_total } : null;
+  });
+
+  pickInstallments(count: number): void {
+    this.customInstallments.set(false);
+    this.installments.set(count);
+  }
+
+  setCustomInstallments(value: string): void {
+    const count = Math.round(Number(value));
+    if (Number.isFinite(count)) this.installments.set(Math.min(Math.max(count, 1), MAX_INSTALLMENTS));
+  }
 
   setPayment(id: MedioPago): void {
     this.model.update((m) => ({ ...m, medioPago: m.medioPago === id ? '' : id }));
@@ -296,7 +353,13 @@ export class MovementFormComponent {
         },
         this.isCardCategory() && this.purchasesLoaded(),
       );
-      this.save.emit({ input, receipt: this.receipt() });
+      const count = this.installmentCount();
+      this.save.emit({
+        input,
+        receipt: this.receipt(),
+        installments: count > 1 ? { count, startNextMonth: this.startNextMonth() } : null,
+        repeat: this.showRepeat() && this.repeat(),
+      });
     });
   }
 
@@ -334,6 +397,6 @@ export class MovementFormComponent {
 
   onRemove(): void {
     const movement = this.movement();
-    if (movement) this.remove.emit(movement.id);
+    if (movement) this.remove.emit(movement);
   }
 }

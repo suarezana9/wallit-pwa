@@ -14,7 +14,7 @@ import type { Movimiento } from '../core/database.types';
 
 const mov = (id: string, tipo: Movimiento['tipo'], amount: number, description: string): Movimiento => ({
   id, group_id: null, user_id: 'u', amount, category: 'Supermercado', description,
-  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null,
+  date: '2026-10-15', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null, compra_id: null, cuota_num: null, cuotas_total: null, recurrente_id: null,
 });
 
 describe('HomePage', () => {

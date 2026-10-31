@@ -67,6 +67,13 @@ export class MovementItemComponent {
 
   readonly receiptLabel = computed(() => this.i18n.t('receipt'));
 
+  /** "Cuota 3/12", "🔁 Fijo" o el medio de pago. */
+  private extra(m: Movimiento): string {
+    if (m.cuota_num && m.cuotas_total) return this.i18n.t('installmentShort', `${m.cuota_num}/${m.cuotas_total}`);
+    if (m.recurrente_id) return `🔁 ${this.i18n.t('fixedShort')}`;
+    return this.payment(m.medio_pago);
+  }
+
   private payment(id: string | null): string {
     const key = paymentMethodKey(id);
     return key ? this.i18n.t(key) : '';
@@ -86,7 +93,7 @@ export class MovementItemComponent {
         icon: '',
         color: category.color,
         title: m.description || name,
-        subtitle: [name, this.payment(m.medio_pago), this.author(), date].filter(Boolean).join(' · '),
+        subtitle: [name, this.extra(m), this.author(), date].filter(Boolean).join(' · '),
         isIncome: false,
         amountColor: null,
       };
@@ -112,7 +119,7 @@ export class MovementItemComponent {
       icon: type.icon,
       color: type.color,
       title: m.description || label,
-      subtitle: [label, source, this.author(), date].filter(Boolean).join(' · '),
+      subtitle: [label, source, this.extra(m), this.author(), date].filter(Boolean).join(' · '),
       isIncome: m.tipo === 'ingreso',
       amountColor: type.color,
     };

@@ -157,6 +157,8 @@
       </section>
     }
 
+    <app-installments-panel [groupId]="groupId()" />
+
     <section class="wl-panel" aria-labelledby="by-category">
       <h2 id="by-category">{{ 'byCategory' | t }}</h2>
       <app-category-breakdown [movements]="filtered()" [limit]="8" />

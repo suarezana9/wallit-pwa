@@ -3,7 +3,7 @@ import { summarize } from './movement.model';
 
 const mov = (tipo: Movimiento['tipo'], amount: number): Movimiento => ({
   id: crypto.randomUUID(), group_id: null, user_id: 'u', amount, category: 'Otros', description: '',
-  date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null,
+  date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo, fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null, compra_id: null, cuota_num: null, cuotas_total: null, recurrente_id: null,
 });
 
 describe('summarize', () => {

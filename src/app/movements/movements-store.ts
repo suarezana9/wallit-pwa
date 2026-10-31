@@ -139,6 +139,27 @@ export class MovementsStore {
     return null;
   }
 
+  /** Borra todas las cuotas de una compra. */
+  async removePurchase(compraId: string): Promise<string | null> {
+    const { data, error } = await this.supabase.from('expenses').delete().eq('compra_id', compraId).select('receipt_url');
+    if (error) return this.i18n.t('errDelete');
+    for (const row of data ?? []) void this.receipts.remove(row.receipt_url);
+    this.movements.update((list) => (list ?? []).filter((m) => m.compra_id !== compraId));
+    return null;
+  }
+
+  /** Al editar una cuota, lo que describe la compra (no el monto ni la fecha) se copia a las demás. */
+  async updatePurchaseDetails(compraId: string, exceptId: string, input: MovementInput): Promise<void> {
+    const shared = {
+      category: input.category,
+      description: input.description,
+      medio_pago: input.medio_pago ?? null,
+      is_private: input.is_private,
+    };
+    await this.supabase.from('expenses').update(shared).eq('compra_id', compraId).neq('id', exceptId);
+    this.movements.update((list) => (list ?? []).map((m) => (m.compra_id === compraId && m.id !== exceptId ? { ...m, ...shared } : m)));
+  }
+
   async remove(id: string): Promise<string | null> {
     const { data, error } = await this.supabase.from('expenses').delete().eq('id', id).select('receipt_url');
     if (error) return this.i18n.t('errDelete');

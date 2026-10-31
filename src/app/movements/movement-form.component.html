@@ -40,6 +40,11 @@
     </div>
 
     <div class="col-detail">
+      @if (editingInstallment(); as cuota) {
+        <p class="cuota-note">
+          💳 {{ 'installmentNum' | t: '' + cuota.num : '' + cuota.total }} · {{ 'installmentEditHint' | t }}
+        </p>
+      }
       @if (showSpacePicker()) {
         <div class="wl-field">
           <span class="wl-field-label">{{ 'saveIn' | t }}</span>
@@ -98,6 +103,53 @@
               }
             </div>
           </div>
+
+          @if (showInstallments()) {
+            <div class="wl-field installments">
+              <span class="wl-field-label">{{ 'installmentsQuestion' | t }}</span>
+              <div class="pay-chips" role="radiogroup" [attr.aria-label]="'installmentsQuestion' | t">
+                @for (count of installmentPresets; track count) {
+                  <button
+                    type="button"
+                    role="radio"
+                    class="pay-chip"
+                    [class.selected]="!customInstallments() && installments() === count"
+                    [attr.aria-checked]="!customInstallments() && installments() === count"
+                    (click)="pickInstallments(count)"
+                  >
+                    {{ count === 1 ? ('noInstallments' | t) : count }}
+                  </button>
+                }
+                @if (customInstallments()) {
+                  <input
+                    class="custom-count wl-no-spin"
+                    type="number"
+                    inputmode="numeric"
+                    min="2"
+                    max="60"
+                    [attr.aria-label]="'installmentsCount' | t"
+                    [value]="installments()"
+                    (input)="setCustomInstallments($any($event.target).value)"
+                  />
+                } @else {
+                  <button type="button" class="pay-chip" (click)="customInstallments.set(true)">{{ 'otherCount' | t }}</button>
+                }
+              </div>
+              @if (plan(); as p) {
+                <div class="plan">
+                  <p>
+                    <strong>{{ 'installmentsOf' | t: '' + installmentCount() }} {{ p.each | money }}</strong>
+                    <span> · {{ p.from }} → {{ p.to }}</span>
+                  </p>
+                  <label class="check">
+                    <input type="checkbox" [checked]="startNextMonth()" (change)="startNextMonth.set(!startNextMonth())" />
+                    {{ 'startNextMonth' | t }}
+                  </label>
+                  <span class="plan-hint">{{ 'installmentsHint' | t }}</span>
+                </div>
+              }
+            </div>
+          }
         }
       }
 
@@ -133,6 +185,17 @@
           }
         </div>
       </div>
+      @if (showRepeat()) {
+        <button type="button" class="repeat" role="switch" [class.on]="repeat()" [attr.aria-checked]="repeat()" (click)="repeat.set(!repeat())">
+          <span class="repeat-icon" aria-hidden="true">🔁</span>
+          <span class="repeat-text">
+            <strong>{{ 'repeatMonthly' | t }}</strong>
+            <span>{{ (repeat() ? 'repeatOnHint' : 'repeatHint') | t }}</span>
+          </span>
+          <span class="switch" aria-hidden="true"><span></span></span>
+        </button>
+      }
+
       <div class="wl-field">
         <span class="wl-field-label">{{ 'receipt' | t }} <span class="optional">{{ 'optional' | t }}</span></span>
         @if (receipt()) {

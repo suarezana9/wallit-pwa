@@ -25,6 +25,8 @@ import { BudgetCardComponent } from '../budgets/budget-card.component';
 import { BudgetsStore } from '../budgets/budgets-store';
 import { ShareInbox } from '../share/share-inbox';
 import { GroupBalanceBannerComponent } from '../groups/group-balance-banner.component';
+import { RecurringManagerComponent } from '../movements/recurring-manager.component';
+import { RecurringPendingComponent } from '../movements/recurring-pending.component';
 
 @Component({
   selector: 'app-home',
@@ -34,7 +36,7 @@ import { GroupBalanceBannerComponent } from '../groups/group-balance-banner.comp
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
     MonthNavComponent, MonthlyChartComponent, MovementEditorComponent, MovementListComponent,
-    RouterLink, TranslatePipe, WallitLogoComponent,
+    RecurringManagerComponent, RecurringPendingComponent, RouterLink, TranslatePipe, WallitLogoComponent,
   ],
 })
 export class HomePage {
@@ -45,6 +47,7 @@ export class HomePage {
   // En celular el selector de espacio ya dice dónde estás; el título queda como saludo.
   readonly mobileTitle = computed(() => this.i18n.t('hello', this.displayName()));
   readonly editor = viewChild.required(MovementEditorComponent);
+  readonly fixedManager = viewChild.required(RecurringManagerComponent);
   private readonly i18n = inject(I18n);
   private readonly groups = inject(GroupsStore);
   private readonly preferences = inject(PreferencesStore);

@@ -4,7 +4,7 @@ import {
 
 const mov = (over: Partial<Movimiento>): Movimiento => ({
   id: Math.random().toString(), group_id: 'g1', user_id: 'ana', amount: 100, category: 'Supermercado',
-  description: '', date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null,
+  description: '', date: '2026-10-10', is_private: false, receipt_url: null, created_at: '', tipo: 'gasto', fuente: null, paid_by: null, division: null, detalle: null, medio_pago: null, compra_id: null, cuota_num: null, cuotas_total: null, recurrente_id: null,
   ...over,
 });
 

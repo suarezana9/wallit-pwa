@@ -33,14 +33,14 @@ import { MovementItemComponent } from './movement-item.component';
               fill="clear"
               color="medium"
               [attr.aria-label]="'deleteMovement' | t"
-              (click)="$event.stopPropagation(); removed.emit(movement.id)"
+              (click)="$event.stopPropagation(); removed.emit(movement)"
             >
               <ion-icon slot="icon-only" name="trash-outline" />
             </ion-button>
             }
           </ion-item>
           <ion-item-options side="end">
-            <ion-item-option color="danger" [attr.aria-label]="'deleteMovement' | t" (click)="sliding.close(); removed.emit(movement.id)">
+            <ion-item-option color="danger" [attr.aria-label]="'deleteMovement' | t" (click)="sliding.close(); removed.emit(movement)">
               <ion-icon slot="icon-only" name="trash-outline" />
             </ion-item-option>
           </ion-item-options>
@@ -88,7 +88,7 @@ export class MovementListComponent {
   readonly userId = computed(() => this.auth.user()?.id);
 
   readonly selected = output<Movimiento>();
-  readonly removed = output<string>();
+  readonly removed = output<Movimiento>();
 
   constructor() {
     addIcons({ trashOutline });

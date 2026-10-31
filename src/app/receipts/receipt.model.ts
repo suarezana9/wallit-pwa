@@ -8,6 +8,10 @@ export type ReceiptDraft = { kind: 'stored'; ref: string } | { kind: 'new'; data
 export interface MovementSave {
   input: MovementInput;
   receipt: ReceiptDraft;
+  /** Compra nueva en cuotas (count ≥ 2). */
+  installments?: { count: number; startNextMonth: boolean } | null;
+  /** Movimiento nuevo que se repite todos los meses. */
+  repeat?: boolean;
 }
 
 export interface ReceiptPlan {

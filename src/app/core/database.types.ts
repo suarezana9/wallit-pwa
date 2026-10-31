@@ -121,14 +121,52 @@ export interface Database {
           detalle: Json | null;
           /** Migración 016. */
           medio_pago: MedioPago | null;
+          /** Migración 017: compra en cuotas (un movimiento por cuota, todos con el mismo compra_id). */
+          compra_id: string | null;
+          cuota_num: number | null;
+          cuotas_total: number | null;
+          /** Migración 017: gasto o ingreso fijo que generó este movimiento. */
+          recurrente_id: string | null;
         };
-        Insert: Omit<Database['public']['Tables']['expenses']['Row'], 'id' | 'created_at' | 'paid_by' | 'division' | 'detalle' | 'medio_pago'> & {
+        Insert: Omit<
+          Database['public']['Tables']['expenses']['Row'],
+          'id' | 'created_at' | 'paid_by' | 'division' | 'detalle' | 'medio_pago' | 'compra_id' | 'cuota_num' | 'cuotas_total' | 'recurrente_id'
+        > & {
           medio_pago?: MedioPago | null;
+          compra_id?: string | null;
+          cuota_num?: number | null;
+          cuotas_total?: number | null;
+          recurrente_id?: string | null;
           paid_by?: string | null;
           division?: Division | null;
           detalle?: Json | null;
         };
         Update: Partial<Database['public']['Tables']['expenses']['Row']>;
+        Relationships: [];
+      };
+      recurrentes: {
+        Row: {
+          id: string;
+          user_id: string;
+          group_id: string | null;
+          tipo: Exclude<TipoMovimiento, 'pago_tarjeta'>;
+          amount: number;
+          category: Categoria;
+          fuente: FuenteIngreso | null;
+          description: string;
+          medio_pago: MedioPago | null;
+          division: Division | null;
+          /** Día del mes (si el mes tiene menos días, se usa el último). */
+          dia: number;
+          /** Primer mes, 'YYYY-MM'. */
+          desde: string;
+          activo: boolean;
+          /** Meses salteados, 'YYYY-MM'. */
+          saltados: string[];
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['recurrentes']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['recurrentes']['Row']>;
         Relationships: [];
       };
       budgets: {
@@ -232,5 +270,6 @@ export interface Database {
 export type UserRow = Database['public']['Tables']['users']['Row'];
 export type Movimiento = Database['public']['Tables']['expenses']['Row'];
 export type Grupo = Database['public']['Tables']['groups']['Row'];
+export type Recurrente = Database['public']['Tables']['recurrentes']['Row'];
 export type Pago = Database['public']['Tables']['settlements']['Row'];
 export type Actividad = Database['public']['Tables']['group_activity']['Row'];

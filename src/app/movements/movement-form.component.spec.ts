@@ -42,7 +42,23 @@ describe('MovementFormComponent', () => {
     expect(emitted).toHaveBeenCalledWith({
       input: expect.objectContaining({ amount: 1500, category: 'Ocio', description: 'cine', fuente: null }),
       receipt: null,
+      installments: null,
+      repeat: false,
     });
+  });
+
+  it('cuotas solo con crédito, y repetir solo sin cuotas', () => {
+    const form = create();
+    form.model.update((m) => ({ ...m, amount: 120000, category: 'Hogar', date: '2026-11-10' }));
+    expect(form.showInstallments()).toBe(false);
+    form.setPayment('credito');
+    expect(form.showInstallments()).toBe(true);
+    form.pickInstallments(12);
+    expect(form.plan()).toMatchObject({ each: 10000 });
+    expect(form.showRepeat()).toBe(false);
+    form.setPayment('credito');
+    expect(form.installmentCount()).toBe(1);
+    expect(form.showRepeat()).toBe(true);
   });
 
   it('la foto que leyó la IA queda como comprobante y varios movimientos van a la revisión en lote', () => {
@@ -80,7 +96,7 @@ describe('MovementFormComponent', () => {
     const model = toFormModel({
       id: 'p', group_id: null, user_id: 'u', amount: 1000, category: 'Tarjeta de crédito', description: '', date: '2026-11-05',
       is_private: false, receipt_url: null, created_at: '', tipo: 'pago_tarjeta', fuente: null, paid_by: null, division: null,
-      detalle: null, medio_pago: null,
+      detalle: null, medio_pago: null, compra_id: null, cuota_num: null, cuotas_total: null, recurrente_id: null,
     });
     expect(model).toMatchObject({ tipo: 'gasto', category: 'Tarjeta de crédito', medioPago: '' });
   });

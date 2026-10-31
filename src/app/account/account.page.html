@@ -81,9 +81,21 @@
               <ion-icon slot="end" name="chevron-forward" />
             </ion-button>
           </div>
+
+          <div class="setting">
+            <div class="setting-text">
+              <span class="setting-label">{{ 'fixedTitle' | t }}</span>
+              <p class="hint">{{ 'fixedSettingHint' | t }}</p>
+            </div>
+            <ion-button class="wl-btn wl-btn-secondary manage" fill="outline" (click)="fixedManager.open()">
+              {{ 'manageFixed' | t }}
+              <ion-icon slot="end" name="chevron-forward" />
+            </ion-button>
+          </div>
         </section>
 
         <app-notification-settings class="group" />
+        <app-recurring-manager #fixedManager />
 
         <section class="wl-panel group" aria-labelledby="appearance-title">
           <h2 id="appearance-title">{{ 'appearance' | t }}</h2>

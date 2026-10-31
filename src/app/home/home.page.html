@@ -34,6 +34,7 @@
 
     <app-ai-quick-add class="quick-add" (result)="editor().openNew($event)" />
     <app-group-balance-banner class="balance-banner" />
+    <app-recurring-pending class="fixed-pending" (manage)="fixedManager().open()" />
 
     <section class="kpis" [attr.aria-label]="'monthSummary' | t">
       <div class="kpi main">
@@ -136,4 +137,5 @@
   </ion-fab>
 
   <app-movement-editor />
+  <app-recurring-manager />
 </ion-content>

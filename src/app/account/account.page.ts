@@ -12,6 +12,7 @@ import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
 import { Language, PreferencesStore, Theme } from '../core/preferences-store';
 import { ProfileStore } from '../core/profile-store';
 import { NotificationSettingsComponent } from '../notifications/notification-settings.component';
+import { RecurringManagerComponent } from '../movements/recurring-manager.component';
 
 interface ThemeOption {
   id: Theme;
@@ -33,7 +34,7 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
   selector: 'app-account',
   imports: [
     IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, NotificationSettingsComponent,
-    RouterLink, TranslatePipe,
+    RecurringManagerComponent, RouterLink, TranslatePipe,
   ],
   templateUrl: 'account.page.html',
   styleUrls: ['account.page.scss'],

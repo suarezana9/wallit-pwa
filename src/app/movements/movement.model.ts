@@ -114,6 +114,12 @@ export interface MovementInput {
   detalle?: Json | null;
   /** Cómo se pagó (opcional). */
   medio_pago?: MedioPago | null;
+  /** Compra en cuotas (migración 017). */
+  compra_id?: string | null;
+  cuota_num?: number | null;
+  cuotas_total?: number | null;
+  /** Fijo que lo generó. */
+  recurrente_id?: string | null;
 }
 
 export interface MonthSummary {
