@@ -1,4 +1,6 @@
-import { Component, computed, effect, inject, input, output, resource, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, output, resource, signal, untracked, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { IonButton, IonIcon, IonModal, IonSkeletonText } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { calendarOutline, close, closeCircle, downloadOutline, optionsOutline, searchOutline } from 'ionicons/icons';
@@ -147,6 +149,10 @@ export class MovementExplorerComponent {
   });
 
   readonly days = computed(() => groupByDay(this.filtered()));
+  /** El desglose ignora el filtro de categoría: así sirve para elegir otra. */
+  readonly byCategoryBase = computed(() =>
+    applyFilters(this.all(), { ...this.filters(), type: ALL, category: ALL }, this.filterContext()),
+  );
   readonly people = computed(() => spendingByPerson(this.filtered()));
   readonly hasFilters = computed(() => isFiltered(this.filters()) || this.customRange() !== null);
   readonly filterCount = computed(() => activeFilterCount(this.filters(), this.customRange() !== null));
@@ -210,7 +216,29 @@ export class MovementExplorerComponent {
 
   readonly typeName = (id: TipoMovimiento) => this.i18n.t(typeInfo(id).labelKey);
 
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly query = toSignal(this.route.queryParamMap);
+
   constructor() {
+    // Desde Inicio: /movimientos?tipo=gasto o ?categoria=Supermercado abre la lista ya filtrada.
+    effect(() => {
+      const params = this.query();
+      const tipo = params?.get('tipo');
+      const categoria = params?.get('categoria');
+      if (!tipo && !categoria) return;
+      untracked(() => {
+        this.filters.set({
+          ...EMPTY_FILTERS,
+          type: (tipo as TipoMovimiento | null) ?? ALL,
+          category: categoria ?? ALL,
+        });
+        this.customRange.set(null);
+        // Se limpia la URL para que volver a tocar el mismo acceso desde Inicio funcione otra vez.
+        void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      });
+    });
+
     addIcons({ calendarOutline, close, closeCircle, downloadOutline, optionsOutline, searchOutline });
 
     effect((onCleanup) => {

@@ -32,6 +32,7 @@ describe('HomePage', () => {
           useValue: {
             list: signal([]),
             active: signal(null),
+            favoriteId: signal(null),
             contextId: signal('personal'),
             activeGroupId: signal(null),
             memberNames: signal({}),

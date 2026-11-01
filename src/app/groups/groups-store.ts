@@ -53,12 +53,19 @@ export interface GroupMonthSummary {
 
 const CONTEXT_KEY = 'wallit_contexto';
 
-function readContext(): string {
+const FAVORITE_KEY = 'wallit_favorito';
+
+function readKey(key: string): string | null {
   try {
-    return localStorage.getItem(CONTEXT_KEY) ?? PERSONAL;
+    return localStorage.getItem(key);
   } catch {
-    return PERSONAL;
+    return null;
   }
+}
+
+/** Al abrir la app: el espacio favorito si hay uno; si no, el último que usaste. */
+function readContext(): string {
+  return readKey(FAVORITE_KEY) ?? readKey(CONTEXT_KEY) ?? PERSONAL;
 }
 
 @Service()
@@ -69,6 +76,8 @@ export class GroupsStore {
   private readonly preferences = inject(PreferencesStore);
 
   private readonly selected = signal(readContext());
+  /** Espacio con el que arranca la app (se guarda en este dispositivo). null = el último que usaste. */
+  readonly favoriteId = signal<string | null>(readKey(FAVORITE_KEY));
 
   readonly groups = resource({
     params: () => this.auth.user()?.id,
@@ -154,6 +163,18 @@ export class GroupsStore {
 
   setContext(id: string): void {
     this.selected.set(id);
+  }
+
+  /** Marca o desmarca el favorito. Tocar la estrella del que ya es favorito lo saca. */
+  toggleFavorite(id: string): void {
+    const next = this.favoriteId() === id ? null : id;
+    this.favoriteId.set(next);
+    try {
+      if (next) localStorage.setItem(FAVORITE_KEY, next);
+      else localStorage.removeItem(FAVORITE_KEY);
+    } catch {
+      return;
+    }
   }
 
   roleIn(groupId: string): RolGrupo | null {

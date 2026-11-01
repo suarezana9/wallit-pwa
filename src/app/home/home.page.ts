@@ -1,13 +1,15 @@
-import { Component, computed, inject, viewChild } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
 import {
   IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher,
-  IonRefresherContent, IonSkeletonText, IonToolbar, RefresherCustomEvent,
+  IonRefresherContent, IonSkeletonText, IonToolbar, RefresherCustomEvent, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, arrowDownOutline, arrowUpOutline } from 'ionicons/icons';
+import { add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, copyOutline } from 'ionicons/icons';
 import { ProfileStore } from '../core/profile-store';
-import { MoneyPipe } from '../core/money';
+import { MoneyPipe, formatMoney } from '../core/money';
+import { amountForClipboard } from '../core/amount';
+import type { TipoMovimiento } from '../core/database.types';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
 import { WallitLogoComponent } from '../shared/wallit-logo';
@@ -28,11 +30,13 @@ import { GroupBalanceBannerComponent } from '../groups/group-balance-banner.comp
 import { RecurringManagerComponent } from '../movements/recurring-manager.component';
 import { RecurringPendingComponent } from '../movements/recurring-pending.component';
 
+import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
+    FabAutoHideDirective,
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
     MonthNavComponent, MonthlyChartComponent, MovementEditorComponent, MovementListComponent,
@@ -53,6 +57,51 @@ export class HomePage {
   private readonly preferences = inject(PreferencesStore);
 
   readonly summary = this.store.summary;
+  private readonly router = inject(Router);
+  private readonly toasts = inject(ToastController);
+  readonly copied = signal(false);
+
+  readonly kpis = computed(() => {
+    const s = this.summary();
+    return [
+      { tipo: 'ingreso' as const, label: 'income' as const, total: s.ingresos, color: 'var(--wl-type-ingreso)' },
+      { tipo: 'gasto' as const, label: 'expenses' as const, total: s.gastos, color: 'var(--wl-type-gasto)' },
+      { tipo: 'ahorro' as const, label: 'savings' as const, total: s.ahorros, color: 'var(--wl-type-ahorro)' },
+      { tipo: 'inversion' as const, label: 'investments' as const, total: s.inversiones, color: 'var(--wl-type-inversion)' },
+    ];
+  });
+
+  /** Lo que muestra la tarjeta grande: el disponible si hay ingresos, si no lo gastado. */
+  readonly mainAmount = computed(() => (this.hasIncome() ? this.summary().disponible : this.summary().gastos));
+
+  /** Con movimientos, lleva a la lista filtrada; si todavía no hay, abre la carga de ese tipo. */
+  openKpi(tipo: TipoMovimiento, total: number): void {
+    if (total) void this.router.navigate(['/movimientos'], { queryParams: { tipo } });
+    else this.editor().openNewOfType(tipo);
+  }
+
+  openCategory(categoria: string): void {
+    void this.router.navigate(['/movimientos'], { queryParams: { categoria } });
+  }
+
+  /** Copia el monto listo para pegar en una transferencia (sin $ ni separador de miles). */
+  async copyMain(): Promise<void> {
+    const amount = Math.round(this.mainAmount() * 100) / 100;
+    try {
+      await navigator.clipboard.writeText(amountForClipboard(amount, this.preferences.language()));
+    } catch {
+      return;
+    }
+    this.copied.set(true);
+    setTimeout(() => this.copied.set(false), 1500);
+    const toast = await this.toasts.create({
+      message: this.i18n.t('amountCopied', formatMoney(amount, this.preferences.currency())),
+      duration: 1600,
+      position: 'top',
+      color: 'dark',
+    });
+    await toast.present();
+  }
   readonly hasIncome = computed(() => this.summary().ingresos > 0);
   readonly recent = computed(() => this.store.list().slice(0, 5));
   readonly change = this.insights.expenseChange;
@@ -71,7 +120,7 @@ export class HomePage {
   });
 
   constructor() {
-    addIcons({ add, arrowDownOutline, arrowUpOutline });
+    addIcons({ add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, copyOutline });
   }
 
   /** Hook de Ionic: corre cada vez que se entra a Inicio, también si la página ya estaba creada. */

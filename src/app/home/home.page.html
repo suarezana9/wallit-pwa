@@ -7,7 +7,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content wlFabAutoHide>
   <ion-refresher slot="fixed" (ionRefresh)="refresh($event)">
     <ion-refresher-content />
   </ion-refresher>
@@ -38,40 +38,36 @@
 
     <section class="kpis" [attr.aria-label]="'monthSummary' | t">
       <div class="kpi main">
+        <a class="stretched" routerLink="/movimientos" [attr.aria-label]="'seeMovements' | t"></a>
+        <span class="kpi-label">{{ (hasIncome() ? 'available' : 'spent') | t }}</span>
+        <span class="kpi-row">
+          <span class="kpi-amount" [class.negative]="hasIncome() && summary().disponible < 0">{{ mainAmount() | money }}</span>
+          <button type="button" class="copy" (click)="copyMain()" [attr.aria-label]="'copyAmount' | t" [title]="'copyAmount' | t">
+            <ion-icon [name]="copied() ? 'checkmark' : 'copy-outline'" aria-hidden="true" />
+          </button>
+        </span>
         @if (hasIncome()) {
-          <span class="kpi-label">{{ 'available' | t }}</span>
-          <span class="kpi-amount" [class.negative]="summary().disponible < 0">{{ summary().disponible | money }}</span>
           @if (summary().tasaAhorro !== null) {
             <span class="kpi-note">{{ savingRateNote() }}</span>
           }
         } @else {
-          <span class="kpi-label">{{ 'spent' | t }}</span>
-          <span class="kpi-amount">{{ summary().gastos | money }}</span>
-          <span class="kpi-note">{{ 'addIncomeHint' | t }}</span>
+          <button type="button" class="kpi-cta" (click)="editor().openNewOfType('ingreso')">+ {{ 'addIncomeHint' | t }}</button>
         }
       </div>
-      <div class="kpi">
-        <span class="kpi-label"><span class="dot ingreso"></span>{{ 'income' | t }}</span>
-        <span class="kpi-amount">{{ summary().ingresos | money }}</span>
-      </div>
-      <div class="kpi">
-        <span class="kpi-label"><span class="dot gasto"></span>{{ 'expenses' | t }}</span>
-        <span class="kpi-amount">{{ summary().gastos | money }}</span>
-        @if (change(); as c) {
-          <span class="change" [class.up]="c.percent > 0" [class.down]="c.percent <= 0">
-            <ion-icon [name]="c.percent > 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true" />
-            {{ changeNote() }}
-          </span>
-        }
-      </div>
-      <div class="kpi">
-        <span class="kpi-label"><span class="dot ahorro"></span>{{ 'savings' | t }}</span>
-        <span class="kpi-amount">{{ summary().ahorros | money }}</span>
-      </div>
-      <div class="kpi">
-        <span class="kpi-label"><span class="dot inversion"></span>{{ 'investments' | t }}</span>
-        <span class="kpi-amount">{{ summary().inversiones | money }}</span>
-      </div>
+      @for (kpi of kpis(); track kpi.tipo) {
+        <button type="button" class="kpi" [style.--kpi-color]="kpi.color" (click)="openKpi(kpi.tipo, kpi.total)">
+          <span class="kpi-label"><span class="dot"></span>{{ kpi.label | t }}</span>
+          <span class="kpi-amount">{{ kpi.total | money }}</span>
+          @if (kpi.tipo === 'gasto' && change(); as c) {
+            <span class="change" [class.up]="c.percent > 0" [class.down]="c.percent <= 0">
+              <ion-icon [name]="c.percent > 0 ? 'arrow-up-outline' : 'arrow-down-outline'" aria-hidden="true" />
+              {{ changeNote() }}
+            </span>
+          } @else {
+            <span class="kpi-go">{{ (kpi.total ? 'seeDetail' : 'addOne') | t }} <ion-icon [name]="kpi.total ? 'chevron-forward' : 'add'" aria-hidden="true" /></span>
+          }
+        </button>
+      }
     </section>
 
     <div class="columns">
@@ -113,7 +109,7 @@
         <div class="panel-header">
           <h2 id="breakdown-title">{{ 'byCategory' | t }}</h2>
         </div>
-        <app-category-breakdown [movements]="store.list()" />
+        <app-category-breakdown [movements]="store.list()" [limit]="5" (selected)="openCategory($event)" />
 
         <div class="panel-header budgets-header">
           <h2>{{ 'navBudgets' | t }}</h2>

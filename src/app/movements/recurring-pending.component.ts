@@ -14,6 +14,7 @@ import { RecurringStore } from './recurring-store';
  * Inicio: "Fijos de noviembre". Cada fijo del mes se confirma con un toque (o se toca el monto para cambiarlo,
  * como la luz que viene distinta cada mes) o se saltea. Si no queda ninguno pendiente, no ocupa lugar.
  */
+import { amountForClipboard, parseAmount } from '../core/amount';
 @Component({
   selector: 'app-recurring-pending',
   imports: [IonIcon, IonSpinner, MoneyPipe, TranslatePipe],
@@ -159,14 +160,14 @@ export class RecurringPendingComponent {
   async editAmount(r: Recurrente): Promise<void> {
     const alert = await this.alerts.create({
       header: this.i18n.t('amountThisMonth'),
-      inputs: [{ name: 'amount', type: 'number', value: Number(r.amount), min: 0, attributes: { inputmode: 'decimal', step: 'any' } }],
+      inputs: [{ name: 'amount', type: 'text', value: amountForClipboard(Number(r.amount), this.preferences.language()), attributes: { inputmode: 'decimal' } }],
       buttons: [
         { text: this.i18n.t('cancel'), role: 'cancel' },
         {
           text: this.i18n.t('confirm'),
           handler: (data: { amount: string }) => {
-            const amount = Math.round(Number(data.amount) * 100) / 100;
-            if (!(amount > 0)) return false;
+            const amount = parseAmount(data.amount, this.preferences.language());
+            if (amount === null || !(amount > 0)) return false;
             void this.confirm(r, amount);
             return true;
           },

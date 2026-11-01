@@ -16,11 +16,13 @@ import { BudgetEditorComponent } from './budget-editor.component';
 import type { Budget } from './budget.model';
 import { BudgetsStore } from './budgets-store';
 
+import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
 @Component({
   selector: 'app-budgets',
   templateUrl: 'budgets.page.html',
   styleUrls: ['budgets.page.scss'],
   imports: [
+    FabAutoHideDirective,
     BudgetCardComponent, BudgetDetailComponent, BudgetEditorComponent, ContextSwitcherComponent, IonButton, IonContent,
     IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonTitle,
     IonToolbar, MoneyPipe, MonthNavComponent, TranslatePipe,

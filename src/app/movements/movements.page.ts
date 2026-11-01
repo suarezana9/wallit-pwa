@@ -11,11 +11,13 @@ import { GroupsStore } from '../groups/groups-store';
 import { MovementExplorerComponent } from './explorer/movement-explorer.component';
 import { MovementEditorComponent } from './movement-editor.component';
 
+import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
 @Component({
   selector: 'app-movements',
   templateUrl: 'movements.page.html',
   styleUrls: ['movements.page.scss'],
   imports: [
+    FabAutoHideDirective,
     ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher,
     IonRefresherContent, IonTitle, IonToolbar, MovementEditorComponent, MovementExplorerComponent, TranslatePipe,
   ],

@@ -88,7 +88,7 @@ h2 {
   color: inherit;
   cursor: pointer;
   scroll-snap-align: start;
-  background: var(--ion-background-color, #fff);
+  background: var(--wl-surface);
   border: 1px solid var(--wl-field-border);
   transition: opacity 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 
@@ -472,7 +472,7 @@ ion-modal.filter-sheet.wl-dialog {
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--ion-background-color, #fff);
+  background: var(--wl-surface);
 }
 
 .sheet-head {
@@ -652,6 +652,7 @@ ion-modal.filter-sheet.wl-dialog {
     padding: 20px 24px;
     border-radius: 16px;
     border: 1px solid var(--wl-field-border);
+    background: var(--wl-surface);
   }
 
   .wl-panel {

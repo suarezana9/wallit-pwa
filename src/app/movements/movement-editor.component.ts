@@ -1,6 +1,6 @@
 import { Component, computed, inject, output, signal } from '@angular/core';
 import { AlertController, IonModal, ToastController } from '@ionic/angular';
-import type { Movimiento } from '../core/database.types';
+import type { Movimiento, TipoMovimiento } from '../core/database.types';
 import { AuthStore } from '../core/auth-store';
 import { I18n } from '../core/i18n/i18n';
 import { GroupsStore } from '../groups/groups-store';
@@ -27,6 +27,7 @@ import { RecurringStore } from './recurring-store';
           [saving]="saving()"
           [prefill]="prefill()"
           [defaultDate]="defaultDate()"
+          [defaultTipo]="defaultTipo()"
           (save)="save($event)"
           (remove)="confirmRemove($event)"
           (multiple)="openBulk($event)"
@@ -64,7 +65,16 @@ export class MovementEditorComponent {
   /** Si estás mirando otro mes, el movimiento nuevo arranca con una fecha de ese mes. */
   readonly defaultDate = computed(() => (this.store.range().isCurrent ? null : this.store.range().from));
 
+  readonly defaultTipo = signal<TipoMovimiento | null>(null);
+
+  /** Movimiento nuevo de un tipo ya elegido ("Cargar un ingreso"). */
+  openNewOfType(tipo: TipoMovimiento): void {
+    this.openNew();
+    this.defaultTipo.set(tipo);
+  }
+
   openNew(prefill: AiResult | null = null): void {
+    this.defaultTipo.set(null);
     if (prefill && prefill.movements.length > 1) {
       this.openBulk(prefill);
       return;

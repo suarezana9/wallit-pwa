@@ -161,7 +161,12 @@
 
     <section class="wl-panel" aria-labelledby="by-category">
       <h2 id="by-category">{{ 'byCategory' | t }}</h2>
-      <app-category-breakdown [movements]="filtered()" [limit]="8" />
+      <app-category-breakdown
+        [movements]="byCategoryBase()"
+        [limit]="6"
+        [selectedName]="filters().category === 'todos' ? null : filters().category"
+        (selected)="pick('category', $event)"
+      />
     </section>
   </aside>
 </div>

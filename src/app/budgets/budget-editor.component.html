@@ -33,14 +33,7 @@
               <span class="wl-field-label">{{ 'budgetLimit' | t }}</span>
               <div class="limit">
                 <span class="currency" aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
-                <ion-input
-                  class="wl-input wl-no-spin"
-                  type="number"
-                  inputmode="decimal"
-                  placeholder="0"
-                  [attr.aria-label]="'budgetLimit' | t"
-                  [formField]="budgetForm.limit"
-                />
+                <app-amount-input class="limit-input" [label]="'budgetLimit' | t" [formField]="budgetForm.limit" />
               </div>
               @if (errorOf(budgetForm.limit); as error) {
                 <p class="wl-field-error">{{ error }}</p>

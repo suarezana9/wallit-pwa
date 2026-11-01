@@ -9,6 +9,8 @@ import { addIcons } from 'ionicons';
 import { attachOutline, closeOutline, expandOutline, receiptOutline } from 'ionicons/icons';
 import { monthRange, toIsoDate } from '../core/dates';
 import { MoneyPipe } from '../core/money';
+import { formatAmountInput } from '../core/amount';
+import { AmountInputComponent } from '../shared/amount-input.component';
 import { Supabase } from '../core/supabase';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { PreferencesStore } from '../core/preferences-store';
@@ -92,7 +94,7 @@ export function asCardPayment(input: MovementInput, purchasesLoaded: boolean): M
   styleUrls: ['movement-form.component.scss'],
   host: { class: 'ion-page', '(document:keydown.escape)': 'viewingReceipt.set(false)' },
   imports: [
-    AiAssistComponent, CategoryPickerComponent, ChipPickerComponent, FormField, GroupSplitComponent, IonButton, IonButtons,
+    AiAssistComponent, AmountInputComponent, CategoryPickerComponent, ChipPickerComponent, FormField, GroupSplitComponent, IonButton, IonButtons,
     IonContent, IonFooter, IonHeader, IonIcon, IonInput, IonSpinner, IonTitle, IonToolbar, MoneyPipe, TicketAdjustComponent, TranslatePipe,
     TypePickerComponent,
   ],
@@ -158,11 +160,18 @@ export class MovementFormComponent {
 
   /** Fecha sugerida para un movimiento nuevo (si estás viendo otro mes, el primer día de ese mes). */
   readonly defaultDate = input<string | null>(null);
+  /** Tipo con el que arranca un movimiento nuevo (por ejemplo, al tocar "Ingresos" en Inicio). */
+  readonly defaultTipo = input<TipoMovimiento | null>(null);
 
   readonly model = linkedSignal(() => {
     const movement = this.movement();
     const defaultDate = this.defaultDate();
-    const base = { ...toFormModel(movement), ...(!movement && defaultDate ? { date: defaultDate } : {}) };
+    const defaultTipo = this.defaultTipo();
+    const base = {
+      ...toFormModel(movement),
+      ...(!movement && defaultDate ? { date: defaultDate } : {}),
+      ...(!movement && defaultTipo ? { tipo: defaultTipo } : {}),
+    };
     const first = this.prefill()?.movements[0];
     return first ? applyAiMovement(base, first, untracked(() => this.categoryNames())) : base;
   });
@@ -321,7 +330,13 @@ export class MovementFormComponent {
   readonly isEdit = computed(() => this.movement() !== null);
   readonly currentType = computed(() => typeInfo(this.model().tipo));
   readonly saveLabel = computed(() => this.i18n.t('saveType', this.i18n.t(this.currentType().labelKey).toLowerCase()));
-  readonly amountWidth = computed(() => Math.max(2, String(this.model().amount ?? '').length + 1));
+  /** El monto crece con lo que escribís (con separador de miles incluido). */
+  readonly amountWidth = computed(() => {
+    const text = formatAmountInput(this.model().amount, this.preferences.locale());
+    // Los dígitos miden 1ch; el punto y la coma, más o menos medio.
+    const separators = (text.match(/[.,]/g) ?? []).length;
+    return Math.max(2, text.length - separators * 0.55 + 0.6);
+  });
 
   readonly sourceOptions = computed<ChipOption[]>(() =>
     INCOME_SOURCES.map((s) => ({ value: s.id, label: this.i18n.t(s.labelKey) })),

@@ -19,12 +19,13 @@ interface BudgetFormModel {
   categories: string[];
 }
 
+import { AmountInputComponent } from '../shared/amount-input.component';
 @Component({
   selector: 'app-budget-editor',
   templateUrl: 'budget-editor.component.html',
   styleUrls: ['budget-editor.component.scss'],
   imports: [
-    CategoryMultiPickerComponent, FormField, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonInput,
+    AmountInputComponent, CategoryMultiPickerComponent, FormField, IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonInput,
     IonModal, IonSpinner, IonTitle, IonToolbar, RouterLink, TranslatePipe,
   ],
 })

@@ -21,8 +21,23 @@
     color: var(--wl-muted);
   }
 
-  ion-input {
+  .limit-input {
     flex: 1;
+    height: 52px;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 14px;
+    background: var(--wl-field-bg);
+    border: 1px solid var(--wl-field-border);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus-within {
+      border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.12);
+    }
   }
 }
 

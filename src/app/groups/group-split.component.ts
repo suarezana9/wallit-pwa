@@ -5,6 +5,7 @@ import { alertCircle, checkmarkCircle, peopleOutline } from 'ionicons/icons';
 import type { Division } from '../core/database.types';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MoneyPipe } from '../core/money';
+import { AmountInputComponent } from '../shared/amount-input.component';
 import { PreferencesStore } from '../core/preferences-store';
 import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component';
 import { defaultDivision, divisionGap, divisionIsValid, equalShares } from './balances.model';
@@ -16,7 +17,7 @@ import type { GroupMember } from './groups-store';
  */
 @Component({
   selector: 'app-group-split',
-  imports: [IonIcon, MoneyPipe, TranslatePipe],
+  imports: [AmountInputComponent, IonIcon, MoneyPipe, TranslatePipe],
   template: `
     <div class="paid">
       <span class="wl-field-label">{{ 'paidBy' | t }}</span>
@@ -84,16 +85,11 @@ import type { GroupMember } from './groups-store';
                       <span class="name">{{ member.label }}</span>
                       <span class="amount-input">
                         <span aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
-                        <input
-                          type="number"
-                          inputmode="decimal"
-                          min="0"
-                          step="any"
-                          class="wl-no-spin"
-                          placeholder="0"
-                          [attr.aria-label]="'splitAmountFor' | t: member.label"
-                          [value]="part(member.userId) ?? ''"
-                          (input)="setPart(member.userId, $any($event.target).value)"
+                        <app-amount-input
+                          class="part-input"
+                          [label]="'splitAmountFor' | t: member.label"
+                          [value]="part(member.userId)"
+                          (valueChange)="setPart(member.userId, $event)"
                         />
                       </span>
                     </div>
@@ -161,7 +157,7 @@ import type { GroupMember } from './groups-store';
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); font-weight: 600;
     }
     .amount-input:focus-within { border-color: var(--ion-color-primary); }
-    .amount-input input { width: 100%; min-width: 0; border: 0; outline: none; background: none; font: inherit; color: inherit; text-align: right; }
+    .part-input { flex: 1; min-width: 0; text-align: right; }
     .status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; color: var(--ion-color-danger); }
     .status.ok { color: var(--wl-type-ingreso); }
   `,
@@ -285,13 +281,12 @@ export class GroupSplitComponent {
     }
   }
 
-  setPart(userId: string, value: string): void {
+  setPart(userId: string, amount: number | null): void {
     const division = this.division();
     if (division?.tipo !== 'montos') return;
-    const amount = Number(value);
     const partes = { ...division.partes };
-    if (value === '' || !Number.isFinite(amount) || amount <= 0) delete partes[userId];
-    else partes[userId] = Math.round(amount * 100) / 100;
+    if (amount === null || amount <= 0) delete partes[userId];
+    else partes[userId] = amount;
     this.division.set({ tipo: 'montos', partes });
   }
 }

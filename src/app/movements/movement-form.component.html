@@ -22,12 +22,9 @@
     <div class="col-primary" [style.--type-color]="currentType().color">
       <div class="amount">
         <span class="currency" aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
-        <ion-input
-          class="amount-input wl-no-spin"
-          [attr.aria-label]="'amount' | t"
-          type="number"
-          inputmode="decimal"
-          placeholder="0"
+        <app-amount-input
+          class="amount-input"
+          [label]="'amount' | t"
           [style.width.ch]="amountWidth()"
           [formField]="movementForm.amount"
         />

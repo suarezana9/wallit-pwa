@@ -6,10 +6,17 @@
   --wl-type-ingreso: #16a34a;
   --wl-type-ahorro: #2563eb;
   --wl-type-inversion: #d97706;
+  /* Tarjetas y paneles: en claro, el mismo fondo con borde; en oscuro, un escalón más claro. */
+  --wl-surface: var(--ion-background-color, #fff);
   color-scheme: light;
 }
 
 :root.ion-palette-dark {
+  // Superficies un escalón arriba del fondo, con el mismo matiz violeta.
+  --wl-field-bg: #1f1c2b;
+  --wl-field-border: #302c42;
+  --wl-muted: #a7a2bf;
+  --wl-surface: #1c1928;
   --wl-type-gasto: #ff6b6f;
   --wl-type-ingreso: #4ade80;
   --wl-type-ahorro: #60a5fa;
@@ -189,6 +196,25 @@ ion-menu.wl-sidebar::part(container) {
   }
 }
 
+.wl-panel {
+  background: var(--wl-surface);
+}
+
+// Oscuro: botones principales con el degradé de la marca (el violeta plano se ve apagado sobre grafito)
+// y un brillo sutil arriba de los paneles para que tengan profundidad.
+:root.ion-palette-dark {
+  ion-button.wl-btn-primary {
+    --background: linear-gradient(135deg, #8f6bff 0%, #6340f2 100%);
+    --background-hover: linear-gradient(135deg, #9a7cff 0%, #6b49f5 100%);
+    --background-activated: linear-gradient(135deg, #7c5cff 0%, #5534e0 100%);
+    --box-shadow: 0 8px 24px rgba(99, 64, 242, 0.35);
+  }
+
+  .wl-panel {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+}
+
 ion-toolbar ion-button {
   text-transform: none;
   letter-spacing: normal;
@@ -208,4 +234,24 @@ ion-alert.wl-alert-stacked .alert-button-group {
 ion-alert.wl-alert-stacked .alert-button {
   margin-inline-end: 0;
   text-align: end;
+}
+
+// Botón "+" flotante: degradé de la marca y un aro del color del fondo, así se despega de
+// cualquier cosa que tenga detrás (por ejemplo, las barras violetas del gráfico).
+ion-fab-button {
+  --background: linear-gradient(135deg, #8f6bff 0%, #5a35f0 100%);
+  --background-activated: linear-gradient(135deg, #7c5cff 0%, #4c2ad6 100%);
+  --background-hover: linear-gradient(135deg, #9a7cff 0%, #643ff5 100%);
+  --box-shadow: 0 0 0 4px var(--ion-background-color, #fff), 0 10px 24px rgba(90, 53, 240, 0.45);
+  --color: #fff;
+}
+
+ion-fab {
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+ion-content.wl-fab-hidden ion-fab {
+  transform: translateY(calc(100% + 32px));
+  opacity: 0;
+  pointer-events: none;
 }

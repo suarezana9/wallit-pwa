@@ -4,6 +4,7 @@ import { MovementsPage } from './movements.page';
 import { GroupsStore } from '../groups/groups-store';
 import { AuthStore } from '../core/auth-store';
 import { Supabase } from '../core/supabase';
+import { provideRouter } from '@angular/router';
 
 describe('MovementsPage', () => {
   it('usa el espacio activo para el explorador', () => {
@@ -12,12 +13,13 @@ describe('MovementsPage', () => {
     query['then'] = (resolve: (r: unknown) => unknown) => resolve({ data: [], error: null });
     TestBed.configureTestingModule({
       providers: [
+        provideRouter([]),
         { provide: Supabase, useValue: { client: { from: () => query, channel: () => ({ on: () => ({ subscribe: () => ({}) }) }), removeChannel: () => Promise.resolve() } } },
         { provide: AuthStore, useValue: { user: signal({ id: 'u' }) } },
         {
           provide: GroupsStore,
           useValue: {
-            list: signal([]), active: signal(null), contextId: signal('personal'), activeGroupId: signal(null),
+            list: signal([]), active: signal(null), favoriteId: signal(null), contextId: signal('personal'), activeGroupId: signal(null),
             memberNames: signal({}), activeMembers: { hasValue: () => false, value: () => [] },
           },
         },

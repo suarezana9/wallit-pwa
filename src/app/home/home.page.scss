@@ -15,14 +15,29 @@
 }
 
 .kpi {
+  position: relative;
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
   min-width: 0;
   padding: 14px 16px;
   border-radius: 16px;
+  font: inherit;
+  text-align: left;
+  color: inherit;
   background: var(--wl-field-bg);
   border: 1px solid var(--wl-field-border);
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--kpi-color, var(--ion-color-primary)) 45%, var(--wl-field-border));
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 
   &.main {
     grid-column: 1 / -1;
@@ -53,6 +68,81 @@
   &.negative { color: var(--ion-color-danger); }
 }
 
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kpi-color);
+}
+
+// Tarjeta grande: toda la tarjeta lleva a Movimientos y el botón de copiar queda por encima.
+.stretched {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.kpi-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.copy,
+.kpi-cta {
+  position: relative;
+  z-index: 1;
+}
+
+.copy {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 0;
+  font-size: 17px;
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.1);
+  cursor: pointer;
+
+  &:hover {
+    background: rgba(var(--ion-color-primary-rgb), 0.18);
+  }
+}
+
+.kpi-cta {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.kpi-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--wl-muted);
+
+  ion-icon {
+    font-size: 13px;
+  }
+}
+
+.kpi:hover .kpi-go {
+  color: var(--kpi-color);
+}
+
 .kpi-note {
   font-size: 13px;
   color: var(--wl-muted);
@@ -67,17 +157,6 @@
 
   &.up { color: var(--ion-color-danger); }
   &.down { color: var(--ion-color-success); }
-}
-
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-
-  &.ingreso { background: var(--wl-type-ingreso); }
-  &.gasto { background: var(--wl-type-gasto); }
-  &.ahorro { background: var(--wl-type-ahorro); }
-  &.inversion { background: var(--wl-type-inversion); }
 }
 
 .columns,
@@ -133,7 +212,7 @@
     grid-column: auto;
     gap: 8px;
     padding: 20px;
-    background: var(--ion-background-color);
+    background: var(--wl-surface);
   }
 
   .kpi-amount { font-size: 22px; letter-spacing: -0.02em; }
@@ -203,4 +282,26 @@
 .fixed-pending:not(:empty) {
   display: block;
   margin-bottom: 16px;
+}
+
+// Montos largos ($1.500.000,50) se achican para entrar en la tarjeta en vez de desbordarla.
+.kpi {
+  container-type: inline-size;
+}
+
+.kpi-amount {
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (min-width: 992px) {
+  .kpi .kpi-amount {
+    font-size: clamp(15px, 12.5cqi, 22px);
+  }
+
+  .kpi.main .kpi-amount {
+    font-size: clamp(18px, 11cqi, 28px);
+  }
 }

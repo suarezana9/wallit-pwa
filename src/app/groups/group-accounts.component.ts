@@ -22,6 +22,7 @@ interface Person {
 }
 
 /** Pestaña "Cuentas" del grupo: tu saldo, cómo saldar con pocas transferencias y los pagos registrados. */
+import { amountForClipboard, parseAmount } from '../core/amount';
 @Component({
   selector: 'app-group-accounts',
   imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, TranslatePipe, TripSummaryComponent],
@@ -256,13 +257,13 @@ export class GroupAccountsComponent {
     const alert = await this.alerts.create({
       header: this.i18n.t('registerPayment'),
       message: this.i18n.t('paymentConfirm', this.person(transfer.from).name, this.person(transfer.to).name),
-      inputs: [{ name: 'amount', type: 'number', value: transfer.amount, min: 0.01, attributes: { step: 'any', inputmode: 'decimal' } }],
+      inputs: [{ name: 'amount', type: 'text', value: amountForClipboard(transfer.amount, this.preferences.language()), attributes: { inputmode: 'decimal' } }],
       buttons: [
         { text: this.i18n.t('cancel'), role: 'cancel' },
         {
           text: this.i18n.t('registerPayment'),
           handler: (values: { amount: string }) => {
-            const amount = Number(values.amount);
+            const amount = parseAmount(values.amount, this.preferences.language()) ?? NaN;
             if (!Number.isFinite(amount) || amount <= 0) return false;
             void this.save(transfer.from, transfer.to, amount);
             return true;

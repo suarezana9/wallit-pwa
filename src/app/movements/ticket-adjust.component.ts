@@ -4,6 +4,7 @@ import { addIcons } from 'ionicons';
 import { add, chevronDown, chevronUp, closeCircle, receiptOutline } from 'ionicons/icons';
 import { TranslatePipe } from '../core/i18n/i18n';
 import { MoneyPipe } from '../core/money';
+import { AmountInputComponent } from '../shared/amount-input.component';
 import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.model';
 
 /**
@@ -12,7 +13,7 @@ import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.mod
  */
 @Component({
   selector: 'app-ticket-adjust',
-  imports: [IonIcon, MoneyPipe, TranslatePipe],
+  imports: [AmountInputComponent, IonIcon, MoneyPipe, TranslatePipe],
   template: `
     @if (detalle()?.items?.length) {
       <div class="items-box">
@@ -46,16 +47,11 @@ import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.mod
         <div class="refund-row">
           <label class="money-input">
             <span aria-hidden="true">−</span>
-            <input
-              type="number"
-              inputmode="decimal"
-              min="0"
-              step="any"
-              class="wl-no-spin"
-              placeholder="0"
-              [attr.aria-label]="'refundAmount' | t"
-              [value]="detalle()?.reintegro || ''"
-              (input)="setRefund($any($event.target).value)"
+            <app-amount-input
+              class="refund-input"
+              [label]="'refundAmount' | t"
+              [value]="detalle()?.reintegro || null"
+              (valueChange)="setRefund($event)"
             />
           </label>
           <input
@@ -120,7 +116,7 @@ import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.mod
       font: inherit; color: inherit;
     }
     .money-input { flex: none; width: 130px; display: flex; align-items: center; gap: 4px; padding: 0 10px; font-weight: 700; color: var(--wl-type-ingreso); }
-    .money-input input { width: 100%; min-width: 0; border: 0; outline: none; background: none; font: inherit; color: inherit; }
+    .refund-input { flex: 1; min-width: 0; }
     .note { flex: 1; min-width: 0; padding: 0 12px; outline: none; }
     .money-input:focus-within, .note:focus { border-color: var(--ion-color-primary); }
     .remove { flex: none; display: grid; place-items: center; padding: 0; border: 0; background: none; font-size: 20px; color: var(--wl-muted); cursor: pointer; }
@@ -162,9 +158,8 @@ export class TicketAdjustComponent {
     this.changed.emit({ ...d, items: d.items.map((item, i) => (i === index ? { ...item, excluido: !item.excluido } : item)) });
   }
 
-  setRefund(value: string): void {
-    const amount = Number(value);
-    const refund = value === '' || !Number.isFinite(amount) || amount < 0 ? 0 : Math.round(amount * 100) / 100;
+  setRefund(value: number | null): void {
+    const refund = value === null || value < 0 ? 0 : value;
     this.changed.emit({ ...this.base(), reintegro: refund });
   }
 

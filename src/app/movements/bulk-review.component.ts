@@ -15,10 +15,12 @@ import { BulkRow, bulkInputs, bulkReady, bulkTotal, rowIsValid, selectedRows, to
 import { INCOME_SOURCES, MOVEMENT_TYPES, MovementInput, typeInfo } from './movement.model';
 
 /** Revisión rápida cuando la IA encontró varios movimientos en un mismo audio o texto. */
+import { AmountInputComponent } from '../shared/amount-input.component';
 @Component({
   selector: 'app-bulk-review',
   host: { class: 'ion-page' },
   imports: [
+    AmountInputComponent,
     IonButton, IonButtons, IonContent, IonFooter, IonHeader, IonIcon, IonSpinner, IonTitle, IonToolbar, MoneyPipe, TranslatePipe,
   ],
   template: `
@@ -114,17 +116,7 @@ import { INCOME_SOURCES, MOVEMENT_TYPES, MovementInput, typeInfo } from './movem
 
             <label class="field amount" [class.missing]="row.include && !valid(row)">
               <span aria-hidden="true">{{ preferences.currencyInfo().symbol }}</span>
-              <input
-                type="number"
-                inputmode="decimal"
-                min="0"
-                step="any"
-                class="wl-no-spin"
-                placeholder="0"
-                [attr.aria-label]="'amount' | t"
-                [value]="row.amount ?? ''"
-                (input)="setAmount(row.key, $any($event.target).value)"
-              />
+              <app-amount-input class="row-amount" [label]="'amount' | t" [value]="row.amount" (valueChange)="setAmount(row.key, $event)" />
             </label>
           </li>
         }
@@ -184,7 +176,7 @@ import { INCOME_SOURCES, MOVEMENT_TYPES, MovementInput, typeInfo } from './movem
     .placeholder { border: 0; background: none; }
     .date { grid-area: date; }
     .amount { grid-area: amount; display: flex; align-items: center; gap: 4px; font-weight: 700; }
-    .amount input { width: 100%; min-width: 0; border: 0; outline: none; background: none; font: inherit; color: inherit; text-align: right; }
+    .row-amount { flex: 1; min-width: 0; text-align: right; }
     .amount.missing { border-color: var(--ion-color-danger); }
     @media (max-width: 760px) {
       .row {
@@ -251,9 +243,8 @@ export class BulkReviewComponent {
     this.patch(key, { tipo, fuente: tipo === 'ingreso' ? ('otro' as FuenteIngreso) : null });
   }
 
-  setAmount(key: number, value: string): void {
-    const amount = value === '' ? null : Number(value);
-    this.patch(key, { amount: amount !== null && Number.isFinite(amount) ? amount : null });
+  setAmount(key: number, amount: number | null): void {
+    this.patch(key, { amount });
   }
 
   submit(): void {

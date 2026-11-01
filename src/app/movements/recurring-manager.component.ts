@@ -13,6 +13,8 @@ import { typeInfo } from './movement.model';
 import { RecurringStore } from './recurring-store';
 
 /** Lista de fijos: pausar, cambiar monto o día, borrar. Se abre desde Inicio y desde Cuenta. */
+import { amountForClipboard, parseAmount } from '../core/amount';
+import { PreferencesStore } from '../core/preferences-store';
 @Component({
   selector: 'app-recurring-manager',
   imports: [IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonModal, IonTitle, IonToolbar, MoneyPipe, TranslatePipe],
@@ -106,6 +108,7 @@ export class RecurringManagerComponent {
   private readonly categories = inject(CategoriesStore);
   private readonly groups = inject(GroupsStore);
   private readonly i18n = inject(I18n);
+  private readonly preferences = inject(PreferencesStore);
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastController);
 
@@ -140,7 +143,7 @@ export class RecurringManagerComponent {
     const alert = await this.alerts.create({
       header: this.i18n.t('fixedEdit'),
       inputs: [
-        { name: 'amount', type: 'number', value: Number(r.amount), label: this.i18n.t('amount'), placeholder: this.i18n.t('amount'), attributes: { inputmode: 'decimal', step: 'any' } },
+        { name: 'amount', type: 'text', value: amountForClipboard(Number(r.amount), this.preferences.language()), placeholder: this.i18n.t('amount'), attributes: { inputmode: 'decimal' } },
         { name: 'dia', type: 'number', value: r.dia, min: 1, max: 31, placeholder: this.i18n.t('dayOfMonth'), attributes: { inputmode: 'numeric' } },
       ],
       message: this.i18n.t('fixedEditHint'),
@@ -149,7 +152,7 @@ export class RecurringManagerComponent {
         {
           text: this.i18n.t('save'),
           handler: (data: { amount: string; dia: string }) => {
-            const amount = Math.round(Number(data.amount) * 100) / 100;
+            const amount = parseAmount(data.amount, this.preferences.language()) ?? 0;
             const dia = Math.round(Number(data.dia));
             if (!(amount > 0) || !(dia >= 1 && dia <= 31)) return false;
             void this.saveEdit(r.id, amount, dia);

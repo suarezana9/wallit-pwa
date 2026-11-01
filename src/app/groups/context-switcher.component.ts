@@ -4,7 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { IonIcon, IonModal } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  add, checkmark, chevronExpandOutline, enterOutline, personOutline, settingsOutline,
+  add, checkmark, chevronExpandOutline, enterOutline, personOutline, settingsOutline, star, starOutline,
 } from 'ionicons/icons';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { GroupDialogComponent } from './group-dialog.component';
@@ -79,25 +79,41 @@ interface SpaceOption {
       <p class="menu-title">{{ 'spaceSwitch' | t }}</p>
       <div role="listbox" [attr.aria-label]="'spaceSwitch' | t">
         @for (option of options(); track option.id) {
-          <button
-            type="button"
-            role="option"
-            class="option"
-            [class.selected]="option.id === groups.contextId()"
-            [attr.aria-selected]="option.id === groups.contextId()"
-            (click)="choose(option.id)"
-          >
-            <ng-container [ngTemplateOutlet]="avatar" [ngTemplateOutletContext]="{ $implicit: option }" />
-            <span class="text">
-              <span class="name">{{ option.name }}</span>
-              <span class="hint">{{ option.hint }}</span>
-            </span>
-            @if (option.id === groups.contextId()) {
-              <ion-icon name="checkmark" class="check" aria-hidden="true" />
-            }
-          </button>
+          @let favorite = option.id === groups.favoriteId();
+          <div class="option-row" [class.selected]="option.id === groups.contextId()">
+            <button
+              type="button"
+              role="option"
+              class="option"
+              [attr.aria-selected]="option.id === groups.contextId()"
+              (click)="choose(option.id)"
+            >
+              <ng-container [ngTemplateOutlet]="avatar" [ngTemplateOutletContext]="{ $implicit: option }" />
+              <span class="text">
+                <span class="name">{{ option.name }}</span>
+                <span class="hint">{{ favorite ? ('favoriteHint' | t) : option.hint }}</span>
+              </span>
+              @if (option.id === groups.contextId()) {
+                <ion-icon name="checkmark" class="check" aria-hidden="true" />
+              }
+            </button>
+            <button
+              type="button"
+              class="star"
+              [class.on]="favorite"
+              [attr.aria-pressed]="favorite"
+              [attr.aria-label]="(favorite ? 'unfavorite' : 'markFavorite') | t: option.name"
+              [title]="(favorite ? 'unfavorite' : 'markFavorite') | t: option.name"
+              (click)="groups.toggleFavorite(option.id)"
+            >
+              <ion-icon [name]="favorite ? 'star' : 'star-outline'" aria-hidden="true" />
+            </button>
+          </div>
         }
       </div>
+      @if (!groups.favoriteId()) {
+        <p class="star-tip"><ion-icon name="star-outline" aria-hidden="true" /> {{ 'favoriteTip' | t }}</p>
+      }
       <div class="divider"></div>
       <button type="button" class="action" (click)="openDialog('create')">
         <ion-icon name="add" aria-hidden="true" />
@@ -155,7 +171,7 @@ export class ContextSwitcherComponent {
   readonly current = computed(() => this.options().find((o) => o.id === this.groups.contextId()) ?? this.options()[0]);
 
   constructor() {
-    addIcons({ add, checkmark, chevronExpandOutline, enterOutline, personOutline, settingsOutline });
+    addIcons({ add, checkmark, chevronExpandOutline, enterOutline, personOutline, settingsOutline, star, starOutline });
   }
 
   private hintFor(group: Grupo, role: RolGrupo): string {
