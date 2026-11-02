@@ -27,12 +27,12 @@ const COLORS = ['#6c47ff', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444'
     .stack { display: flex; }
     .avatar {
       width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
-      font-size: 12px; font-weight: 700; color: #fff; border: 2px solid var(--ion-background-color);
+      font-size: 13px; font-weight: 700; color: #fff; border: 2px solid var(--ion-background-color);
       margin-left: -8px;
     }
     .avatar:first-child { margin-left: 0; }
     .more { color: var(--wl-muted); background: var(--wl-field-bg); }
-    .count { font-size: 13px; color: var(--wl-muted); white-space: nowrap; }
+    .count { font-size: 14px; color: var(--wl-muted); white-space: nowrap; }
   `,
 })
 export class MemberAvatarsComponent {

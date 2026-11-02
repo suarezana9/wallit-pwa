@@ -48,18 +48,18 @@ import { futurePurchases } from './installments.model';
     h2 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
     .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
     .totals div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 12px; background: var(--wl-field-bg); }
-    .totals span { font-size: 12px; color: var(--wl-muted); }
+    .totals span { font-size: 13px; color: var(--wl-muted); }
     .totals strong { font-size: 16px; font-variant-numeric: tabular-nums; }
     ul { list-style: none; margin: 0; padding: 0; }
     li { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
     .emoji { flex: none; font-size: 18px; }
     .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-    .row { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; font-weight: 600; }
+    .row { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 600; }
     .name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .amount { flex: none; font-variant-numeric: tabular-nums; }
     .bar { height: 5px; border-radius: 999px; background: var(--wl-field-bg); overflow: hidden; }
     .bar span { display: block; height: 100%; background: var(--ion-color-primary); }
-    .meta { font-size: 12px; color: var(--wl-muted); }
+    .meta { font-size: 13px; color: var(--wl-muted); }
   `,
 })
 export class InstallmentsPanelComponent {

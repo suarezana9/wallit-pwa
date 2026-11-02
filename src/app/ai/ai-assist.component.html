@@ -136,6 +136,12 @@
             {{ 'aiGallery' | t }}
             <input type="file" accept="image/*" (change)="onFile($event)" />
           </label>
+          @if (session.canPaste) {
+            <button type="button" class="gallery paste" (click)="session.fromClipboard()">
+              <ion-icon name="clipboard-outline" aria-hidden="true" />
+              {{ 'aiPasteLink' | t }}
+            </button>
+          }
         }
       }
     }

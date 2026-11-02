@@ -205,24 +205,35 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     :host { display: flex; flex-direction: column; gap: 16px; }
     .shared { display: flex; align-items: flex-start; gap: 14px; }
     .shared h2 { margin: 0 0 4px; }
-    .shared p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
+    .shared p { margin: 0; font-size: 15px; line-height: 1.45; color: var(--wl-muted); }
     .shared-emoji { font-size: 28px; line-height: 1; }
     .skeleton { height: 140px; border-radius: 20px; }
     .hero {
       display: flex; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 20px; color: #fff;
-      background: linear-gradient(135deg, #6c47ff, #8b5cf6);
+      background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-tint));
     }
     .hero.owed { background: linear-gradient(135deg, #059669, #10b981); }
     .hero.owes { background: linear-gradient(135deg, #dc2626, #f97316); }
+    :host-context(.ion-palette-dark) .hero {
+      color: var(--ion-text-color); background: var(--wl-surface); border: 1px solid var(--wl-field-border);
+    }
+    :host-context(.ion-palette-dark) .hero.owed {
+      background: color-mix(in srgb, var(--ion-color-success) 10%, var(--wl-surface));
+      border-color: color-mix(in srgb, var(--ion-color-success) 35%, var(--wl-field-border));
+    }
+    :host-context(.ion-palette-dark) .hero.owes {
+      background: color-mix(in srgb, var(--ion-color-danger) 10%, var(--wl-surface));
+      border-color: color-mix(in srgb, var(--ion-color-danger) 35%, var(--wl-field-border));
+    }
     .hero h2 { margin: 0; font-size: 20px; }
-    .hero p { margin: 4px 0 0; opacity: 0.9; font-size: 14px; }
+    .hero p { margin: 4px 0 0; opacity: 0.9; font-size: 15px; }
     .hero-icon { font-size: 40px; flex: none; }
-    .hero-label { font-size: 14px; font-weight: 600; opacity: 0.9; }
+    .hero-label { font-size: 15px; font-weight: 600; opacity: 0.9; }
     .hero-amount { display: block; font-size: 34px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
     .columns { display: grid; gap: 16px; }
     @media (min-width: 900px) { .columns { grid-template-columns: 1fr 1fr; align-items: start; } }
     h2 { margin: 0 0 4px; font-size: 17px; }
-    .hint { margin: 0 0 12px; font-size: 13px; color: var(--wl-muted); }
+    .hint { margin: 0 0 12px; font-size: 14px; color: var(--wl-muted); }
     .hint.small { margin: 12px 0 0; }
     .empty { margin: 8px 0 0; color: var(--wl-muted); }
     ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
@@ -230,7 +241,7 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     .transfers li { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--wl-field-bg); }
     .row { display: flex; align-items: center; gap: 12px; }
     .pay { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--wl-field-border); }
-    .pay-title { font-size: 13px; font-weight: 700; }
+    .pay-title { font-size: 14px; font-weight: 700; }
     .copies { display: flex; flex-direction: column; gap: 6px; }
     .copy {
       display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; border-radius: 12px;
@@ -238,14 +249,14 @@ import { amountForClipboard, parseAmount } from '../core/amount';
       background: var(--wl-surface, var(--ion-background-color)); border: 1px solid var(--wl-field-border);
     }
     .copy:active { transform: scale(0.99); }
-    .copy small { flex: none; width: 64px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--wl-muted); }
-    .copy .value { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .copy small { flex: none; width: 64px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--wl-muted); }
+    .copy .value { flex: 1; min-width: 0; font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .copy .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
     .copy ion-icon { flex: none; font-size: 16px; color: var(--ion-color-primary); }
-    .missing { margin: 0; font-size: 13px; color: var(--wl-muted); }
+    .missing { margin: 0; font-size: 14px; color: var(--wl-muted); }
     .link {
       display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 0; border: 0; background: none;
-      font: inherit; font-size: 13px; font-weight: 700; color: var(--ion-color-primary); cursor: pointer; text-decoration: none;
+      font: inherit; font-size: 14px; font-weight: 700; color: var(--ion-color-primary); cursor: pointer; text-decoration: none;
     }
     .link.small { font-weight: 600; }
     .done { align-self: flex-end; }
@@ -253,10 +264,10 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     .transfers li.mine { background: rgba(var(--ion-color-primary-rgb), 0.08); }
     .avatar {
       flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
-      font-size: 14px; font-weight: 700; color: #fff;
+      font-size: 15px; font-weight: 700; color: #fff;
     }
     .who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
-    .names { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .names { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .names ion-icon { flex: none; color: var(--wl-muted); }
     .who strong, .net, .payments strong { font-variant-numeric: tabular-nums; }
     .bar { height: 6px; border-radius: 3px; background: var(--wl-field-bg); overflow: hidden; }
@@ -267,9 +278,9 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     .net.neg { color: var(--wl-type-gasto); }
     .payments li { border-bottom: 1px solid var(--wl-field-border); }
     .payments li:last-child { border-bottom: 0; }
-    .pay-text { flex: 1; min-width: 0; font-size: 14px; display: flex; flex-direction: column; }
-    .date { font-size: 12px; color: var(--wl-muted); }
-    .note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 13px; color: var(--wl-muted); }
+    .pay-text { flex: 1; min-width: 0; font-size: 15px; display: flex; flex-direction: column; }
+    .date { font-size: 13px; color: var(--wl-muted); }
+    .note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 14px; color: var(--wl-muted); }
     .note ion-icon { flex: none; font-size: 18px; }
   `,
 })

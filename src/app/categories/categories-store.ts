@@ -2,15 +2,22 @@ import { Service, computed, inject, resource } from '@angular/core';
 import { AuthStore } from '../core/auth-store';
 import type { Json } from '../core/database.types';
 import { Supabase } from '../core/supabase';
+import { PreferencesStore } from '../core/preferences-store';
 import { CATEGORIES, type CategoryInfo } from '../movements/movement.model';
 import {
-  CategoryConfig, CustomCategory, EMPTY_CONFIG, colorFor, lookupCategory, nameTaken, parseConfig, visibleCategories,
+  CategoryConfig, CustomCategory, EMPTY_CONFIG, colorFor, lookupCategory, muteForDark, nameTaken, parseConfig, visibleCategories,
 } from './category-config';
 
 @Service()
 export class CategoriesStore {
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
+  private readonly preferences = inject(PreferencesStore);
+
+  /** En oscuro, los colores de categoría van apagados (ver muteForDark). */
+  private tone(info: CategoryInfo): CategoryInfo {
+    return this.preferences.isDark() ? { ...info, color: muteForDark(info.color) } : info;
+  }
 
   readonly configResource = resource({
     params: () => this.auth.user()?.id,
@@ -22,12 +29,12 @@ export class CategoriesStore {
   });
 
   readonly config = computed(() => (this.configResource.hasValue() ? this.configResource.value() : EMPTY_CONFIG));
-  readonly visible = computed(() => visibleCategories(this.config()));
+  readonly visible = computed(() => visibleCategories(this.config()).map((c) => this.tone(c)));
   readonly hidden = computed(() => new Set(this.config().ocultas));
   readonly custom = computed(() => this.config().personalizadas);
 
   info(name: string): CategoryInfo {
-    return lookupCategory(name, this.config());
+    return this.tone(lookupCategory(name, this.config()));
   }
 
   isTaken(name: string): boolean {

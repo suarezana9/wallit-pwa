@@ -136,3 +136,35 @@ export function colorFor(name: string): string {
   for (const char of normalizeName(name)) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return COLOR_CHOICES[hash % COLOR_CHOICES.length];
 }
+
+/**
+ * Versión apagada de un color para el modo oscuro: baja la saturación y lleva la luz a un rango medio,
+ * así las barras y los íconos de categoría no "brillan" sobre el gris. Deja el tono igual (verde sigue verde).
+ */
+export function muteForDark(hex: string): string {
+  const match = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!match) return hex;
+  const n = parseInt(match[1], 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255].map((v) => v / 255);
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  const d = max - min;
+  const s = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  let h = 0;
+  if (d) {
+    if (max === r) h = ((g - b) / d) % 6;
+    else if (max === g) h = (b - r) / d + 2;
+    else h = (r - g) / d + 4;
+  }
+  h = (h * 60 + 360) % 360;
+
+  const s2 = Math.min(s * 0.6, 0.5);
+  const l2 = Math.min(Math.max(l, 0.58), 0.68);
+  const c = (1 - Math.abs(2 * l2 - 1)) * s2;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l2 - c / 2;
+  const [r1, g1, b1] =
+    h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return '#' + [r1, g1, b1].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+}

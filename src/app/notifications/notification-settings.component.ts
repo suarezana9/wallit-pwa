@@ -84,10 +84,10 @@ const STATUS_TEXT: Record<PushStatus, TranslationKey> = {
     }
     .device.on .icon { color: #fff; background: var(--ion-color-primary); }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .label { font-weight: 600; font-size: 15px; }
-    .hint { margin: 0; font-size: 13px; color: var(--wl-muted); line-height: 1.4; }
+    .label { font-weight: 600; font-size: 16px; }
+    .hint { margin: 0; font-size: 14px; color: var(--wl-muted); line-height: 1.4; }
     .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
-    .section-hint { margin: 18px 0 6px; font-size: 13px; color: var(--wl-muted); }
+    .section-hint { margin: 18px 0 6px; font-size: 14px; color: var(--wl-muted); }
     .prefs { list-style: none; margin: 0; padding: 0; }
     .prefs li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--wl-field-border); }
     .prefs li:last-child { border-bottom: 0; }

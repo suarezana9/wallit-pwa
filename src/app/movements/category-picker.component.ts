@@ -135,7 +135,7 @@ const COLLAPSED = 11;
     }
     .search:focus-within { border-color: var(--ion-color-primary); box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.12); }
     .search ion-icon { flex: none; color: var(--wl-muted); font-size: 18px; }
-    .search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font: inherit; font-size: 15px; color: inherit; }
+    .search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font: inherit; font-size: 16px; color: inherit; }
     .clear { display: grid; place-items: center; padding: 0; border: 0; background: none; color: var(--wl-muted); font-size: 18px; cursor: pointer; }
     .create { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
     .create-main {
@@ -146,8 +146,8 @@ const COLLAPSED = 11;
     .create-main:hover:not(:disabled) { background: rgba(var(--ion-color-primary-rgb), 0.13); }
     .icon.new { flex: none; background: var(--ion-background-color, #fff); }
     .create-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-    .create-text strong { font-size: 14px; color: var(--ion-color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .create-text span { font-size: 12px; color: var(--wl-muted); }
+    .create-text strong { font-size: 15px; color: var(--ion-color-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .create-text span { font-size: 13px; color: var(--wl-muted); }
     .plus { flex: none; font-size: 22px; color: var(--ion-color-primary); }
     .emojis { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
     .emojis::-webkit-scrollbar { display: none; }
@@ -156,7 +156,7 @@ const COLLAPSED = 11;
       background: var(--wl-field-bg); border: 1px solid transparent;
     }
     .emojis button.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.1); }
-    .empty, .tip { margin: 8px 2px 0; font-size: 12px; color: var(--wl-muted); }
+    .empty, .tip { margin: 8px 2px 0; font-size: 13px; color: var(--wl-muted); }
   `,
 })
 export class CategoryPickerComponent implements FormValueControl<string> {

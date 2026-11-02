@@ -10,8 +10,8 @@
   padding: 18px;
   border-radius: 20px;
   color: #fff;
-  background: linear-gradient(135deg, #7c5cff 0%, #5a35f0 55%, #4338ca 100%);
-  box-shadow: 0 12px 32px rgba(90, 53, 240, 0.28);
+  background: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 55%, var(--ion-color-primary-shade) 100%);
+  box-shadow: 0 12px 32px rgba(var(--ion-color-primary-rgb), 0.28);
   isolation: isolate;
 }
 
@@ -41,7 +41,7 @@
 
   p {
     margin: 3px 0 0;
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.4;
     color: rgba(255, 255, 255, 0.82);
   }
@@ -109,13 +109,13 @@
   margin-bottom: 4px;
   border-radius: 14px;
   font-size: 22px;
-  color: #5a35f0;
+  color: var(--ion-color-primary-shade);
   background: #fff;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
 
 .tile-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
 }
 
@@ -132,7 +132,7 @@
   align-items: center;
   gap: 6px;
   margin-top: 12px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   cursor: pointer;
@@ -142,6 +142,21 @@
     inset: 0;
     opacity: 0;
   }
+
+  // "o pegá una foto copiada": mismo estilo de link, al lado de la galería.
+  &.paste {
+    display: flex;
+    margin-top: 8px;
+    padding: 0;
+    font: inherit;
+    font-size: 14px;
+    background: none;
+    border: 0;
+  }
+}
+
+:host-context(.ion-palette-dark) .gallery {
+  color: var(--ion-color-primary);
 }
 
 .state {
@@ -206,7 +221,7 @@
   border-radius: 12px;
   font: inherit;
   font-weight: 700;
-  color: #5a35f0;
+  color: var(--ion-color-primary-shade);
   background: #fff;
   border: 0;
   cursor: pointer;
@@ -227,7 +242,7 @@
 
 .hint {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: rgba(255, 255, 255, 0.78);
 }
 
@@ -260,7 +275,7 @@
   left: 0;
   right: 0;
   height: 22px;
-  background: linear-gradient(180deg, transparent, rgba(124, 92, 255, 0.55), transparent);
+  background: linear-gradient(180deg, transparent, rgba(var(--ion-color-primary-rgb), 0.55), transparent);
   animation: scan 1.6s ease-in-out infinite;
 }
 
@@ -298,7 +313,7 @@
   gap: 2px;
 
   span {
-    font-size: 13px;
+    font-size: 14px;
     color: rgba(255, 255, 255, 0.78);
   }
 }
@@ -316,7 +331,7 @@
     min-width: 0;
     height: 40px;
     font: inherit;
-    font-size: 15px;
+    font-size: 16px;
     color: #1f1b2e;
     background: transparent;
     border: 0;
@@ -331,8 +346,8 @@
   height: 40px;
   border-radius: 12px;
   font-size: 20px;
-  color: #fff;
-  background: #5a35f0;
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary-shade);
   border: 0;
   cursor: pointer;
 
@@ -353,7 +368,7 @@
   padding: 6px 12px;
   border-radius: 999px;
   font: inherit;
-  font-size: 12.5px;
+  font-size: 13.5px;
   color: #fff;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.24);
@@ -364,7 +379,7 @@
   margin-left: auto;
   padding: 0;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.9);
   background: none;
@@ -394,10 +409,10 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 13px;
+  font-size: 14px;
 
   strong {
-    font-size: 15px;
+    font-size: 16px;
   }
 
   span {
@@ -459,7 +474,7 @@
   margin: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ion-color-danger);
   background: rgba(var(--ion-color-danger-rgb), 0.08);
 }
@@ -474,6 +489,20 @@
   }
 
   .tile-hint {
+    display: none;
+  }
+}
+
+// Oscuro: tarjeta plana del color de los paneles, sin brillo.
+:host-context(.ion-palette-dark) {
+  .hero {
+    color: var(--ion-text-color);
+    background: var(--wl-surface);
+    border: 1px solid var(--wl-field-border);
+    box-shadow: none;
+  }
+
+  .glow {
     display: none;
   }
 }

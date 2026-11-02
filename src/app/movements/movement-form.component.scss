@@ -53,7 +53,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -93,7 +93,7 @@ input[type='file'] {
   border-radius: 14px;
   border: 1.5px dashed var(--wl-field-border);
   color: var(--wl-muted);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
@@ -148,7 +148,7 @@ input[type='file'] {
     width: 20px;
     height: 20px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 13px;
     color: #fff;
     background: rgba(0, 0, 0, 0.55);
   }
@@ -160,10 +160,10 @@ input[type='file'] {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 14px;
+  font-size: 15px;
 
   span {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--wl-muted);
   }
 }
@@ -180,7 +180,7 @@ input[type='file'] {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ion-color-primary);
   cursor: pointer;
@@ -350,13 +350,13 @@ ion-footer {
   flex-direction: column;
   gap: 2px;
 
-  strong { font-size: 14px; }
-  span { font-size: 12px; line-height: 1.4; color: var(--wl-muted); }
+  strong { font-size: 15px; }
+  span { font-size: 13px; line-height: 1.4; color: var(--wl-muted); }
 }
 
 .card-hint {
   margin: 8px 2px 0;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 
   strong { color: var(--ion-text-color); }
@@ -376,7 +376,7 @@ ion-footer {
   padding: 0 12px;
   border-radius: 999px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--wl-muted);
   cursor: pointer;
@@ -396,7 +396,7 @@ ion-footer {
   padding: 0 10px;
   border-radius: 999px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   text-align: center;
   color: var(--ion-color-primary);
@@ -416,7 +416,7 @@ ion-footer {
 
   p {
     margin: 0;
-    font-size: 14px;
+    font-size: 15px;
 
     span { color: var(--wl-muted); }
   }
@@ -426,7 +426,7 @@ ion-footer {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
 
@@ -438,7 +438,7 @@ ion-footer {
 }
 
 .plan-hint {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--wl-muted);
 }
@@ -447,7 +447,7 @@ ion-footer {
   margin: 0;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   color: var(--wl-muted);
   background: var(--wl-field-bg);
@@ -485,8 +485,8 @@ ion-footer {
   flex-direction: column;
   gap: 2px;
 
-  strong { font-size: 14px; }
-  span { font-size: 12px; line-height: 1.35; color: var(--wl-muted); }
+  strong { font-size: 15px; }
+  span { font-size: 13px; line-height: 1.35; color: var(--wl-muted); }
 }
 
 .switch {

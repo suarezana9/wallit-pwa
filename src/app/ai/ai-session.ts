@@ -2,7 +2,7 @@ import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core'
 import { I18n } from '../core/i18n/i18n';
 import { AiErrorKey, AiResult } from './ai.model';
 import { AiError, AiService } from './ai.service';
-import { VoiceRecorder, imageToJpegDataUrl, isTouchDevice, supportedAudioType } from './media';
+import { VoiceRecorder, imageToJpegDataUrl, isTouchDevice, supportedAudioType, canReadClipboard, readClipboardImage } from './media';
 
 export type AiMode = 'idle' | 'text' | 'recording' | 'busy';
 
@@ -27,6 +27,7 @@ export class AiSession {
   readonly error = signal<string | null>(null);
   readonly canRecord = supportedAudioType() !== null;
   readonly isTouch = isTouchDevice();
+  readonly canPaste = canReadClipboard();
 
   readonly timer = computed(() => {
     const s = this.seconds();
@@ -51,7 +52,25 @@ export class AiSession {
     return this.run(this.i18n.t('aiProcessing'), () => this.ai.fromText(clean));
   }
 
-  async fromImage(file: File): Promise<boolean> {
+  /** "Pegar foto": una captura o una foto copiada, sin tener que guardarla en la galería. */
+  async fromClipboard(): Promise<boolean> {
+    this.error.set(null);
+    let image: Blob | null;
+    try {
+      image = await readClipboardImage();
+    } catch {
+      // Se cerró la burbuja "Pegar" del iPhone o el navegador no dio permiso.
+      this.error.set(this.i18n.t('aiPasteDenied'));
+      return false;
+    }
+    if (!image) {
+      this.error.set(this.i18n.t('aiNoImageCopied'));
+      return false;
+    }
+    return this.fromImage(image);
+  }
+
+  async fromImage(file: Blob): Promise<boolean> {
     this.error.set(null);
     this.busyLabel.set(this.i18n.t('aiReadingReceipt'));
     this.mode.set('busy');

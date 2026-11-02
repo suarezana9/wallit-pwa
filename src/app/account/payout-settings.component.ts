@@ -67,19 +67,19 @@ import { aliasError, cuentaError, formatCuenta, normalizeCuenta } from '../group
   `,
   styles: `
     h2 { margin: 0 0 4px; font-size: 16px; font-weight: 700; }
-    .hint { margin: 0 0 14px; font-size: 13px; line-height: 1.45; color: var(--wl-muted); }
+    .hint { margin: 0 0 14px; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
     .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-    .field > span { font-size: 13px; font-weight: 600; }
+    .field > span { font-size: 14px; font-weight: 600; }
     input {
-      height: 46px; padding: 0 14px; border-radius: 12px; font: inherit; font-size: 15px; color: inherit;
+      height: 46px; padding: 0 14px; border-radius: 12px; font: inherit; font-size: 16px; color: inherit;
       background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); outline: none;
       font-variant-numeric: tabular-nums;
     }
     input:focus { border-color: var(--ion-color-primary); box-shadow: 0 0 0 4px rgba(var(--ion-color-primary-rgb), 0.12); }
     input.bad { border-color: var(--ion-color-danger); }
-    .error { font-size: 12px; color: var(--ion-color-danger); }
+    .error { font-size: 13px; color: var(--ion-color-danger); }
     .actions { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-    .ok { font-size: 13px; font-weight: 600; color: var(--wl-type-ingreso); }
+    .ok { font-size: 14px; font-weight: 600; color: var(--wl-type-ingreso); }
   `,
 })
 export class PayoutSettingsComponent {

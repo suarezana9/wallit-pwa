@@ -70,7 +70,7 @@ type Phase = 'reading' | 'working' | 'failed' | 'empty';
     h1 { margin: 0; font-size: 20px; font-weight: 700; }
     p { margin: 0; color: var(--wl-muted); }
     .quote {
-      max-width: 100%; padding: 10px 14px; border-radius: 12px; font-size: 14px; color: var(--ion-text-color);
+      max-width: 100%; padding: 10px 14px; border-radius: 12px; font-size: 15px; color: var(--ion-text-color);
       background: var(--wl-field-bg); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
     }
     .icon {
@@ -80,7 +80,7 @@ type Phase = 'reading' | 'working' | 'failed' | 'empty';
     .icon.danger { color: var(--ion-color-danger); background: rgba(var(--ion-color-danger-rgb), 0.12); }
     .orb {
       width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center; font-size: 28px; color: #fff;
-      background: linear-gradient(135deg, var(--ion-color-primary), #ec4899);
+      background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
       box-shadow: 0 10px 30px rgba(var(--ion-color-primary-rgb), 0.4); animation: pulse 1.6s ease-in-out infinite;
     }
     .scan { position: relative; width: 160px; height: 200px; border-radius: 16px; overflow: hidden; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18); }
@@ -91,7 +91,7 @@ type Phase = 'reading' | 'working' | 'failed' | 'empty';
       animation: scan 1.8s ease-in-out infinite;
     }
     ion-button { width: 100%; margin: 6px 0 0; }
-    .later { border: 0; background: none; font: inherit; font-size: 14px; font-weight: 600; color: var(--wl-muted); cursor: pointer; }
+    .later { border: 0; background: none; font: inherit; font-size: 15px; font-weight: 600; color: var(--wl-muted); cursor: pointer; }
     @keyframes scan { to { top: 100%; } }
     @keyframes pulse { 50% { transform: scale(1.06); } }
     @media (prefers-reduced-motion: reduce) { .orb, .scanline { animation: none; } }

@@ -108,7 +108,7 @@ export type GroupDialogMode = 'create' | 'join';
     </ion-modal>
   `,
   styles: `
-    .intro { margin: 0 0 18px; color: var(--wl-muted); font-size: 14px; line-height: 1.45; }
+    .intro { margin: 0 0 18px; color: var(--wl-muted); font-size: 15px; line-height: 1.45; }
     .kind { margin-top: 18px; }
     .kinds { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .kind-option {
@@ -119,15 +119,15 @@ export type GroupDialogMode = 'create' | 'join';
     .kind-option ion-icon { font-size: 20px; margin-bottom: 4px; color: var(--wl-muted); }
     .kind-option.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
     .kind-option.selected ion-icon { color: var(--ion-color-primary); }
-    .kind-title { font-size: 14px; font-weight: 700; }
-    .kind-hint { font-size: 12px; color: var(--wl-muted); }
+    .kind-title { font-size: 15px; font-weight: 700; }
+    .kind-hint { font-size: 13px; color: var(--wl-muted); }
     .dates { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
     .date-input {
       height: 46px; padding: 0 12px; border-radius: 12px; font: inherit; color: inherit;
       background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); outline: none;
     }
     .date-input:focus { border-color: var(--ion-color-primary); }
-    .hint { margin: 8px 0 0; font-size: 12px; color: var(--wl-muted); }
+    .hint { margin: 8px 0 0; font-size: 13px; color: var(--wl-muted); }
     ion-footer { border-top: 1px solid var(--wl-field-border); }
     .actions { padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px)); }
   `,

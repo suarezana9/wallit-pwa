@@ -111,21 +111,21 @@ import { BudgetsStore } from './budgets-store';
     .hero.status-over { --tone: #dc2626; }
     .hero-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .spent { font-size: 30px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-    .badge { padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--tone); background: color-mix(in srgb, var(--tone) 15%, transparent); }
-    .of { color: var(--wl-muted); font-size: 14px; }
+    .badge { padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--tone); background: color-mix(in srgb, var(--tone) 15%, transparent); }
+    .of { color: var(--wl-muted); font-size: 15px; }
     .bar { height: 10px; margin: 6px 0 2px; border-radius: 999px; background: color-mix(in srgb, var(--tone) 15%, transparent); overflow: hidden; }
     .bar span { display: block; height: 100%; border-radius: inherit; background: var(--tone); }
-    .left { font-weight: 600; color: var(--tone); font-size: 14px; }
-    .daily { font-size: 13px; color: var(--wl-muted); }
-    .block h3 { margin: 0 0 12px; font-size: 15px; font-weight: 700; }
+    .left { font-weight: 600; color: var(--tone); font-size: 15px; }
+    .daily { font-size: 14px; color: var(--wl-muted); }
+    .block h3 { margin: 0 0 12px; font-size: 16px; font-weight: 700; }
     .cat { margin-bottom: 12px; }
-    .cat-head { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; }
+    .cat-head { display: flex; justify-content: space-between; font-size: 15px; margin-bottom: 5px; }
     .cat-amount { font-variant-numeric: tabular-nums; color: var(--wl-muted); }
     .cat-bar { height: 6px; border-radius: 999px; background: var(--wl-field-bg); overflow: hidden; }
     .cat-bar span { display: block; height: 100%; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-    .chip { padding: 4px 10px; border-radius: 999px; font-size: 12px; background: var(--wl-field-bg); color: var(--wl-muted); }
-    .empty { margin: 0 0 8px; color: var(--wl-muted); font-size: 14px; }
+    .chip { padding: 4px 10px; border-radius: 999px; font-size: 13px; background: var(--wl-field-bg); color: var(--wl-muted); }
+    .empty { margin: 0 0 8px; color: var(--wl-muted); font-size: 15px; }
     @media (min-width: 768px) {
       .layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
     }

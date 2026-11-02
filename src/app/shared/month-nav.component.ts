@@ -35,7 +35,7 @@ import { TranslatePipe } from '../core/i18n/i18n';
     .center { display: flex; flex-direction: column; align-items: center; line-height: 1.15; }
     .label { font-weight: 600; }
     .today {
-      padding: 0; border: 0; background: none; font: inherit; font-size: 11px; font-weight: 600;
+      padding: 0; border: 0; background: none; font: inherit; font-size: 12px; font-weight: 600;
       color: var(--ion-color-primary); cursor: pointer;
     }
     @media (min-width: 992px) {

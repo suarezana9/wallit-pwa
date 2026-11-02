@@ -88,8 +88,8 @@ import { GroupsStore } from '../groups/groups-store';
     }
     .user-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .name, .email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .name { font-size: 14px; font-weight: 600; }
-    .email { font-size: 12px; color: var(--wl-muted); }
+    .name { font-size: 15px; font-weight: 600; }
+    .email { font-size: 13px; color: var(--wl-muted); }
   `,
 })
 export class SidebarComponent {

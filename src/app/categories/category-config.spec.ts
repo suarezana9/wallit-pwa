@@ -1,5 +1,5 @@
 import {
-  EMPTY_CONFIG, colorFor, filterCategories, findExact, lookupCategory, nameTaken, parseConfig, suggestEmoji, visibleCategories,
+  EMPTY_CONFIG, colorFor, filterCategories, findExact, lookupCategory, nameTaken, parseConfig, suggestEmoji, visibleCategories, muteForDark,
 } from './category-config';
 
 const config = {
@@ -47,5 +47,15 @@ describe('crear categoría desde el formulario', () => {
     expect(suggestEmoji('Cosas raras')).toBe('🏷️');
     expect(colorFor('Gimnasio')).toBe(colorFor('gimnasio'));
   });
-});
 
+  it('apaga los colores para el modo oscuro sin cambiar el tono', () => {
+    const lime = muteForDark('#84CC16');
+    expect(lime).toMatch(/^#[0-9a-f]{6}$/);
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(lime.slice(i, i + 2), 16));
+    expect(g).toBeGreaterThan(r);
+    expect(g).toBeGreaterThan(b);
+    expect(Math.max(r, g, b) - Math.min(r, g, b)).toBeLessThan(110);
+    expect(muteForDark('#9CA3AF')).toMatch(/^#[0-9a-f]{6}$/);
+    expect(muteForDark('rojo')).toBe('rojo');
+  });
+});

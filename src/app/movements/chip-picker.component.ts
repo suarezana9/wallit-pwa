@@ -33,7 +33,7 @@ export interface ChipOption {
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
       display: inline-flex; align-items: center; gap: 6px;
-      padding: 8px 12px; border-radius: 999px; font: inherit; font-size: 14px;
+      padding: 8px 12px; border-radius: 999px; font: inherit; font-size: 15px;
       color: var(--ion-text-color); background: var(--wl-field-bg); border: 1px solid var(--wl-field-border);
       transition: background 0.15s ease, border-color 0.15s ease;
     }

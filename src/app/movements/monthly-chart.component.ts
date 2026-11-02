@@ -58,10 +58,10 @@ function barPath(x: number, y: number, w: number, h: number): string {
     .bar:hover path { fill: rgba(var(--ion-color-primary-rgb), 0.55); }
     .bar.current:hover path { fill: var(--ion-color-primary-shade); }
     .hit { fill: transparent; }
-    .month { font-size: 13px; fill: var(--wl-muted); text-transform: capitalize; }
+    .month { font-size: 14px; fill: var(--wl-muted); text-transform: capitalize; }
     .bar.current .month { fill: var(--ion-text-color); font-weight: 600; }
-    .value { font-size: 13px; font-weight: 600; fill: var(--ion-text-color); }
-    .empty { margin: 0; padding: 24px 0; text-align: center; color: var(--wl-muted); font-size: 14px; }
+    .value { font-size: 14px; font-weight: 600; fill: var(--ion-text-color); }
+    .empty { margin: 0; padding: 24px 0; text-align: center; color: var(--wl-muted); font-size: 15px; }
     @media (max-width: 991.98px) {
       .month, .value { font-size: 21px; }
     }

@@ -12,19 +12,19 @@
   border: 1.5px solid transparent;
   background:
     linear-gradient(var(--ion-background-color), var(--ion-background-color)) padding-box,
-    linear-gradient(120deg, #a78bfa, #6c47ff 45%, #38bdf8) border-box;
-  box-shadow: 0 8px 28px rgba(108, 71, 255, 0.16);
+    linear-gradient(120deg, var(--ion-color-primary-tint), var(--ion-color-primary-tint) 45%, #2ec4b6) border-box;
+  box-shadow: 0 8px 28px rgba(var(--ion-color-primary-rgb), 0.16);
   transition: box-shadow 0.15s ease;
 
   &:focus-within,
   &.active {
-    box-shadow: 0 10px 34px rgba(108, 71, 255, 0.28);
+    box-shadow: 0 10px 34px rgba(var(--ion-color-primary-rgb), 0.28);
   }
 
   &.dragging {
     background:
-      linear-gradient(rgba(108, 71, 255, 0.08), rgba(108, 71, 255, 0.08)) padding-box,
-      linear-gradient(120deg, #a78bfa, #6c47ff 45%, #38bdf8) border-box;
+      linear-gradient(rgba(var(--ion-color-primary-rgb), 0.08), rgba(var(--ion-color-primary-rgb), 0.08)) padding-box,
+      linear-gradient(120deg, var(--ion-color-primary-tint), var(--ion-color-primary-tint) 45%, #2ec4b6) border-box;
   }
 }
 
@@ -36,8 +36,8 @@
   height: 40px;
   border-radius: 13px;
   font-size: 19px;
-  color: #fff;
-  background: linear-gradient(135deg, #7c5cff, #4338ca);
+  color: var(--ion-color-primary-contrast);
+  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
 }
 
 .ask {
@@ -48,7 +48,7 @@
     width: 100%;
     height: 42px;
     font: inherit;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ion-text-color);
     background: transparent;
     border: 0;
@@ -72,7 +72,7 @@
   padding: 0 10px;
   border-radius: 12px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: rgba(var(--ion-color-primary-rgb), 0.08);
@@ -107,7 +107,7 @@
   border-radius: 12px;
   font: inherit;
   font-weight: 700;
-  color: #fff;
+  color: var(--ion-color-primary-contrast);
   background: var(--ion-color-primary);
   border: 0;
   cursor: pointer;
@@ -193,7 +193,7 @@ ion-spinner {
   margin: 8px 0 0;
   padding: 10px 12px;
   border-radius: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ion-color-danger);
   background: rgba(var(--ion-color-danger-rgb), 0.08);
 }
@@ -205,5 +205,30 @@ ion-spinner {
 
   .icon.pill {
     padding: 0;
+  }
+}
+
+// Oscuro: campo plano con borde fino; el violeta aparece solo al enfocar.
+:host-context(.ion-palette-dark) {
+  .bar {
+    background: var(--wl-field-bg);
+    border: 1px solid var(--wl-field-border);
+    box-shadow: none;
+
+    &:focus-within,
+    &.active {
+      border-color: var(--ion-color-primary);
+      box-shadow: 0 0 0 3px rgba(var(--ion-color-primary-rgb), 0.18);
+    }
+
+    &.dragging {
+      background: rgba(var(--ion-color-primary-rgb), 0.08);
+      border-color: var(--ion-color-primary);
+    }
+  }
+
+  .spark {
+    color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb), 0.14);
   }
 }

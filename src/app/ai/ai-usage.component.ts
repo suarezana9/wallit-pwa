@@ -29,15 +29,17 @@ import { AiService } from './ai.service';
   styles: `
     .head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
     h2 { margin: 0; font-size: 16px; font-weight: 700; }
-    .count { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--wl-muted); }
+    .count { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--wl-muted); }
     .count.full { color: var(--ion-color-danger); }
     .bar { height: 8px; border-radius: 999px; background: var(--wl-field-bg); overflow: hidden; }
     .bar span {
       display: block; height: 100%; border-radius: inherit; transition: width 0.3s ease;
-      background: linear-gradient(90deg, #8f6bff, #5a35f0);
+      background: linear-gradient(90deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
     }
     .bar span.warn { background: linear-gradient(90deg, #f59e0b, #e5484d); }
-    .hint { margin: 10px 0 0; font-size: 13px; line-height: 1.45; color: var(--wl-muted); }
+    :host-context(.ion-palette-dark) .bar span { background: var(--ion-color-primary); }
+    :host-context(.ion-palette-dark) .bar span.warn { background: var(--ion-color-warning); }
+    .hint { margin: 10px 0 0; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
   `,
 })
 export class AiUsageComponent {

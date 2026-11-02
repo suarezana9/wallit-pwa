@@ -14,8 +14,8 @@
   margin-bottom: 20px;
   border-radius: 18px;
   color: #fff;
-  background: linear-gradient(135deg, #7c5cff, #5a35f0);
-  box-shadow: 0 10px 30px rgba(90, 53, 240, 0.22);
+  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
+  box-shadow: 0 10px 30px rgba(var(--ion-color-primary-rgb), 0.22);
 }
 
 .overview-item {
@@ -26,12 +26,12 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: 13px;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .value {
-  font-size: 15px;
+  font-size: 16px;
   white-space: nowrap;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -147,4 +147,11 @@
     flex-direction: row;
     justify-content: center;
   }
+}
+
+:host-context(.ion-palette-dark) .overview {
+  color: var(--ion-text-color);
+  background: var(--wl-surface);
+  border: 1px solid var(--wl-field-border);
+  box-shadow: none;
 }

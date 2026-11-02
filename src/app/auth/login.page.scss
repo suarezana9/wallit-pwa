@@ -40,7 +40,7 @@
 
   p {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.5;
     color: var(--wl-muted);
     text-wrap: pretty;
@@ -61,7 +61,7 @@ form {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--wl-muted);
 
   &::before,
@@ -83,7 +83,7 @@ form {
 
   p {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--wl-muted);
   }
 }
@@ -91,7 +91,7 @@ form {
 .link {
   padding: 0;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: none;
@@ -169,10 +169,10 @@ form {
 }
 
 .provider.magic {
-  color: #fff;
+  color: var(--ion-color-primary-contrast);
   border: 0;
-  background: linear-gradient(135deg, #8f6bff 0%, #5a35f0 100%);
-  box-shadow: 0 10px 24px rgba(90, 53, 240, 0.3);
+  background: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 100%);
+  box-shadow: 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.3);
 }
 
 .provider.password {
@@ -187,7 +187,7 @@ form {
 
 .fine {
   margin: 0;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.5;
   text-align: center;
   color: var(--wl-muted);
@@ -201,7 +201,7 @@ form {
   border: 0;
   background: none;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--wl-muted);
   cursor: pointer;
@@ -219,7 +219,7 @@ form {
 
   p {
     margin: 0;
-    font-size: 15px;
+    font-size: 16px;
     line-height: 1.5;
     color: var(--wl-muted);
     text-wrap: pretty;
@@ -262,7 +262,7 @@ form {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--wl-muted);
 }
 
@@ -283,10 +283,10 @@ form {
     justify-content: space-between;
     gap: 48px;
     padding: 56px 64px;
-    color: #fff;
+    color: var(--ion-color-primary-contrast);
     background:
       radial-gradient(90% 70% at 100% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
-      linear-gradient(160deg, #7b59ff 0%, #5a35f0 55%, #3f22c9 100%);
+      linear-gradient(160deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 55%, var(--ion-color-primary-shade) 100%);
   }
 
   .aside-brand { justify-content: flex-start; }
@@ -319,7 +319,7 @@ form {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-size: 15px;
+      font-size: 16px;
       opacity: 0.92;
     }
 

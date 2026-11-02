@@ -112,11 +112,11 @@ import type { GroupMember } from './groups-store';
     .chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip {
       display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px;
-      font: inherit; font-size: 14px; font-weight: 600; color: var(--wl-muted); cursor: pointer;
+      font: inherit; font-size: 15px; font-weight: 600; color: var(--wl-muted); cursor: pointer;
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border);
     }
     .chip.selected { color: var(--ion-color-primary); border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
-    .dot { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; }
+    .dot { flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 700; color: #fff; }
     .split { display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid var(--wl-field-border); }
     .switch-row {
       display: flex; align-items: center; gap: 12px; width: 100%; padding: 0; border: 0; background: none;
@@ -125,8 +125,8 @@ import type { GroupMember } from './groups-store';
     .lead { flex: none; font-size: 20px; color: var(--wl-muted); }
     .on .lead { color: var(--ion-color-primary); }
     .switch-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-    .switch-text strong { font-size: 14px; }
-    .switch-text span { font-size: 12px; line-height: 1.35; color: var(--wl-muted); }
+    .switch-text strong { font-size: 15px; }
+    .switch-text span { font-size: 13px; line-height: 1.35; color: var(--wl-muted); }
     .switch { flex: none; position: relative; width: 42px; height: 24px; border-radius: 999px; background: var(--wl-field-border); transition: background 0.15s ease; }
     .switch span { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform 0.15s ease; }
     .on .switch { background: var(--ion-color-primary); }
@@ -137,28 +137,28 @@ import type { GroupMember } from './groups-store';
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border);
     }
     .faces { flex: none; display: flex; }
-    .faces .dot { width: 24px; height: 24px; font-size: 11px; border: 2px solid var(--ion-background-color, #fff); }
+    .faces .dot { width: 24px; height: 24px; font-size: 12px; border: 2px solid var(--ion-background-color, #fff); }
     .faces .dot + .dot { margin-left: -8px; }
-    .summary-text { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
+    .summary-text { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; }
     .summary-text.bad { color: var(--ion-color-danger); }
-    .edit { flex: none; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); }
+    .edit { flex: none; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); }
     .editor { display: flex; flex-direction: column; gap: 10px; }
     .modes { display: inline-flex; align-self: flex-start; padding: 3px; border-radius: 10px; background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); }
-    .modes button { padding: 5px 12px; border: 0; border-radius: 8px; font: inherit; font-size: 13px; font-weight: 600; color: var(--wl-muted); background: none; cursor: pointer; }
+    .modes button { padding: 5px 12px; border: 0; border-radius: 8px; font: inherit; font-size: 14px; font-weight: 600; color: var(--wl-muted); background: none; cursor: pointer; }
     .modes button.selected { color: #fff; background: var(--ion-color-primary); }
     .people { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
     .people li.off { opacity: 0.5; }
     .row { display: flex; align-items: center; gap: 10px; min-height: 40px; cursor: pointer; }
     .row input[type='checkbox'] { width: 18px; height: 18px; accent-color: var(--ion-color-primary); }
-    .name { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .share { font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .name { flex: 1; min-width: 0; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .share { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .amount-input {
       display: flex; align-items: center; gap: 4px; width: 130px; height: 38px; padding: 0 10px; border-radius: 10px;
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); font-weight: 600;
     }
     .amount-input:focus-within { border-color: var(--ion-color-primary); }
     .part-input { flex: 1; min-width: 0; text-align: right; }
-    .status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; font-weight: 600; color: var(--ion-color-danger); }
+    .status { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 14px; font-weight: 600; color: var(--ion-color-danger); }
     .status.ok { color: var(--wl-type-ingreso); }
   `,
 })

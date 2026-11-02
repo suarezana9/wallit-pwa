@@ -54,10 +54,16 @@
             <ion-icon name="mic-outline" />
           </button>
         }
+        @if (session.isTouch && session.canPaste) {
+          <button type="button" class="icon" (click)="session.fromClipboard()" [attr.aria-label]="'aiPastePhoto' | t" [title]="'aiPastePhoto' | t">
+            <ion-icon name="clipboard-outline" />
+          </button>
+        }
         <label class="icon pill" [title]="(session.isTouch ? 'aiScanTouch' : 'aiUpload') | t">
           <ion-icon [name]="session.isTouch ? 'camera-outline' : 'attach-outline'" aria-hidden="true" />
           <span class="pill-label">{{ (session.isTouch ? 'aiScanTouch' : 'aiUpload') | t }}</span>
-          <input type="file" accept="image/*" [attr.capture]="session.isTouch ? 'environment' : null" (change)="onFile($event)" />
+          <!-- Sin "capture": el iPhone ofrece Sacar foto, Fototeca o Archivos. -->
+          <input type="file" accept="image/*" (change)="onFile($event)" />
         </label>
       }
     }

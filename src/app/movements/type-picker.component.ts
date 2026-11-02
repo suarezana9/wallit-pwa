@@ -35,7 +35,7 @@ import { MOVEMENT_TYPES } from './movement.model';
     @container (max-width: 320px) { .types { grid-template-columns: repeat(2, 1fr); } .type { flex-direction: row; justify-content: center; padding: 10px 8px; } }
     .type {
       display: flex; flex-direction: column; align-items: center; gap: 6px;
-      padding: 12px 4px; border-radius: 14px; font: inherit; font-size: 13px; font-weight: 600;
+      padding: 12px 4px; border-radius: 14px; font: inherit; font-size: 14px; font-weight: 600;
       color: var(--wl-muted); background: var(--wl-field-bg); border: 1px solid var(--wl-field-border);
       transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
     }
@@ -43,7 +43,7 @@ import { MOVEMENT_TYPES } from './movement.model';
     /* Con lugar (escritorio), una fila tipo pestañas: ícono y texto en línea. */
     @container (min-width: 480px) {
       .types { gap: 6px; }
-      .type { flex-direction: row; justify-content: center; gap: 8px; padding: 10px 8px; font-size: 14px; background: var(--ion-background-color, #fff); }
+      .type { flex-direction: row; justify-content: center; gap: 8px; padding: 10px 8px; font-size: 15px; background: var(--ion-background-color, #fff); }
       .type ion-icon { font-size: 18px; }
     }
     .type.selected {

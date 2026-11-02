@@ -84,28 +84,28 @@ interface FeedItem {
   styles: `
     .skeleton { height: 44px; margin: 8px 0; border-radius: 12px; }
     .empty { margin: 8px 0; color: var(--wl-muted); }
-    .day { margin: 16px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--wl-muted); }
+    .day { margin: 16px 0 6px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--wl-muted); }
     .day:first-child { margin-top: 0; }
     ul { list-style: none; margin: 0; padding: 0; }
     li { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--wl-field-border); }
     li:last-child { border-bottom: 0; }
     .avatar {
       position: relative; flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-      font-size: 14px; font-weight: 700; color: #fff;
+      font-size: 15px; font-weight: 700; color: #fff;
     }
     .badge {
       position: absolute; right: -4px; bottom: -4px; width: 18px; height: 18px; border-radius: 50%;
-      display: grid; place-items: center; font-size: 11px; color: #fff; background: var(--ion-color-primary);
+      display: grid; place-items: center; font-size: 12px; color: #fff; background: var(--ion-color-primary);
       border: 2px solid var(--ion-background-color, #fff);
     }
     .badge.gasto_borrado, .badge.pago_borrado, .badge.miembro_salio { background: #9ca3af; }
     .badge.pago { background: var(--wl-type-ingreso); }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .line { font-size: 14px; line-height: 1.35; }
-    .time { font-size: 12px; color: var(--wl-muted); }
+    .line { font-size: 15px; line-height: 1.35; }
+    .time { font-size: 13px; color: var(--wl-muted); }
     .amount { flex: none; display: flex; flex-direction: column; align-items: flex-end; font-weight: 700; font-variant-numeric: tabular-nums; }
     .amount.struck { text-decoration: line-through; color: var(--wl-muted); }
-    .previous { font-size: 11px; font-weight: 500; color: var(--wl-muted); }
+    .previous { font-size: 12px; font-weight: 500; color: var(--wl-muted); }
   `,
 })
 export class GroupActivityComponent {

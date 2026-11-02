@@ -27,7 +27,7 @@
   font-size: 22px;
   font-weight: 700;
   color: #fff;
-  background: linear-gradient(135deg, #8b6cff, #5a35f0);
+  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
 }
 
 .who {
@@ -97,7 +97,7 @@
 
 .hint {
   margin: 2px 0 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.4;
   color: var(--wl-muted);
 }
@@ -125,7 +125,7 @@
     padding: 8px 16px;
     border-radius: 9px;
     font: inherit;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--wl-muted);
     background: transparent;
@@ -172,7 +172,7 @@
   --pv-bg: #ffffff;
   --pv-side: #f2f0f8;
   --pv-line: #e3e0ec;
-  --pv-accent: #6c47ff;
+  --pv-accent: var(--ion-color-primary-tint);
   background: var(--pv-bg);
 }
 
@@ -225,7 +225,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 
   ion-icon {
@@ -331,4 +331,9 @@
 
 .manage {
   margin: 0;
+}
+
+:host-context(.ion-palette-dark) .avatar {
+  color: var(--ion-color-primary);
+  background: rgba(var(--ion-color-primary-rgb), 0.16);
 }

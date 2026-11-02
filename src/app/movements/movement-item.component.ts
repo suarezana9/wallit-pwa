@@ -47,9 +47,9 @@ import { incomeSourceKey, paymentMethodKey, typeInfo } from './movement.model';
     }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .subtitle { font-size: 13px; color: var(--wl-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .lock { font-size: 11px; vertical-align: -1px; margin-right: 2px; }
-    .clip { font-size: 13px; vertical-align: -2px; color: var(--ion-color-primary); }
+    .subtitle { font-size: 14px; color: var(--wl-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lock { font-size: 12px; vertical-align: -1px; margin-right: 2px; }
+    .clip { font-size: 14px; vertical-align: -2px; color: var(--ion-color-primary); }
     .amount { flex: none; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
   `,
 })

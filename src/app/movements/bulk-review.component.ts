@@ -146,13 +146,13 @@ import { AmountInputComponent } from '../shared/amount-input.component';
   styles: `
     .intro {
       display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; padding: 14px 16px; border-radius: 16px;
-      background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.12), rgba(236, 72, 153, 0.08));
+      background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.12), rgba(46, 196, 182, 0.08));
     }
-    .intro div { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
+    .intro div { display: flex; flex-direction: column; gap: 2px; font-size: 15px; }
     .intro span:not(.spark) { color: var(--wl-muted); }
     .spark {
       flex: none; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; color: #fff;
-      background: linear-gradient(135deg, var(--ion-color-primary), #ec4899);
+      background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
     }
     .rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
     .row {
@@ -166,7 +166,7 @@ import { AmountInputComponent } from '../shared/amount-input.component';
     .check { grid-area: check; display: grid; place-items: center; width: 28px; }
     .check input { width: 18px; height: 18px; accent-color: var(--ion-color-primary); }
     .field {
-      min-width: 0; height: 40px; padding: 0 10px; border-radius: 10px; font: inherit; font-size: 14px; color: inherit;
+      min-width: 0; height: 40px; padding: 0 10px; border-radius: 10px; font: inherit; font-size: 15px; color: inherit;
       background: var(--ion-background-color, #fff); border: 1px solid var(--wl-field-border); outline: none;
     }
     .field:focus, .field:focus-within { border-color: var(--ion-color-primary); }
@@ -191,7 +191,7 @@ import { AmountInputComponent } from '../shared/amount-input.component';
       padding: 12px 16px calc(12px + var(--ion-safe-area-bottom, 0px));
       border-top: 1px solid var(--wl-field-border);
     }
-    .total { display: flex; flex-direction: column; font-size: 13px; color: var(--wl-muted); }
+    .total { display: flex; flex-direction: column; font-size: 14px; color: var(--wl-muted); }
     .total strong { font-size: 18px; color: var(--ion-text-color); font-variant-numeric: tabular-nums; }
     .total strong.positive { color: var(--wl-type-ingreso); }
   `,

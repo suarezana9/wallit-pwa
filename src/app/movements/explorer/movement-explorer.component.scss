@@ -37,7 +37,7 @@ h2 {
   height: 40px;
   padding: 0 6px 0 14px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: rgba(var(--ion-color-primary-rgb), 0.08);
@@ -111,7 +111,7 @@ h2 {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--wl-muted);
 }
@@ -136,7 +136,7 @@ h2 {
 }
 
 .stat-count {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 
@@ -185,7 +185,7 @@ h2 {
     min-width: 0;
     height: 100%;
     font: inherit;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ion-text-color);
     background: transparent;
     border: 0;
@@ -217,7 +217,7 @@ h2 {
   padding: 0 14px;
   border-radius: 12px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ion-text-color);
   background: var(--wl-field-bg);
@@ -242,9 +242,9 @@ h2 {
   height: 20px;
   padding: 0 5px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
-  color: #fff;
+  color: var(--ion-color-primary-contrast);
   background: var(--ion-color-primary);
 }
 
@@ -264,7 +264,7 @@ h2 {
   padding: 0 8px 0 12px;
   border-radius: 999px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: rgba(var(--ion-color-primary-rgb), 0.1);
@@ -272,14 +272,14 @@ h2 {
   cursor: pointer;
 
   ion-icon {
-    font-size: 14px;
+    font-size: 15px;
   }
 }
 
 .clear-all {
   padding: 0 6px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--wl-muted);
   background: none;
@@ -293,7 +293,7 @@ h2 {
   align-items: center;
   justify-content: space-between;
   margin: 14px 0 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--wl-muted);
 }
 
@@ -303,7 +303,7 @@ h2 {
   gap: 4px;
   padding: 4px 0;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: none;
@@ -327,7 +327,7 @@ h2 {
   justify-content: space-between;
   padding: 0 0 6px;
   border-bottom: 1px solid var(--wl-field-border);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 
@@ -432,7 +432,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -453,7 +453,7 @@ h2 {
 }
 
 .person-meta {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 
@@ -516,7 +516,7 @@ ion-modal.filter-sheet.wl-dialog {
 
   h3 {
     margin: 0 0 10px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--wl-muted);
     text-transform: uppercase;
@@ -538,7 +538,7 @@ ion-modal.filter-sheet.wl-dialog {
   padding: 0 14px;
   border-radius: 999px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ion-text-color);
   background: var(--wl-field-bg);
@@ -562,7 +562,7 @@ ion-modal.filter-sheet.wl-dialog {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--wl-muted);
   }
@@ -574,7 +574,7 @@ ion-modal.filter-sheet.wl-dialog {
     padding: 0 10px;
     border-radius: 12px;
     font: inherit;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ion-text-color);
     color-scheme: inherit;
     background: var(--wl-field-bg);
@@ -604,7 +604,7 @@ ion-modal.filter-sheet.wl-dialog {
   flex: none;
   padding: 0 4px;
   font: inherit;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--wl-muted);
   background: none;

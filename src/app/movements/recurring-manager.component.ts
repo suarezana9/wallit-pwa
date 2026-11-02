@@ -73,7 +73,7 @@ import { PreferencesStore } from '../core/preferences-store';
     </ion-modal>
   `,
   styles: `
-    .intro { margin: 0 0 14px; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
+    .intro { margin: 0 0 14px; font-size: 15px; line-height: 1.45; color: var(--wl-muted); }
     .row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--wl-field-border); }
     .row.paused .avatar, .row.paused .text, .row.paused .amount { opacity: 0.5; }
     .avatar {
@@ -81,10 +81,10 @@ import { PreferencesStore } from '../core/preferences-store';
       background: color-mix(in srgb, var(--c) 14%, transparent);
     }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-    .text strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .text span { font-size: 12px; color: var(--wl-muted); }
+    .text strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .text span { font-size: 13px; color: var(--wl-muted); }
     .amount {
-      flex: none; padding: 6px 10px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums;
+      flex: none; padding: 6px 10px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
       color: inherit; background: var(--wl-field-bg); border: 1px solid var(--wl-field-border); cursor: pointer;
     }
     .switch {
@@ -100,7 +100,7 @@ import { PreferencesStore } from '../core/preferences-store';
     .delete { flex: none; display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; background: none; font-size: 18px; color: var(--wl-muted); cursor: pointer; }
     .empty { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 32px 12px; text-align: center; }
     .empty span { font-size: 30px; }
-    .empty p { margin: 0; font-size: 13px; line-height: 1.45; color: var(--wl-muted); }
+    .empty p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--wl-muted); }
   `,
 })
 export class RecurringManagerComponent {

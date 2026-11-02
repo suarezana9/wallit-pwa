@@ -61,28 +61,28 @@ const DAY_MS = 24 * 60 * 60 * 1000;
   styles: `
     .trip {
       display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border-radius: 20px;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(108, 71, 255, 0.08));
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(var(--ion-color-primary-rgb), 0.08));
       border: 1px solid rgba(14, 165, 233, 0.25);
     }
     header { display: flex; align-items: center; gap: 12px; }
     .icon { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; color: #fff; background: #0ea5e9; }
     .title { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     h2 { margin: 0; font-size: 17px; }
-    .title span { font-size: 13px; color: var(--wl-muted); }
-    .status { flex: none; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--wl-field-bg); color: var(--wl-muted); }
+    .title span { font-size: 14px; color: var(--wl-muted); }
+    .status { flex: none; padding: 4px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; background: var(--wl-field-bg); color: var(--wl-muted); }
     .status.ongoing { color: #0369a1; background: rgba(14, 165, 233, 0.15); }
     .status.ended { color: var(--wl-muted); }
     .status.upcoming { color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.12); }
     .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
     @media (max-width: 600px) { .stats { grid-template-columns: repeat(2, 1fr); } }
     .stats div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 14px; background: var(--ion-background-color, #fff); }
-    .stats span { font-size: 12px; color: var(--wl-muted); }
+    .stats span { font-size: 13px; color: var(--wl-muted); }
     .stats strong { font-size: 17px; font-variant-numeric: tabular-nums; }
     .cats { display: flex; flex-wrap: wrap; gap: 6px; }
-    .cat { padding: 5px 10px; border-radius: 999px; font-size: 13px; background: var(--ion-background-color, #fff); }
+    .cat { padding: 5px 10px; border-radius: 999px; font-size: 14px; background: var(--ion-background-color, #fff); }
     .ended { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--ion-background-color, #fff); }
     .ended ion-icon { flex: none; font-size: 20px; color: #0ea5e9; }
-    .ended p { flex: 1; margin: 0; font-size: 14px; }
+    .ended p { flex: 1; margin: 0; font-size: 15px; }
   `,
 })
 export class TripSummaryComponent {

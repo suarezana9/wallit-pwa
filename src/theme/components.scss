@@ -12,15 +12,15 @@
 }
 
 :root.ion-palette-dark {
-  // Superficies un escalón arriba del fondo, con el mismo matiz violeta.
-  --wl-field-bg: #1f1c2b;
-  --wl-field-border: #302c42;
-  --wl-muted: #a7a2bf;
-  --wl-surface: #1c1928;
-  --wl-type-gasto: #ff6b6f;
-  --wl-type-ingreso: #4ade80;
-  --wl-type-ahorro: #60a5fa;
-  --wl-type-inversion: #f59e0b;
+  // Tres niveles de gris pizarra: fondo #16181D < paneles #1E2127 < campos #262A31, con bordes de 1px.
+  --wl-field-bg: #262a31;
+  --wl-field-border: #323741;
+  --wl-muted: #9aa3af;
+  --wl-surface: #1e2127;
+  --wl-type-gasto: #f07178;
+  --wl-type-ingreso: #4cc38a;
+  --wl-type-ahorro: #6ea8f0;
+  --wl-type-inversion: #e0b050;
   color-scheme: dark;
 }
 
@@ -31,7 +31,7 @@
 }
 
 .wl-field-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -60,7 +60,7 @@ ion-input.wl-input {
 
 .wl-field-error {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   color: var(--ion-color-danger);
 }
 
@@ -68,7 +68,7 @@ ion-input.wl-input {
   margin: 0;
   padding: 12px 14px;
   border-radius: 12px;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.4;
 }
 
@@ -200,18 +200,27 @@ ion-menu.wl-sidebar::part(container) {
   background: var(--wl-surface);
 }
 
-// Oscuro: botones principales con el degradé de la marca (el violeta plano se ve apagado sobre grafito)
-// y un brillo sutil arriba de los paneles para que tengan profundidad.
+// Oscuro: todo plano, sin brillos ni degradés.
 :root.ion-palette-dark {
-  ion-button.wl-btn-primary {
-    --background: linear-gradient(135deg, #8f6bff 0%, #6340f2 100%);
-    --background-hover: linear-gradient(135deg, #9a7cff 0%, #6b49f5 100%);
-    --background-activated: linear-gradient(135deg, #7c5cff 0%, #5534e0 100%);
-    --box-shadow: 0 8px 24px rgba(99, 64, 242, 0.35);
+  ion-fab-button {
+    --background: var(--ion-color-primary);
+    --background-activated: var(--ion-color-primary-shade);
+    --background-hover: var(--ion-color-primary-tint);
+    --color: var(--ion-color-primary-contrast);
+    --box-shadow: 0 0 0 4px var(--ion-background-color), 0 6px 16px rgba(0, 0, 0, 0.5);
   }
 
-  .wl-panel {
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  ion-button.wl-btn-secondary {
+    --background: var(--wl-field-bg);
+  }
+
+  ion-modal {
+    --background: var(--wl-surface);
+  }
+
+  // El contenido de los modales vive fuera del componente (Ionic lo mueve), por eso va acá.
+  .wl-summary-ai {
+    background: var(--wl-field-bg);
   }
 }
 
@@ -239,19 +248,9 @@ ion-alert.wl-alert-stacked .alert-button {
 // Botón "+" flotante: degradé de la marca y un aro del color del fondo, así se despega de
 // cualquier cosa que tenga detrás (por ejemplo, las barras violetas del gráfico).
 ion-fab-button {
-  --background: linear-gradient(135deg, #8f6bff 0%, #5a35f0 100%);
-  --background-activated: linear-gradient(135deg, #7c5cff 0%, #4c2ad6 100%);
-  --background-hover: linear-gradient(135deg, #9a7cff 0%, #643ff5 100%);
-  --box-shadow: 0 0 0 4px var(--ion-background-color, #fff), 0 10px 24px rgba(90, 53, 240, 0.45);
+  --background: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 100%);
+  --background-activated: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 100%);
+  --background-hover: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 100%);
+  --box-shadow: 0 0 0 4px var(--ion-background-color, #fff), 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.45);
   --color: #fff;
-}
-
-ion-fab {
-  transition: transform 0.22s ease, opacity 0.22s ease;
-}
-
-ion-content.wl-fab-hidden ion-fab {
-  transform: translateY(calc(100% + 32px));
-  opacity: 0;
-  pointer-events: none;
 }

@@ -70,11 +70,11 @@ import { amountForClipboard, parseAmount } from '../core/amount';
       border: 1px solid rgba(var(--ion-color-primary-rgb), 0.22);
     }
     header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 6px; }
-    h2 { margin: 0; font-size: 15px; font-weight: 700; }
-    header p { margin: 2px 0 0; font-size: 12px; color: var(--wl-muted); }
+    h2 { margin: 0; font-size: 16px; font-weight: 700; }
+    header p { margin: 2px 0 0; font-size: 13px; color: var(--wl-muted); }
     .all {
       flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px;
-      font: inherit; font-size: 13px; font-weight: 700; color: #fff; background: var(--ion-color-primary); border: 0; cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 700; color: #fff; background: var(--ion-color-primary); border: 0; cursor: pointer;
     }
     .all ion-spinner { width: 14px; height: 14px; color: #fff; }
     ul { list-style: none; margin: 0; padding: 0; }
@@ -85,11 +85,11 @@ import { amountForClipboard, parseAmount } from '../core/amount';
       background: color-mix(in srgb, var(--c) 14%, transparent);
     }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-    .text strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .text > span { font-size: 12px; color: var(--wl-muted); }
+    .text strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .text > span { font-size: 13px; color: var(--wl-muted); }
     .skip { padding: 0; border: 0; background: none; font: inherit; color: var(--wl-muted); text-decoration: underline; cursor: pointer; }
     .amount {
-      flex: none; padding: 6px 10px; border-radius: 10px; font: inherit; font-size: 14px; font-weight: 700;
+      flex: none; padding: 6px 10px; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 700;
       font-variant-numeric: tabular-nums; color: var(--ion-text-color); cursor: pointer;
       background: var(--ion-background-color, #fff); border: 1px dashed var(--wl-field-border);
     }
@@ -101,7 +101,7 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     .ok ion-spinner { width: 16px; height: 16px; }
     .manage {
       display: inline-flex; align-items: center; gap: 2px; margin-top: 2px; padding: 6px 0; border: 0; background: none;
-      font: inherit; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
     }
   `,
 })

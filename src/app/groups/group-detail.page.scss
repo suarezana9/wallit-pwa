@@ -3,7 +3,7 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 16px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--wl-muted);
   text-decoration: none;
@@ -30,7 +30,7 @@
   place-items: center;
   font-size: 22px;
   font-weight: 700;
-  color: #fff;
+  color: var(--ion-color-primary-contrast);
   background: var(--ion-color-primary);
 }
 
@@ -80,7 +80,7 @@
 .badge {
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--wl-muted);
   background: var(--wl-field-bg);
@@ -106,7 +106,7 @@
     padding: 10px 2px;
     margin-bottom: -1px;
     font: inherit;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
     color: var(--wl-muted);
     background: none;
@@ -146,7 +146,7 @@
 
 .hint {
   margin: 0 0 14px;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.45;
   color: var(--wl-muted);
 }
@@ -163,7 +163,7 @@
 }
 
 .code-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 
@@ -186,7 +186,7 @@
     margin: 0;
     --padding-start: 10px;
     --padding-end: 10px;
-    font-size: 14px;
+    font-size: 15px;
     white-space: nowrap;
   }
 }
@@ -226,7 +226,7 @@
 
 .member-name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .you {
@@ -235,7 +235,7 @@
 }
 
 .member-email {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -298,7 +298,7 @@
   padding: 12px;
   border-radius: 16px;
   background: var(--wl-field-bg);
-  font-size: 13px;
+  font-size: 14px;
   color: var(--wl-muted);
 
   img {
@@ -324,7 +324,7 @@
   margin-bottom: 16px;
   padding: 10px 14px;
   border-radius: 14px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--wl-muted);
   background: var(--wl-field-bg);
   border: 1px dashed var(--wl-field-border);
@@ -353,14 +353,14 @@
     border: 0;
     border-radius: 9px;
     font: inherit;
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--wl-muted);
     background: none;
     cursor: pointer;
 
     &.selected {
-      color: #fff;
+      color: var(--ion-color-primary-contrast);
       background: var(--ion-color-primary);
     }
   }
@@ -375,7 +375,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
   }
 
@@ -398,6 +398,6 @@
 }
 
 .split-mode-label {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
 }

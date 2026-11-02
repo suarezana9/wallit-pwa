@@ -97,17 +97,17 @@ import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.mod
     }
     .toggle > ion-icon { flex: none; font-size: 18px; color: var(--wl-muted); }
     .toggle-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .toggle-text strong { font-size: 14px; }
-    .toggle-text span { font-size: 12px; color: var(--wl-muted); }
+    .toggle-text strong { font-size: 15px; }
+    .toggle-text span { font-size: 13px; color: var(--wl-muted); }
     ul { list-style: none; margin: 0; padding: 0 12px 8px; max-height: 260px; overflow-y: auto; }
-    li label { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--wl-field-border); cursor: pointer; font-size: 14px; }
+    li label { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--wl-field-border); cursor: pointer; font-size: 15px; }
     li input { flex: none; width: 18px; height: 18px; accent-color: var(--ion-color-primary); }
     .desc { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .amount { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; }
     label.off .desc, label.off .amount { text-decoration: line-through; color: var(--wl-muted); }
     .add-refund {
       display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 4px 0; border: 0; background: none;
-      font: inherit; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
+      font: inherit; font-size: 15px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
     }
     .refund { display: flex; flex-direction: column; gap: 6px; }
     .refund-row { display: flex; align-items: center; gap: 8px; }
@@ -120,7 +120,7 @@ import { Detalle, excludedTotal, hasAdjustments, netAmount } from './detalle.mod
     .note { flex: 1; min-width: 0; padding: 0 12px; outline: none; }
     .money-input:focus-within, .note:focus { border-color: var(--ion-color-primary); }
     .remove { flex: none; display: grid; place-items: center; padding: 0; border: 0; background: none; font-size: 20px; color: var(--wl-muted); cursor: pointer; }
-    .breakdown { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 13px; color: var(--wl-muted); background: rgba(var(--ion-color-primary-rgb), 0.06); }
+    .breakdown { margin: 0; padding: 10px 12px; border-radius: 12px; font-size: 14px; color: var(--wl-muted); background: rgba(var(--ion-color-primary-rgb), 0.06); }
     .breakdown strong { color: var(--ion-text-color); }
   `,
 })

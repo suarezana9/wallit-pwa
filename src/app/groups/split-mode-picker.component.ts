@@ -36,8 +36,8 @@ import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
     .option.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.08); }
     .emoji { flex: none; font-size: 22px; }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-    .title { font-size: 14px; font-weight: 700; }
-    .hint { font-size: 12px; line-height: 1.35; color: var(--wl-muted); }
+    .title { font-size: 15px; font-weight: 700; }
+    .hint { font-size: 13px; line-height: 1.35; color: var(--wl-muted); }
     .radio { flex: none; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--wl-field-border); }
     .selected .radio { border: 5px solid var(--ion-color-primary); }
   `,

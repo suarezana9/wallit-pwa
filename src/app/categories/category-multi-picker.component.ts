@@ -33,7 +33,7 @@ import { CategoriesStore } from './categories-store';
   `,
   styles: `
     :host { display: block; container-type: inline-size; }
-    .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; }
+    .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 14px; }
     .count { color: var(--wl-muted); }
     .toggle-all { padding: 0; font: inherit; font-weight: 600; color: var(--ion-color-primary); background: none; border: 0; cursor: pointer; }
     .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
@@ -52,7 +52,7 @@ import { CategoriesStore } from './categories-store';
     .name { max-width: 100%; font-size: 11.5px; color: var(--wl-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .check {
       position: absolute; top: 4px; right: 8px; width: 16px; height: 16px; border-radius: 50%; display: none;
-      place-items: center; font-size: 10px; font-weight: 700; color: #fff; background: var(--ion-color-primary);
+      place-items: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--ion-color-primary);
     }
     .tile.selected { border-color: rgba(var(--ion-color-primary-rgb), 0.45); background: rgba(var(--ion-color-primary-rgb), 0.06); }
     .tile.selected .icon { opacity: 1; filter: none; }

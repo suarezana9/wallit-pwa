@@ -6,7 +6,7 @@
   ion-button {
     flex: 1;
     margin: 0;
-    font-size: 14px;
+    font-size: 15px;
     white-space: nowrap;
     --padding-start: 10px;
     --padding-end: 10px;
@@ -91,7 +91,7 @@
 .badge {
   padding: 2px 8px;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--wl-muted);
   background: var(--wl-field-bg);
@@ -126,7 +126,7 @@
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 
@@ -147,7 +147,7 @@
   padding: 7px 12px;
   border-radius: 10px;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ion-color-primary);
   background: rgba(var(--ion-color-primary-rgb), 0.1);
@@ -233,7 +233,7 @@
 }
 
 .option-hint {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--wl-muted);
 }
 
@@ -305,7 +305,7 @@
   border-radius: 8px;
   display: grid;
   place-items: center;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--wl-muted);
   background: var(--wl-field-border);
@@ -318,7 +318,7 @@
 }
 
 .archived-hint {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--wl-muted);
 }
 

@@ -49,20 +49,20 @@ const MAX_CHIPS = 4;
     :host(.compact) { padding: 0; border: 0; gap: 6px; background: transparent; }
     .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .name { font-weight: 700; font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    :host(.compact) .name { font-size: 14px; font-weight: 600; }
-    .badge { flex: none; padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; color: var(--tone); background: color-mix(in srgb, var(--tone) 13%, transparent); }
+    :host(.compact) .name { font-size: 15px; font-weight: 600; }
+    .badge { flex: none; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--tone); background: color-mix(in srgb, var(--tone) 13%, transparent); }
     .amounts { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
     .spent { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
     :host(.compact) .amounts { display: none; }
-    .of { font-size: 13px; color: var(--wl-muted); }
+    .of { font-size: 14px; color: var(--wl-muted); }
     .bar { height: 8px; border-radius: 999px; background: var(--wl-field-bg); overflow: hidden; }
     :host(.compact) .bar { height: 6px; }
     .bar span { display: block; height: 100%; border-radius: inherit; background: var(--tone); transition: width 0.3s ease; }
-    .left { font-size: 13px; font-weight: 600; color: var(--tone); }
+    .left { font-size: 14px; font-weight: 600; color: var(--tone); }
     :host(.status-ok) .left { color: var(--wl-muted); font-weight: 500; }
     .chips { display: flex; gap: 6px; margin-top: 2px; }
-    .chip { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; font-size: 14px; background: var(--wl-field-bg); }
-    .chip.more { width: auto; padding: 0 8px; font-size: 12px; font-weight: 600; color: var(--wl-muted); }
+    .chip { width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; background: var(--wl-field-bg); }
+    .chip.more { width: auto; padding: 0 8px; font-size: 13px; font-weight: 600; color: var(--wl-muted); }
   `,
 })
 export class BudgetCardComponent {

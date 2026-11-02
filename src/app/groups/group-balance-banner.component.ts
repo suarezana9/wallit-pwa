@@ -42,8 +42,8 @@ import { GroupsStore } from './groups-store';
     .icon { flex: none; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 18px; color: #fff; background: var(--accent); }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .text strong { color: var(--accent); font-variant-numeric: tabular-nums; }
-    .text span { font-size: 12px; color: var(--wl-muted); }
-    .cta { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; color: var(--accent); }
+    .text span { font-size: 13px; color: var(--wl-muted); }
+    .cta { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 600; color: var(--accent); }
   `,
 })
 export class GroupBalanceBannerComponent {

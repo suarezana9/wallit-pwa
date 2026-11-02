@@ -53,7 +53,7 @@ import { GroupsStore } from './groups-store';
     h1 { margin: 0; font-size: 21px; font-weight: 700; }
     p { margin: 0; color: var(--wl-muted); }
     ion-button { width: 100%; margin: 6px 0 0; }
-    .later { font-size: 14px; font-weight: 600; color: var(--wl-muted); text-decoration: none; }
+    .later { font-size: 15px; font-weight: 600; color: var(--wl-muted); text-decoration: none; }
   `,
 })
 export class JoinPage {

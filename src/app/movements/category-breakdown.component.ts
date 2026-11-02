@@ -44,16 +44,16 @@ interface CategoryRow {
     }
     .row:hover { background: var(--wl-field-bg); }
     .row.active { background: rgba(var(--ion-color-primary-rgb), 0.08); }
-    .row-head { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+    .row-head { display: flex; justify-content: space-between; gap: 8px; font-size: 15px; }
     .name { min-width: 0; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .amount { flex: none; font-variant-numeric: tabular-nums; color: var(--wl-muted); }
-    .pct { display: inline-block; min-width: 3.2ch; margin-left: 4px; font-size: 12px; text-align: right; opacity: 0.8; }
+    .pct { display: inline-block; min-width: 3.2ch; margin-left: 4px; font-size: 13px; text-align: right; opacity: 0.8; }
     .bar { display: block; height: 6px; border-radius: 999px; background: var(--wl-field-bg); overflow: hidden; }
     .bar span { display: block; height: 100%; border-radius: inherit; }
-    .empty { margin: 0; color: var(--wl-muted); font-size: 14px; }
+    .empty { margin: 0; color: var(--wl-muted); font-size: 15px; }
     .more {
       align-self: flex-start; margin-top: 4px; padding: 6px 0; border: 0; background: none;
-      font: inherit; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
+      font: inherit; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
     }
   `,
 })

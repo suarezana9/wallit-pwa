@@ -127,3 +127,18 @@ export function imageFromDrop(event: DragEvent): File | null {
   const file = event.dataTransfer?.files?.[0];
   return file && file.type.startsWith('image/') ? file : null;
 }
+
+/** Leer una imagen copiada con un botón (iPhone: aparece la burbuja "Pegar" para confirmar). */
+export function canReadClipboard(): boolean {
+  return typeof navigator !== 'undefined' && typeof navigator.clipboard?.read === 'function';
+}
+
+/** La primera imagen del portapapeles, o null si lo copiado no es una imagen. */
+export async function readClipboardImage(): Promise<Blob | null> {
+  const items = await navigator.clipboard.read();
+  for (const item of items) {
+    const type = item.types.find((t) => t.startsWith('image/'));
+    if (type) return item.getType(type);
+  }
+  return null;
+}

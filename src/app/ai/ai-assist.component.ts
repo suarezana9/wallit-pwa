@@ -2,7 +2,7 @@ import { Component, inject, input, output, signal } from '@angular/core';
 import { IonIcon } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  arrowUp, cameraOutline, checkmarkCircle, closeOutline, cloudUploadOutline, createOutline, imagesOutline,
+  arrowUp, cameraOutline, checkmarkCircle, clipboardOutline, closeOutline, cloudUploadOutline, createOutline, imagesOutline,
   micOutline, refreshOutline, sparkles, stop,
 } from 'ionicons/icons';
 import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
@@ -37,7 +37,7 @@ export class AiAssistComponent {
 
   constructor() {
     addIcons({
-      arrowUp, cameraOutline, checkmarkCircle, closeOutline, cloudUploadOutline, createOutline, imagesOutline,
+      arrowUp, cameraOutline, checkmarkCircle, clipboardOutline, closeOutline, cloudUploadOutline, createOutline, imagesOutline,
       micOutline, refreshOutline, sparkles, stop,
     });
     this.session.listen((result) => {

@@ -30,7 +30,6 @@ import { GroupBalanceBannerComponent } from '../groups/group-balance-banner.comp
 import { RecurringManagerComponent } from '../movements/recurring-manager.component';
 import { RecurringPendingComponent } from '../movements/recurring-pending.component';
 
-import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
 import { MonthlySummaryComponent } from '../movements/monthly-summary.component';
 import { isMonthKey, monthNameOf } from '../movements/summary.model';
 import { monthRange } from '../core/dates';
@@ -51,7 +50,6 @@ function readClosed(): string | null {
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
-    FabAutoHideDirective,
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
     MonthNavComponent, MonthlyChartComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,

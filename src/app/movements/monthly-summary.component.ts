@@ -79,7 +79,7 @@ type Status = 'loading' | 'ready' | 'error';
                       </div>
                     </section>
 
-                    <section class="ai" [class.fallback]="!ai()" aria-live="polite">
+                    <section class="ai wl-summary-ai" [class.fallback]="!ai()" aria-live="polite">
                       <span class="eyebrow"><ion-icon name="sparkles" aria-hidden="true" /> {{ (ai() ? 'summaryAiEyebrow' : 'summaryNoAi') | t }}</span>
                       @if (aiLoading()) {
                         <p class="muted">{{ 'summaryAiLoading' | t }}</p>
@@ -162,34 +162,34 @@ type Status = 'loading' | 'ready' | 'error';
       background: var(--wl-field-bg); border: 1px solid var(--wl-field-border);
       display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
     }
-    .label { font-size: 13px; color: var(--wl-muted); }
+    .label { font-size: 14px; color: var(--wl-muted); }
     .total { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
     .badge {
-      display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600;
       padding: 3px 9px; border-radius: 999px; background: var(--wl-surface); color: var(--wl-muted);
     }
     .badge.up { color: var(--ion-color-danger); background: color-mix(in srgb, var(--ion-color-danger) 12%, transparent); }
     .badge.down { color: var(--ion-color-success); background: color-mix(in srgb, var(--ion-color-success) 12%, transparent); }
     .minis { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 8px; font-weight: 600; font-variant-numeric: tabular-nums; }
-    .minis span { display: flex; flex-direction: column; font-size: 14px; }
-    .minis small { font-size: 11px; font-weight: 500; color: var(--wl-muted); }
+    .minis span { display: flex; flex-direction: column; font-size: 15px; }
+    .minis small { font-size: 12px; font-weight: 500; color: var(--wl-muted); }
     .ai {
       position: relative; padding: 16px 18px; border-radius: 18px; margin-bottom: 18px;
       background: linear-gradient(135deg, color-mix(in srgb, var(--ion-color-primary) 14%, var(--wl-field-bg)), var(--wl-field-bg));
       border: 1px solid color-mix(in srgb, var(--ion-color-primary) 30%, var(--wl-field-border));
     }
     .ai.fallback { background: var(--wl-field-bg); border-color: var(--wl-field-border); }
-    .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--ion-color-primary); text-transform: uppercase; letter-spacing: 0.04em; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--ion-color-primary); text-transform: uppercase; letter-spacing: 0.04em; }
     .ai.fallback .eyebrow { color: var(--wl-muted); }
     .ai h3 { margin: 8px 0 6px; font-size: 17px; line-height: 1.3; }
-    .ai ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 14px; line-height: 1.45; }
-    .tip { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--wl-surface); font-size: 14px; line-height: 1.45; }
-    .why { margin: 10px 0 0; font-size: 12px; color: var(--wl-muted); }
+    .ai ul { margin: 0; padding-inline-start: 18px; display: grid; gap: 6px; font-size: 15px; line-height: 1.45; }
+    .tip { margin: 12px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--wl-surface); font-size: 15px; line-height: 1.45; }
+    .why { margin: 10px 0 0; font-size: 13px; color: var(--wl-muted); }
     .link {
       display: inline-flex; align-items: center; gap: 4px; margin-top: 10px; padding: 0;
-      background: none; border: 0; font: inherit; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
+      background: none; border: 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--ion-color-primary); cursor: pointer;
     }
-    h4 { margin: 0 0 6px; font-size: 13px; font-weight: 700; color: var(--wl-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    h4 { margin: 0 0 6px; font-size: 14px; font-weight: 700; color: var(--wl-muted); text-transform: uppercase; letter-spacing: 0.04em; }
     section + section { margin-top: 4px; }
     .row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid var(--wl-field-border); }
     .row:last-child { margin-bottom: 14px; }
@@ -198,12 +198,12 @@ type Status = 'loading' | 'ready' | 'error';
       background: color-mix(in srgb, var(--c) 18%, transparent);
     }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-    .text strong { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .text span { font-size: 12px; color: var(--wl-muted); font-variant-numeric: tabular-nums; }
-    .delta { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+    .text strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .text span { font-size: 13px; color: var(--wl-muted); font-variant-numeric: tabular-nums; }
+    .delta { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; }
     .delta.up { color: var(--ion-color-danger); }
     .delta.down { color: var(--ion-color-success); }
-    .muted { color: var(--wl-muted); font-size: 14px; margin: 4px 0 14px; }
+    .muted { color: var(--wl-muted); font-size: 15px; margin: 4px 0 14px; }
     .see { margin-top: 8px; }
     .empty { text-align: center; padding: 40px 12px; display: grid; justify-items: center; gap: 6px; }
     .empty span { font-size: 36px; }

@@ -4,7 +4,7 @@
   "short_name": "Wallit",
   "description": "Control de gastos del hogar",
   "lang": "es",
-  "theme_color": "#6C47FF",
+  "theme_color": "#0C8C60",
   "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
