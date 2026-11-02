@@ -3,6 +3,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { imagePrompt, readContext, sanitizeMany, textPrompt, type ParsedMovement, type PromptContext } from './parse.ts';
 import { isMissingFunction, quotaVerdict, type QuotaKind } from './quota.ts';
+import { readSummaryInput, sanitizeSummary, summaryPrompt } from './summary.ts';
 
 const GROQ_URL = Deno.env.get('GROQ_BASE_URL') ?? 'https://api.groq.com/openai/v1';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY') ?? '';
@@ -149,6 +150,24 @@ async function prepare(req: Request): Promise<Job> {
   if (body.mode === 'text') {
     if (!String(body.text ?? '').trim()) throw new HttpError(400, 'EMPTY_TEXT');
     return { tipo: 'texto', run: async () => result(await fromText(String(body.text ?? ''), ctx)) };
+  }
+
+  // Resumen mensual: números ya calculados por la app → título, observaciones y un consejo.
+  if (body.mode === 'summary') {
+    const input = readSummaryInput(body);
+    if (!input) throw new HttpError(400, 'BAD_SUMMARY');
+    return {
+      tipo: 'texto',
+      run: async () => {
+        const raw = await groqChat(TEXT_MODEL, summaryPrompt(input), 'low', 1024);
+        try {
+          return json({ summary: sanitizeSummary(raw) });
+        } catch (error) {
+          console.error('resumen no válido del modelo:', raw.slice(0, 500));
+          throw error;
+        }
+      },
+    };
   }
 
   if (body.mode === 'image') {

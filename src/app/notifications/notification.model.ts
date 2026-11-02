@@ -1,9 +1,9 @@
 import type { Json } from '../core/database.types';
 
 /** Claves de users.notif_config (compartido con la app móvil). Las que faltan valen como activadas. */
-export type NotifPref = 'gasto_grupo' | 'pagos' | 'presupuesto' | 'deudas';
+export type NotifPref = 'gasto_grupo' | 'pagos' | 'presupuesto' | 'deudas' | 'resumen_mensual';
 
-export const NOTIF_PREFS: readonly NotifPref[] = ['gasto_grupo', 'pagos', 'presupuesto', 'deudas'];
+export const NOTIF_PREFS: readonly NotifPref[] = ['gasto_grupo', 'pagos', 'presupuesto', 'deudas', 'resumen_mensual'];
 
 export function readPref(config: Json | null | undefined, pref: NotifPref): boolean {
   const value = config && typeof config === 'object' && !Array.isArray(config) ? config[pref] : undefined;

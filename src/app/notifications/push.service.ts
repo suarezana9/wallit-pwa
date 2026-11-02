@@ -1,4 +1,4 @@
-import { Service, computed, inject, resource, signal } from '@angular/core';
+import { Service, computed, effect, inject, resource, signal, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { SwPush } from '@angular/service-worker';
 import { environment } from '../../environments/environment';
@@ -29,6 +29,34 @@ export class PushService {
   private readonly permission = signal<NotificationPermission>(typeof Notification === 'undefined' ? 'denied' : Notification.permission);
   private readonly subscription = toSignal(this.swPush.subscription, { initialValue: null });
   readonly busy = signal(false);
+  /** Endpoint + cuenta ya registrados en esta sesión. */
+  private synced = '';
+
+  constructor() {
+    // Al abrir la app, si este dispositivo ya tiene avisos, se vuelve a registrar: así el servidor borra
+    // registros viejos del mismo navegador (que hacían llegar los avisos dos veces) y recupera uno perdido.
+    effect(() => {
+      const subscription = this.subscription();
+      const userId = this.auth.user()?.id;
+      if (!subscription || !userId) return;
+      const key = `${subscription.endpoint}|${userId}`;
+      if (key === this.synced) return;
+      this.synced = key;
+      untracked(() => void this.save(subscription));
+    });
+  }
+
+  private async save(subscription: PushSubscription): Promise<boolean> {
+    const { endpoint, keys } = subscription.toJSON();
+    if (!endpoint || !keys?.['p256dh'] || !keys?.['auth']) return false;
+    const { error } = await this.supabase.rpc('guardar_suscripcion_push', {
+      p_endpoint: endpoint,
+      p_p256dh: keys['p256dh'],
+      p_auth: keys['auth'],
+      p_user_agent: navigator.userAgent,
+    });
+    return !error;
+  }
 
   readonly status = computed(() =>
     pushStatus({
@@ -78,15 +106,8 @@ export class PushService {
         new Promise<never>((_, reject) => setTimeout(() => reject(new Error('PUSH_TIMEOUT')), 20_000)),
       ]);
       this.permission.set(Notification.permission);
-      const { endpoint, keys } = subscription.toJSON();
-      if (!endpoint || !keys?.['p256dh'] || !keys?.['auth']) return this.i18n.t('errPush');
-      const { error } = await this.supabase.rpc('guardar_suscripcion_push', {
-        p_endpoint: endpoint,
-        p_p256dh: keys['p256dh'],
-        p_auth: keys['auth'],
-        p_user_agent: navigator.userAgent,
-      });
-      return error ? this.i18n.t('errPush') : null;
+      this.synced = `${subscription.endpoint}|${this.auth.user()?.id}`;
+      return (await this.save(subscription)) ? null : this.i18n.t('errPush');
     } catch {
       this.permission.set(typeof Notification === 'undefined' ? 'denied' : Notification.permission);
       return this.permission() === 'denied' ? this.i18n.t('pushDeniedHint') : this.i18n.t('errPush');

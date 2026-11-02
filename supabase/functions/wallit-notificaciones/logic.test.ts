@@ -1,6 +1,7 @@
 import { deepStrictEqual as assertEquals, ok } from 'node:assert';
 import {
-  activityDeliveries, budgetMessage, debtDeliveries, netBalances, ngswPayload, reachedThresholds, settleUp, wants,
+  activityDeliveries, budgetMessage, debtDeliveries, netBalances, ngswPayload, reachedThresholds, settleUp, summaryMessage,
+  subscriptionsByDevice, totalsByCategory, wants,
 } from './logic.ts';
 
 const group = { id: 'g1', name: 'Casa', currency: 'ARS' };
@@ -67,4 +68,35 @@ Deno.test('saldos y recordatorio de deudas', () => {
 Deno.test('payload con el formato de ngsw', () => {
   const payload = JSON.parse(ngswPayload({ title: 't', body: 'b', url: '/grupos/g1', tag: 'x' }));
   assertEquals(payload.notification.data.onActionClick.default, { operation: 'navigateLastFocusedOrOpen', url: '/grupos/g1' });
+});
+
+Deno.test('resumen mensual: total, variación y la categoría que más subió', () => {
+  const current = totalsByCategory([
+    { amount: 100000, category: 'Supermercado', tipo: 'gasto' },
+    { amount: 27000, category: 'Delivery', tipo: 'gasto' },
+    { amount: 500000, category: 'Tarjeta de crédito', tipo: 'pago_tarjeta' },
+    { amount: 900000, category: 'Otros', tipo: 'ingreso' },
+  ]);
+  assertEquals(current, { Supermercado: 100000, Delivery: 27000 });
+  const msg = summaryMessage('2026-10', 'octubre', 'septiembre', { current, previous: { Supermercado: 110000, Delivery: 20000 } });
+  assertEquals(msg?.title, '📊 Tu resumen de octubre');
+  ok(msg!.body.startsWith('Gastaste $ 127.000 (−2% vs septiembre). Delivery subió 35%.'), msg!.body);
+  assertEquals(msg?.url, '/inicio?resumen=2026-10');
+  assertEquals(summaryMessage('2026-10', 'octubre', 'septiembre', { current: {}, previous: {} }), null);
+  const first = summaryMessage('2026-10', 'octubre', 'septiembre', { current: { Bar: 5000 }, previous: {} });
+  ok(first!.body.startsWith('Gastaste $ 5.000. Tocá'), first!.body);
+});
+
+Deno.test('un aviso por dispositivo: misma persona y navegador → la suscripción más nueva primero', () => {
+  const sub = (id: string, user_id: string, user_agent: string | null, created_at: string) =>
+    ({ id, user_id, endpoint: `https://push/${id}`, p256dh: 'k', auth: 'a', user_agent, created_at });
+  const iphone = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X)';
+  const devices = subscriptionsByDevice([
+    sub('vieja', 'ana', iphone, '2026-10-01T00:00:00Z'),
+    sub('nueva', 'ana', iphone, '2026-11-01T00:00:00Z'),
+    sub('compu', 'ana', 'Mozilla/5.0 (Windows NT 10.0)', '2026-09-01T00:00:00Z'),
+    sub('sin-ua', 'ana', null, '2026-09-01T00:00:00Z'),
+    sub('otra', 'luigi', iphone, '2026-11-01T00:00:00Z'),
+  ], 'ana');
+  assertEquals(devices.map((d) => d.map((s) => s.id)), [['nueva', 'vieja'], ['compu'], ['sin-ua']]);
 });

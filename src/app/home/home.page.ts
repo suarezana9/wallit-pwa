@@ -1,11 +1,11 @@
 import { Component, computed, inject, signal, viewChild } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   IonButton, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonRefresher,
   IonRefresherContent, IonSkeletonText, IonToolbar, RefresherCustomEvent, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, copyOutline } from 'ionicons/icons';
+import { add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, closeOutline, copyOutline, sparkles } from 'ionicons/icons';
 import { ProfileStore } from '../core/profile-store';
 import { MoneyPipe, formatMoney } from '../core/money';
 import { amountForClipboard } from '../core/amount';
@@ -31,6 +31,21 @@ import { RecurringManagerComponent } from '../movements/recurring-manager.compon
 import { RecurringPendingComponent } from '../movements/recurring-pending.component';
 
 import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
+import { MonthlySummaryComponent } from '../movements/monthly-summary.component';
+import { isMonthKey, monthNameOf } from '../movements/summary.model';
+import { monthRange } from '../core/dates';
+
+/** Hasta qué día del mes se muestra la tarjeta con el resumen del mes anterior. */
+const SUMMARY_CARD_UNTIL_DAY = 10;
+const SUMMARY_CLOSED_KEY = 'wallit_resumen_cerrado';
+
+function readClosed(): string | null {
+  try {
+    return localStorage.getItem(SUMMARY_CLOSED_KEY);
+  } catch {
+    return null;
+  }
+}
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -39,7 +54,7 @@ import { FabAutoHideDirective } from '../shared/fab-auto-hide.directive';
     FabAutoHideDirective,
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
-    MonthNavComponent, MonthlyChartComponent, MovementEditorComponent, MovementListComponent,
+    MonthNavComponent, MonthlyChartComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,
     RecurringManagerComponent, RecurringPendingComponent, RouterLink, TranslatePipe, WallitLogoComponent,
   ],
 })
@@ -52,6 +67,7 @@ export class HomePage {
   readonly mobileTitle = computed(() => this.i18n.t('hello', this.displayName()));
   readonly editor = viewChild.required(MovementEditorComponent);
   readonly fixedManager = viewChild.required(RecurringManagerComponent);
+  readonly monthlySummary = viewChild.required(MonthlySummaryComponent);
   private readonly i18n = inject(I18n);
   private readonly groups = inject(GroupsStore);
   private readonly preferences = inject(PreferencesStore);
@@ -60,6 +76,34 @@ export class HomePage {
   private readonly router = inject(Router);
   private readonly toasts = inject(ToastController);
   readonly copied = signal(false);
+  private readonly route = inject(ActivatedRoute);
+
+  /** Mes del que se ofrece el resumen: el que estás mirando si es pasado, o el anterior en los primeros días del mes. */
+  private readonly closedSummary = signal(readClosed());
+  private readonly summaryScope = computed(() => this.groups.activeGroupId() ?? 'personal');
+  readonly summaryCardMonth = computed(() => {
+    if (this.store.monthOffset() !== 0 || new Date().getDate() > SUMMARY_CARD_UNTIL_DAY) return null;
+    const points = this.insights.months();
+    const previous = points[points.length - 2];
+    if (!previous?.gastos) return null;
+    return this.closedSummary() === `${previous.key}|${this.summaryScope()}` ? null : previous.key;
+  });
+  readonly pastMonth = computed(() => (this.store.monthOffset() < 0 ? monthRange(this.store.monthOffset()).from.slice(0, 7) : null));
+  readonly monthNameOf = (month: string) => monthNameOf(month, this.preferences.locale());
+
+  openSummary(month: string): void {
+    this.monthlySummary().open(month, this.groups.activeGroupId());
+  }
+
+  closeSummaryCard(month: string): void {
+    const value = `${month}|${this.summaryScope()}`;
+    this.closedSummary.set(value);
+    try {
+      localStorage.setItem(SUMMARY_CLOSED_KEY, value);
+    } catch {
+      // Sin almacenamiento: se oculta hasta que recargues.
+    }
+  }
 
   readonly kpis = computed(() => {
     const s = this.summary();
@@ -120,13 +164,19 @@ export class HomePage {
   });
 
   constructor() {
-    addIcons({ add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, copyOutline });
+    addIcons({ add, arrowDownOutline, arrowUpOutline, checkmark, chevronForward, closeOutline, copyOutline, sparkles });
   }
 
   /** Hook de Ionic: corre cada vez que se entra a Inicio, también si la página ya estaba creada. */
   ionViewDidEnter(): void {
     const shared = this.shareInbox.claim();
     if (shared) this.editor().openNew(shared);
+    // Desde el aviso del día 1: /inicio?resumen=YYYY-MM (es siempre del espacio personal).
+    const month = this.route.snapshot.queryParamMap.get('resumen');
+    if (isMonthKey(month)) {
+      this.monthlySummary().open(month, null);
+      void this.router.navigate([], { relativeTo: this.route, queryParams: { resumen: null }, replaceUrl: true });
+    }
   }
 
   private percent(value: number): string {

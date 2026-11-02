@@ -37,6 +37,11 @@ import { MovementItemComponent } from './movement-item.component';
             >
               <ion-icon slot="icon-only" name="trash-outline" />
             </ion-button>
+            } @else if (!readonly()) {
+              <!-- Movimientos de otra persona: mismo hueco que el botón de borrar, así los montos quedan alineados. -->
+              <ion-button slot="end" class="row-delete row-spacer ion-hide-lg-down" fill="clear" aria-hidden="true" tabindex="-1">
+                <ion-icon slot="icon-only" name="trash-outline" />
+              </ion-button>
             }
           </ion-item>
           <ion-item-options side="end">
@@ -72,6 +77,7 @@ import { MovementItemComponent } from './movement-item.component';
       ion-item-sliding { margin: 0 -12px; border-radius: 12px; }
       .row-delete { opacity: 0; transition: opacity 0.15s ease; }
       .row:hover .row-delete, .row:focus-within .row-delete { opacity: 1; }
+      .row .row-spacer, .row:hover .row-spacer { visibility: hidden; pointer-events: none; }
     }
   `,
 })

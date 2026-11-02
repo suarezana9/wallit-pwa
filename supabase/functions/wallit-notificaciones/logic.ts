@@ -1,7 +1,7 @@
 // Lógica pura de las notificaciones: a quién avisar y qué decir. Sin Deno ni Supabase, para testear aparte.
 // Los saldos repiten las reglas de src/app/groups/balances.model.ts (centavos, división y saldar con pocas transferencias).
 
-export type Pref = 'gasto_grupo' | 'pagos' | 'presupuesto' | 'deudas';
+export type Pref = 'gasto_grupo' | 'pagos' | 'presupuesto' | 'deudas' | 'resumen_mensual';
 
 export interface Message {
   title: string;
@@ -18,7 +18,7 @@ export interface Delivery {
   message: Message;
 }
 
-const PREF_DEFAULTS: Record<Pref, boolean> = { gasto_grupo: true, pagos: true, presupuesto: true, deudas: true };
+const PREF_DEFAULTS: Record<Pref, boolean> = { gasto_grupo: true, pagos: true, presupuesto: true, deudas: true, resumen_mensual: true };
 
 /** notif_config es compartido con la app móvil: si una clave no está, vale el default (activada). */
 export function wants(config: unknown, pref: Pref): boolean {
@@ -140,6 +140,61 @@ export function budgetMessage(budget: { id: string; name: string }, percent: num
       };
 }
 
+// ---------- Resumen mensual ----------
+
+export interface MonthTotals {
+  /** Gasto por categoría del mes que se resume y del anterior. */
+  current: Record<string, number>;
+  previous: Record<string, number>;
+}
+
+/** Suma por categoría (solo gastos: los pagos de tarjeta y el resto de los tipos no cuentan). */
+export function totalsByCategory(rows: readonly { amount: number | string; category: string; tipo: string }[]): Record<string, number> {
+  const totals: Record<string, number> = {};
+  for (const r of rows) {
+    if (r.tipo !== 'gasto') continue;
+    totals[r.category] = Math.round(((totals[r.category] ?? 0) + Number(r.amount)) * 100) / 100;
+  }
+  return totals;
+}
+
+/**
+ * "📊 Tu resumen de octubre" + "Gastaste $X (−8% vs septiembre). Delivery subió 35%."
+ * null si ese mes no hubo gastos (no tiene sentido avisar).
+ */
+export function summaryMessage(
+  month: string,
+  monthName: string,
+  previousName: string,
+  totals: MonthTotals,
+  currency = 'ARS',
+): Message | null {
+  const now = Object.values(totals.current).reduce((s, v) => s + v, 0);
+  if (now <= 0) return null;
+  const before = Object.values(totals.previous).reduce((s, v) => s + v, 0);
+  const parts = [`Gastaste ${formatMoney(Math.round(now), currency)}`];
+  if (before > 0) {
+    const pct = Math.round(((now - before) / before) * 100);
+    parts[0] += pct === 0 ? ` (igual que ${previousName})` : ` (${pct > 0 ? '+' : '−'}${Math.abs(pct)}% vs ${previousName})`;
+    // La categoría que más subió en plata, si subió algo que se note.
+    let best: { category: string; delta: number; pct: number | null } | null = null;
+    for (const [category, value] of Object.entries(totals.current)) {
+      const prev = totals.previous[category] ?? 0;
+      const delta = value - prev;
+      if (delta > Math.max(1, before * 0.05) && (!best || delta > best.delta)) {
+        best = { category, delta, pct: prev > 0 ? Math.round((delta / prev) * 100) : null };
+      }
+    }
+    if (best) parts.push(best.pct === null ? `${best.category} fue lo nuevo del mes.` : `${best.category} subió ${best.pct}%.`);
+  }
+  return {
+    title: `📊 Tu resumen de ${monthName}`,
+    body: `${parts[0]}.${parts[1] ? ` ${parts[1]}` : ''} Tocá para ver lo que encontró la IA.`,
+    url: `/inicio?resumen=${month}`,
+    tag: `resumen-${month}`,
+  };
+}
+
 // ---------- Saldos y recordatorio de deudas ----------
 
 type Division = { tipo: 'iguales'; entre: string[] } | { tipo: 'montos'; partes: Record<string, number> };
@@ -251,4 +306,30 @@ export function ngswPayload(message: Message): string {
       data: { onActionClick: { default: { operation: 'navigateLastFocusedOrOpen', url: message.url } } },
     },
   });
+}
+
+export interface SubscriptionRow {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  user_agent: string | null;
+  created_at: string;
+}
+
+/**
+ * Suscripciones por dispositivo: el mismo celular puede quedar registrado dos veces (reinstalar la app,
+ * volver a activar los avisos) y el aviso llegaría duplicado. Agrupa por persona + navegador y ordena de la
+ * más nueva a la más vieja: se manda a la primera y, solo si esa ya no existe (404/410), se prueba la siguiente.
+ */
+export function subscriptionsByDevice(subs: readonly SubscriptionRow[], userId: string): SubscriptionRow[][] {
+  const devices = new Map<string, SubscriptionRow[]>();
+  for (const sub of subs) {
+    if (sub.user_id !== userId) continue;
+    // Sin user agent no sabemos si es el mismo dispositivo: cada una cuenta aparte.
+    const key = sub.user_agent?.trim() || `id:${sub.id}`;
+    devices.set(key, [...(devices.get(key) ?? []), sub]);
+  }
+  return [...devices.values()].map((list) => [...list].sort((a, b) => b.created_at.localeCompare(a.created_at)));
 }

@@ -11,6 +11,7 @@ const PREF_LABELS: Record<NotifPref, { title: TranslationKey; hint: TranslationK
   pagos: { title: 'prefPayments', hint: 'prefPaymentsHint' },
   presupuesto: { title: 'prefBudgets', hint: 'prefBudgetsHint' },
   deudas: { title: 'prefDebts', hint: 'prefDebtsHint' },
+  resumen_mensual: { title: 'prefSummary', hint: 'prefSummaryHint' },
 };
 
 const STATUS_TEXT: Record<PushStatus, TranslationKey> = {

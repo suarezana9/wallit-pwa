@@ -147,6 +147,21 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['expenses']['Row']>;
         Relationships: [];
       };
+      resumenes_ia: {
+        Row: {
+          user_id: string;
+          /** 'personal' o el id del grupo. */
+          espacio: string;
+          /** 'YYYY-MM'. */
+          mes: string;
+          idioma: 'es' | 'en';
+          contenido: Json;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['resumenes_ia']['Row'], 'user_id' | 'created_at'> & { user_id?: string };
+        Update: Partial<Database['public']['Tables']['resumenes_ia']['Row']>;
+        Relationships: [];
+      };
       recurrentes: {
         Row: {
           id: string;

@@ -6,6 +6,7 @@ import { Supabase } from '../core/supabase';
 import { CategoriesStore } from '../categories/categories-store';
 import { AiErrorKey, AiResult, errorKeyFor, normalizeAiResponse } from './ai.model';
 import { audioExtension } from './media';
+import type { SummaryText } from '../movements/summary.model';
 
 const FUNCTION_NAME = 'wallit-ia';
 
@@ -40,6 +41,25 @@ export class AiService {
     form.append('audio', audio, `voz.${audioExtension(audio.type)}`);
     form.append('context', JSON.stringify(this.context()));
     return this.call(form);
+  }
+
+  /** Resumen mensual: números ya calculados → título, observaciones y consejo (cuesta como un texto). */
+  async summary(report: Record<string, unknown>): Promise<SummaryText> {
+    const { data, error } = await this.supabase.functions.invoke<{ summary?: { titulo?: string; puntos?: string[]; consejo?: string | null } }>(
+      FUNCTION_NAME,
+      { body: { mode: 'summary', report, lang: this.preferences.language(), currency: this.preferences.currency() } },
+    );
+    if (error) {
+      let code: string | undefined;
+      if (error instanceof FunctionsHttpError) {
+        code = await (error.context as Response).json().then((p: { error?: string }) => p.error).catch(() => undefined);
+      }
+      console.warn('[wallit-ia resumen]', code ?? error.name, error.message);
+      throw new AiError(errorKeyFor(code));
+    }
+    const s = data?.summary;
+    if (!s?.titulo || !Array.isArray(s.puntos) || !s.puntos.length) throw new AiError('errAi');
+    return { title: s.titulo, points: s.puntos.slice(0, 3), tip: s.consejo ?? null };
   }
 
   /** Cuánto de la IA usaste hoy (migración 018). null si el límite no está instalado. */

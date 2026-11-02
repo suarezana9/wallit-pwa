@@ -36,6 +36,27 @@
     <app-group-balance-banner class="balance-banner" />
     <app-recurring-pending class="fixed-pending" (manage)="fixedManager().open()" />
 
+    @if (summaryCardMonth(); as month) {
+      <section class="summary-card">
+        <button type="button" class="summary-open" (click)="openSummary(month)">
+          <span class="summary-icon" aria-hidden="true"><ion-icon name="sparkles" /></span>
+          <span class="summary-text">
+            <strong>{{ 'summaryCardTitle' | t: monthNameOf(month) }}</strong>
+            <span>{{ 'summaryCardText' | t }}</span>
+          </span>
+          <span class="summary-cta">{{ 'summaryCardOpen' | t }} <ion-icon name="chevron-forward" aria-hidden="true" /></span>
+        </button>
+        <button type="button" class="summary-close" (click)="closeSummaryCard(month)" [attr.aria-label]="'close' | t">
+          <ion-icon name="close-outline" />
+        </button>
+      </section>
+    } @else if (pastMonth(); as month) {
+      <button type="button" class="summary-link" (click)="openSummary(month)">
+        <ion-icon name="sparkles" aria-hidden="true" /> {{ 'summaryLink' | t: monthNameOf(month) }}
+        <ion-icon name="chevron-forward" aria-hidden="true" />
+      </button>
+    }
+
     <section class="kpis" [attr.aria-label]="'monthSummary' | t">
       <div class="kpi main">
         <a class="stretched" routerLink="/movimientos" [attr.aria-label]="'seeMovements' | t"></a>
@@ -134,4 +155,5 @@
 
   <app-movement-editor />
   <app-recurring-manager />
+  <app-monthly-summary />
 </ion-content>

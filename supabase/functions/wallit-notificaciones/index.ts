@@ -9,8 +9,9 @@
 import { createClient, type SupabaseClient } from 'npm:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 import {
-  activityDeliveries, budgetMessage, debtDeliveries, netBalances, ngswPayload, reachedThresholds, settleUp, wants,
-  type Delivery, type ExpenseRow, type PaymentRow,
+  activityDeliveries, budgetMessage, debtDeliveries, netBalances, ngswPayload, reachedThresholds, settleUp, summaryMessage,
+  subscriptionsByDevice, totalsByCategory, wants,
+  type Delivery, type ExpenseRow, type PaymentRow, type SubscriptionRow,
 } from './logic.ts';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
@@ -56,7 +57,7 @@ async function deliver(db: SupabaseClient, deliveries: Delivery[]): Promise<{ we
 
   const [{ data: users }, { data: subs }] = await Promise.all([
     db.from('users').select('id, notif_config, push_token').in('id', userIds),
-    db.from('push_subscriptions').select('id, user_id, endpoint, p256dh, auth').in('user_id', userIds),
+    db.from('push_subscriptions').select('id, user_id, endpoint, p256dh, auth, user_agent, created_at').in('user_id', userIds),
   ]);
   const userById = new Map((users ?? []).map((u) => [u.id as string, u]));
 
@@ -71,20 +72,26 @@ async function deliver(db: SupabaseClient, deliveries: Delivery[]): Promise<{ we
       const user = userById.get(userId);
       if (!user || !wants(user.notif_config, delivery.pref)) continue;
 
-      for (const sub of (subs ?? []).filter((s) => s.user_id === userId)) {
-        try {
-          await webpush.sendNotification(
-            { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
-            payload,
-            { TTL: 60 * 60 * 24, urgency: 'normal' },
-          );
-          web++;
-          used.push(sub.id);
-        } catch (error) {
-          const status = (error as { statusCode?: number }).statusCode;
-          // 404/410: el navegador dio de baja la suscripción; se borra para no reintentar siempre.
-          if (status === 404 || status === 410) dead.push(sub.id);
-          else console.error('web push', status, (error as Error).message);
+      for (const device of subscriptionsByDevice((subs ?? []) as SubscriptionRow[], userId)) {
+        for (const sub of device) {
+          try {
+            await webpush.sendNotification(
+              { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+              payload,
+              { TTL: 60 * 60 * 24, urgency: 'normal' },
+            );
+            web++;
+            used.push(sub.id);
+            break; // una vez por dispositivo
+          } catch (error) {
+            const status = (error as { statusCode?: number }).statusCode;
+            // 404/410: el navegador dio de baja la suscripción; se borra y se prueba la anterior del mismo dispositivo.
+            if (status === 404 || status === 410) dead.push(sub.id);
+            else {
+              console.error('web push', status, (error as Error).message);
+              break;
+            }
+          }
         }
       }
 
@@ -188,6 +195,67 @@ async function onDebts(db: SupabaseClient): Promise<Delivery[]> {
   return deliveries;
 }
 
+const MONTHS = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+
+/** 'YYYY-MM' del mes anterior al de hoy en Argentina, y el de antes (para comparar). */
+function monthsToSummarize(now = new Date()): { month: string; previous: string } {
+  const ar = new Date(now.toLocaleString('en-US', { timeZone: 'America/Argentina/Buenos_Aires' }));
+  const key = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  return { month: key(new Date(ar.getFullYear(), ar.getMonth() - 1, 1)), previous: key(new Date(ar.getFullYear(), ar.getMonth() - 2, 1)) };
+}
+
+function lastDay(month: string): string {
+  const [y, m] = month.split('-').map(Number);
+  return `${month}-${String(new Date(y, m, 0).getDate()).padStart(2, '0')}`;
+}
+
+/** Día 1 de cada mes: a cada persona con notificaciones, el resumen de su espacio Personal del mes que terminó. */
+async function onSummary(db: SupabaseClient): Promise<Delivery[]> {
+  const { month, previous } = monthsToSummarize();
+  const [{ data: subs }, { data: expo }] = await Promise.all([
+    db.from('push_subscriptions').select('user_id'),
+    db.from('users').select('id').like('push_token', 'ExponentPushToken%'),
+  ]);
+  const userIds = [...new Set([...(subs ?? []).map((s) => s.user_id as string), ...(expo ?? []).map((u) => u.id as string)])];
+  const monthName = MONTHS[Number(month.slice(5)) - 1];
+  const previousName = MONTHS[Number(previous.slice(5)) - 1];
+  const deliveries: Delivery[] = [];
+  for (const userId of userIds) {
+    const { data: rows } = await db
+      .from('expenses')
+      .select('amount, category, tipo, date')
+      .eq('user_id', userId)
+      .is('group_id', null)
+      .gte('date', `${previous}-01`)
+      .lte('date', lastDay(month));
+    const all = rows ?? [];
+    const message = summaryMessage(month, monthName, previousName, {
+      current: totalsByCategory(all.filter((r) => String(r.date).startsWith(month))),
+      previous: totalsByCategory(all.filter((r) => String(r.date).startsWith(previous))),
+    });
+    if (message) deliveries.push({ userIds: [userId], pref: 'resumen_mensual', message });
+  }
+  return deliveries;
+}
+
+/** Clave del evento para no avisar dos veces. Presupuestos no la necesitan (ya tienen budget_alerts). */
+function eventKey(body: { tipo?: string; id?: string }): string | null {
+  const today = new Date().toISOString().slice(0, 10);
+  if (body.tipo === 'actividad' && body.id) return `actividad:${body.id}`;
+  if (body.tipo === 'deudas') return `deudas:${today}`;
+  if (body.tipo === 'resumen') return `resumen:${monthsToSummarize().month}`;
+  return null;
+}
+
+/** true la primera vez que se ve la clave. Sin la tabla (migración 021) no bloquea nada. */
+async function firstTime(db: SupabaseClient, key: string): Promise<boolean> {
+  const { error } = await db.from('notif_eventos').insert({ clave: key });
+  if (!error) return true;
+  if (error.code === '23505') return false;
+  if (error.code !== '42P01' && error.code !== 'PGRST205') console.error('notif_eventos', error.code, error.message);
+  return true;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'METHOD_NOT_ALLOWED' }, 405);
   if (!sameSecret(req.headers.get('x-wallit-secret') ?? '', Deno.env.get('WEBHOOK_SECRET') ?? '')) {
@@ -205,9 +273,16 @@ Deno.serve(async (req) => {
   try {
     const body = (await req.json()) as { tipo?: string; id?: string; expense_id?: string };
     let deliveries: Delivery[] = [];
+    // El mismo evento puede llegar dos veces (reintento de pg_net, un webhook viejo del panel): se avisa una sola vez.
+    const key = eventKey(body);
+    if (key && !(await firstTime(db, key))) {
+      console.log('wallit-notificaciones duplicado', key);
+      return json({ ok: true, duplicate: true });
+    }
     if (body.tipo === 'actividad' && body.id) deliveries = await onActivity(db, body.id);
     else if (body.tipo === 'presupuesto' && body.expense_id) deliveries = await onBudget(db, body.expense_id);
     else if (body.tipo === 'deudas') deliveries = await onDebts(db);
+    else if (body.tipo === 'resumen') deliveries = await onSummary(db);
     else return json({ error: 'BAD_EVENT' }, 400);
 
     const sent = await deliver(db, deliveries);
