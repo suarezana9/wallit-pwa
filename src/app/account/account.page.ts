@@ -13,6 +13,7 @@ import { Language, PreferencesStore, Theme } from '../core/preferences-store';
 import { ProfileStore } from '../core/profile-store';
 import { NotificationSettingsComponent } from '../notifications/notification-settings.component';
 import { RecurringManagerComponent } from '../movements/recurring-manager.component';
+import { AiUsageComponent } from '../ai/ai-usage.component';
 
 interface ThemeOption {
   id: Theme;
@@ -33,6 +34,7 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
 @Component({
   selector: 'app-account',
   imports: [
+    AiUsageComponent,
     IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, NotificationSettingsComponent,
     RecurringManagerComponent, RouterLink, TranslatePipe,
   ],

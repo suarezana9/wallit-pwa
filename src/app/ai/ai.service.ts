@@ -9,6 +9,12 @@ import { audioExtension } from './media';
 
 const FUNCTION_NAME = 'wallit-ia';
 
+export interface AiUsage {
+  used: number;
+  limit: number;
+  costs: { texto: number; audio: number; imagen: number };
+}
+
 export class AiError extends Error {
   constructor(public readonly key: AiErrorKey) {
     super(key);
@@ -34,6 +40,15 @@ export class AiService {
     form.append('audio', audio, `voz.${audioExtension(audio.type)}`);
     form.append('context', JSON.stringify(this.context()));
     return this.call(form);
+  }
+
+  /** Cuánto de la IA usaste hoy (migración 018). null si el límite no está instalado. */
+  async usage(): Promise<AiUsage | null> {
+    const { data, error } = await this.supabase.rpc('uso_ia_hoy');
+    if (error || !data) return null;
+    const value = data as { usados?: number; limite?: number; costos?: AiUsage['costs'] };
+    if (typeof value.usados !== 'number' || typeof value.limite !== 'number') return null;
+    return { used: value.usados, limit: value.limite, costs: value.costos ?? { texto: 1, audio: 2, imagen: 3 } };
   }
 
   private context() {

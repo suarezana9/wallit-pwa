@@ -599,6 +599,13 @@ export const es = {
   markFavorite: (name: string) => `Abrir siempre en ${name}`,
   unfavorite: (name: string) => `Quitar ${name} como favorito`,
   favoriteTip: 'Tocá la estrella para que la app abra siempre en ese espacio.',
+  errAiRateMinute: 'Muchas consultas seguidas a la IA. Esperá un minuto y probá de nuevo.',
+  errAiDailyLimit: 'Llegaste al límite de IA de hoy. Se renueva a la medianoche; mientras, cargalo a mano.',
+  aiUsageTitle: 'Uso de la IA hoy',
+  aiUsageCount: (used: string, limit: string) => `${used} de ${limit}`,
+  aiUsageHint: (text: string, audio: string, image: string) =>
+    `Escribir cuesta ${text}, dictar ${audio} y una foto de ticket ${image}. Se renueva todos los días a la medianoche.`,
+  aiUsageFull: 'Usaste todo lo de hoy. Mañana se renueva; mientras, podés cargar a mano.',
   today: 'Hoy',
   yesterday: 'Ayer',
 };

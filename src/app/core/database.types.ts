@@ -246,6 +246,11 @@ export interface Database {
         Args: { p_codigo: string };
         Returns: { id: string; name: string; invite_code: string }[];
       };
+      /** Migración 018: puntos de IA usados hoy. */
+      uso_ia_hoy: {
+        Args: Record<never, never>;
+        Returns: Json;
+      };
       guardar_suscripcion_push: {
         Args: { p_endpoint: string; p_p256dh: string; p_auth: string; p_user_agent?: string | null };
         Returns: undefined;

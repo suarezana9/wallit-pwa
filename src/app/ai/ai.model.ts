@@ -58,6 +58,8 @@ export type AiErrorKey =
   | 'errAiAudio'
   | 'errAiImage'
   | 'errAiTooLarge'
+  | 'errAiRateMinute'
+  | 'errAiDailyLimit'
   | 'errMicDenied'
   | 'errMicUnsupported';
 
@@ -71,6 +73,10 @@ export function errorKeyFor(code: string | undefined): AiErrorKey {
       return 'errAiImage';
     case 'TOO_LARGE':
       return 'errAiTooLarge';
+    case 'RATE_LIMIT_MINUTE':
+      return 'errAiRateMinute';
+    case 'DAILY_LIMIT':
+      return 'errAiDailyLimit';
     default:
       return 'errAi';
   }

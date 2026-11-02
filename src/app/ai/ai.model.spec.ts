@@ -33,3 +33,11 @@ describe('ai.model', () => {
     expect(errorKeyFor('LO_QUE_SEA')).toBe('errAi');
   });
 });
+
+describe('errores de límite de IA', () => {
+  it('mapea los códigos del servidor', () => {
+    expect(errorKeyFor('RATE_LIMIT_MINUTE')).toBe('errAiRateMinute');
+    expect(errorKeyFor('DAILY_LIMIT')).toBe('errAiDailyLimit');
+    expect(errorKeyFor('QUOTA_UNAVAILABLE')).toBe('errAi');
+  });
+});

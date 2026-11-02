@@ -3,10 +3,10 @@ import { Directive, ElementRef, inject, signal } from '@angular/core';
 /**
  * En el celular, el botón "+" flotante se esconde al bajar (para no tapar gráficos ni montos)
  * y vuelve apenas subís un poco o llegás arriba de todo.
- * Uso: <ion-content wlFabAutoHide>…<ion-fab>…</ion-fab></ion-content>
+ * Uso: <ion-content appFabAutoHide>…<ion-fab>…</ion-fab></ion-content>
  */
 @Directive({
-  selector: 'ion-content[wlFabAutoHide]',
+  selector: 'ion-content[appFabAutoHide]',
   host: {
     '[class.wl-fab-hidden]': 'hidden()',
     '(ionScroll)': 'onScroll($event.detail)',

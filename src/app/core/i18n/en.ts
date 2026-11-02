@@ -601,6 +601,13 @@ export const en: Dictionary = {
   markFavorite: (name: string) => `Always open in ${name}`,
   unfavorite: (name: string) => `Remove ${name} as favorite`,
   favoriteTip: 'Tap the star so the app always opens in that space.',
+  errAiRateMinute: 'Too many AI requests in a row. Wait a minute and try again.',
+  errAiDailyLimit: "You reached today's AI limit. It resets at midnight; meanwhile, add it manually.",
+  aiUsageTitle: 'AI usage today',
+  aiUsageCount: (used: string, limit: string) => `${used} of ${limit}`,
+  aiUsageHint: (text: string, audio: string, image: string) =>
+    `Typing costs ${text}, voice ${audio} and a receipt photo ${image}. It resets every day at midnight.`,
+  aiUsageFull: 'You used all of today’s. It resets tomorrow; meanwhile, you can add it manually.',
   today: 'Today',
   yesterday: 'Yesterday',
 };
