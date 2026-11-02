@@ -8,6 +8,11 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
   },
   {
+    path: 'bienvenida',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./auth/intro.page').then((m) => m.IntroPage),
+  },
+  {
     path: 'nueva-contrasena',
     canActivate: [authGuard],
     loadComponent: () => import('./auth/new-password.page').then((m) => m.NewPasswordPage),

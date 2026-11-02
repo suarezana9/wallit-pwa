@@ -1,0 +1,104 @@
+<ion-content class="intro-content" [scrollY]="false">
+  <div class="intro">
+    <header class="top">
+      <span class="brand"><app-wallit-logo [size]="28" /> Wallit</span>
+      @if (!isLast()) {
+        <button type="button" class="skip" (click)="finish()">{{ 'introSkip' | t }}</button>
+      }
+    </header>
+
+    <div class="track" #track (scroll)="onScroll()" role="region" aria-roledescription="carousel" [attr.aria-label]="'introLabel' | t">
+      @for (slide of slides; track slide.id; let i = $index) {
+        <section class="slide" [attr.aria-hidden]="i !== index()" [attr.aria-label]="(i + 1) + ' / ' + slides.length">
+          <div class="art" [class]="'art art-' + slide.id" aria-hidden="true">
+            @switch (slide.id) {
+              @case ('ai') {
+                <div class="bubble input">
+                  <span class="spark">✨</span>
+                  <span>súper 45 mil ayer</span>
+                </div>
+                <div class="arrow">↓</div>
+                <div class="card mov">
+                  <span class="ico">🛒</span>
+                  <span class="mov-text"><strong>Supermercado</strong><small>{{ 'yesterday' | t }}</small></span>
+                  <strong class="amt">$45.000</strong>
+                </div>
+                <div class="chips">
+                  <span class="chip">🎙️ {{ 'introChipVoice' | t }}</span>
+                  <span class="chip">📷 {{ 'introChipTicket' | t }}</span>
+                </div>
+              }
+              @case ('local') {
+                <div class="card plan">
+                  <span class="label">💳 {{ 'introCardInstallments' | t }}</span>
+                  <strong>12 × $100.000</strong>
+                  <span class="bar"><span style="width: 25%"></span></span>
+                  <small>3/12 · {{ 'introLeft' | t }} $900.000</small>
+                </div>
+                <div class="card refund">
+                  <span>💸 {{ 'introRefund' | t }}</span>
+                  <strong class="green">−$9.800</strong>
+                </div>
+                <div class="card fixed">
+                  <span>🔁 {{ 'introFixed' | t }}</span>
+                  <span class="check">✓</span>
+                </div>
+              }
+              @case ('groups') {
+                <div class="avatars">
+                  <span class="av a">A</span><span class="av l">L</span><span class="av s">S</span>
+                </div>
+                <div class="card debt">
+                  <span class="av s sm">S</span>
+                  <span class="debt-text">Sol → Ana</span>
+                  <strong>$13.000</strong>
+                </div>
+                <div class="card pot">
+                  <span>🫙 {{ 'splitModeShared' | t }}</span>
+                  <span class="muted">{{ 'introOr' | t }}</span>
+                  <span>🧮 {{ 'splitModeSplit' | t }}</span>
+                </div>
+              }
+              @case ('insights') {
+                <div class="card chart">
+                  @for (h of [38, 62, 45, 80, 54, 92]; track $index) {
+                    <span class="col" [style.height.%]="h" [class.now]="$last"></span>
+                  }
+                </div>
+                <div class="card budget">
+                  <span class="label">🛒 {{ 'introBudget' | t }}</span>
+                  <span class="bar warn"><span style="width: 82%"></span></span>
+                  <small>82% · {{ 'introBudgetAlert' | t }}</small>
+                </div>
+              }
+            }
+          </div>
+          <div class="copy">
+            <h1>{{ slide.title | t }}</h1>
+            <p>{{ slide.text | t }}</p>
+          </div>
+        </section>
+      }
+    </div>
+
+    <footer class="bottom">
+      <div class="dots" role="tablist">
+        @for (slide of slides; track slide.id; let i = $index) {
+          <button
+            type="button"
+            role="tab"
+            class="dot"
+            [class.on]="i === index()"
+            [attr.aria-selected]="i === index()"
+            [attr.aria-label]="(i + 1) + ' / ' + slides.length"
+            (click)="goTo(i)"
+          ></button>
+        }
+      </div>
+      <button type="button" class="cta" (click)="next()">
+        {{ (isLast() ? 'introStart' : 'introNext') | t }}
+      </button>
+      <button type="button" class="have-account" (click)="finish('login')">{{ 'introHaveAccount' | t }}</button>
+    </footer>
+  </div>
+</ion-content>

@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthStore } from './auth-store';
+import { introSeen } from './intro';
 
 /** Acepta solo rutas internas: evita redirecciones abiertas a otros sitios. */
 export function safeRedirect(url: string | null | undefined): string | null {
@@ -13,7 +14,9 @@ export const authGuard: CanActivateFn = (_route, state) => {
   const auth = inject(AuthStore);
   if (auth.isLoggedIn()) return true;
   const redirect = safeRedirect(state?.url);
-  return inject(Router).createUrlTree(['/login'], redirect ? { queryParams: { redirect } } : {});
+  // La primera vez en este dispositivo, antes del login van las pantallas de bienvenida.
+  const target = introSeen() ? '/login' : '/bienvenida';
+  return inject(Router).createUrlTree([target], redirect ? { queryParams: { redirect } } : {});
 };
 
 /** Para /login: si ya hay sesión, no tiene sentido mostrarlo. */

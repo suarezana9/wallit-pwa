@@ -9,6 +9,8 @@ describe('LoginPage', () => {
     signUp: vi.fn(),
     signInWithGoogle: vi.fn(),
     sendPasswordReset: vi.fn().mockResolvedValue({ error: null }),
+    sendMagicLink: vi.fn().mockResolvedValue({ error: null }),
+    verifyEmailCode: vi.fn().mockResolvedValue({ error: null }),
   };
 
   beforeEach(() => {
@@ -37,6 +39,23 @@ describe('LoginPage', () => {
     page.credentials.set({ email: 'ana@mail.com', password: '123456' });
     await page.onSubmit(new Event('submit'));
     expect(auth.signInWithPassword).toHaveBeenCalledWith('ana@mail.com', '123456');
+  });
+
+  it('enlace mágico: pide el email, manda el código y entra con 6 dígitos', async () => {
+    const page = TestBed.createComponent(LoginPage).componentInstance;
+    page.go('magic');
+    await page.sendMagic(new Event('submit'));
+    expect(auth.sendMagicLink).not.toHaveBeenCalled();
+    page.credentials.set({ email: 'ana@mail.com', password: '' });
+    await page.sendMagic(new Event('submit'));
+    expect(auth.sendMagicLink).toHaveBeenCalledWith('ana@mail.com', '/inicio');
+    expect(page.codeSentTo()).toBe('ana@mail.com');
+    expect(page.cooldown()).toBe(60);
+    const field = document.createElement('input');
+    field.value = '12 34 56';
+    page.onCode(field);
+    await Promise.resolve();
+    expect(auth.verifyEmailCode).toHaveBeenCalledWith('ana@mail.com', '123456');
   });
 
   it('en modo recuperar solo pide el email y manda el enlace', async () => {

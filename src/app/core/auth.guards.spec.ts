@@ -4,7 +4,9 @@ import { Router, UrlTree, provideRouter } from '@angular/router';
 import { authGuard, guestGuard, safeRedirect } from './auth.guards';
 import { AuthStore } from './auth-store';
 
-function setup(loggedIn: boolean) {
+function setup(loggedIn: boolean, introDone = true) {
+  if (introDone) localStorage.setItem('wallit_intro_vista', '1');
+  else localStorage.removeItem('wallit_intro_vista');
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
@@ -26,6 +28,11 @@ describe('authGuard', () => {
     const { run, router } = setup(false);
     const result = run(authGuard) as UrlTree;
     expect(router.serializeUrl(result)).toBe('/login');
+  });
+
+  it('la primera vez muestra la bienvenida antes del login', () => {
+    const { run, router } = setup(false, false);
+    expect(router.serializeUrl(run(authGuard) as UrlTree)).toBe('/bienvenida');
   });
 
   it('recuerda el destino para volver después del login', () => {

@@ -78,6 +78,25 @@ export class AuthStore {
     return { error: error ? this.translate(error.message) : null };
   }
 
+  /**
+   * Ingreso sin contraseña: Supabase manda un mail con un enlace y un código de 6 dígitos
+   * (el código sirve en la app instalada, donde el enlace se abre en el navegador y no en la app).
+   * Si el email no tiene cuenta, la crea.
+   */
+  async sendMagicLink(email: string, redirect = '/inicio'): Promise<AuthResult> {
+    const { error } = await this.supabase.auth.signInWithOtp({
+      email: email.trim(),
+      options: { emailRedirectTo: `${window.location.origin}${redirect}`, shouldCreateUser: true },
+    });
+    return { error: error ? this.translate(error.message) : null };
+  }
+
+  async verifyEmailCode(email: string, code: string): Promise<AuthResult> {
+    const { data, error } = await this.supabase.auth.verifyOtp({ email: email.trim(), token: code.trim(), type: 'email' });
+    if (!error && data.session) this._session.set(data.session);
+    return { error: error ? this.translate(error.message) : null };
+  }
+
   async sendPasswordReset(email: string): Promise<AuthResult> {
     const { error } = await this.supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/nueva-contrasena`,
@@ -108,6 +127,7 @@ export function authErrorKey(message: string): TranslationKey | null {
   if (message.includes('Password should be')) return 'errPasswordLength';
   if (message.includes('should be different from the old password')) return 'errSamePassword';
   if (message.includes('For security purposes')) return 'errWaitSeconds';
+  if (message.includes('Token has expired or is invalid') || message.includes('otp_expired')) return 'errCodeInvalid';
   if (message.toLowerCase().includes('rate limit')) return 'errRateLimit';
   return null;
 }
