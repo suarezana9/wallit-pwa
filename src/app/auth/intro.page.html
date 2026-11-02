@@ -96,9 +96,11 @@
         }
       </div>
       <button type="button" class="cta" (click)="next()">
-        {{ (isLast() ? 'introStart' : 'introNext') | t }}
+        {{ (isLast() ? (loggedIn() ? 'introBack' : 'introStart') : 'introNext') | t }}
       </button>
-      <button type="button" class="have-account" (click)="finish('login')">{{ 'introHaveAccount' | t }}</button>
+      @if (!loggedIn()) {
+        <button type="button" class="have-account" (click)="finish('login')">{{ 'introHaveAccount' | t }}</button>
+      }
     </footer>
   </div>
 </ion-content>

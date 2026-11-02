@@ -52,6 +52,9 @@ export interface Database {
           notif_config: Json | null;
           notif_enviadas: Json | null;
           categoria_config: Json | null;
+          /** Migración 019: datos para cobrar (los ven solo los miembros de tus grupos). */
+          cobro_alias: string | null;
+          cobro_cuenta: string | null;
         };
         Insert: Partial<Database['public']['Tables']['users']['Row']> & { id: string; email: string };
         Update: Partial<Database['public']['Tables']['users']['Row']>;
@@ -245,6 +248,11 @@ export interface Database {
       buscar_grupo_por_codigo: {
         Args: { p_codigo: string };
         Returns: { id: string; name: string; invite_code: string }[];
+      };
+      /** Migración 019. */
+      datos_cobro_grupo: {
+        Args: { p_group_id: string };
+        Returns: { user_id: string; alias: string | null; cuenta: string | null }[];
       };
       /** Migración 018: puntos de IA usados hoy. */
       uso_ia_hoy: {

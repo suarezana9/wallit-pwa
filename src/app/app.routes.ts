@@ -8,8 +8,8 @@ export const routes: Routes = [
     loadComponent: () => import('./auth/login.page').then((m) => m.LoginPage),
   },
   {
+    // Sin guard: la primera vez se llega sin sesión, y desde Cuenta se puede volver a ver con sesión.
     path: 'bienvenida',
-    canActivate: [guestGuard],
     loadComponent: () => import('./auth/intro.page').then((m) => m.IntroPage),
   },
   {

@@ -1,6 +1,7 @@
 import { Component, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IonContent } from '@ionic/angular';
+import { AuthStore } from '../core/auth-store';
 import { safeRedirect } from '../core/auth.guards';
 import { TranslatePipe, TranslationKey } from '../core/i18n/i18n';
 import { markIntroSeen } from '../core/intro';
@@ -27,6 +28,8 @@ export class IntroPage {
   private readonly router = inject(Router);
   private readonly redirect = safeRedirect(inject(ActivatedRoute).snapshot.queryParamMap.get('redirect'));
   private readonly track = viewChild.required<ElementRef<HTMLElement>>('track');
+  /** Con sesión iniciada (abierta desde Cuenta) no tiene sentido mandar al login: vuelve a la app. */
+  readonly loggedIn = inject(AuthStore).isLoggedIn;
 
   readonly slides: Slide[] = [
     { id: 'ai', title: 'introAiTitle', text: 'introAiText' },
@@ -58,6 +61,10 @@ export class IntroPage {
 
   async finish(mode: 'signup' | 'login' = 'signup'): Promise<void> {
     markIntroSeen();
+    if (this.loggedIn()) {
+      await this.router.navigateByUrl('/cuenta', { replaceUrl: true });
+      return;
+    }
     await this.router.navigate(['/login'], {
       replaceUrl: true,
       queryParams: { ...(this.redirect ? { redirect: this.redirect } : {}), ...(mode === 'login' ? { modo: 'login' } : {}) },

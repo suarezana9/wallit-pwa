@@ -14,6 +14,7 @@ import { ProfileStore } from '../core/profile-store';
 import { NotificationSettingsComponent } from '../notifications/notification-settings.component';
 import { RecurringManagerComponent } from '../movements/recurring-manager.component';
 import { AiUsageComponent } from '../ai/ai-usage.component';
+import { PayoutSettingsComponent } from './payout-settings.component';
 
 interface ThemeOption {
   id: Theme;
@@ -35,6 +36,7 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
   selector: 'app-account',
   imports: [
     AiUsageComponent,
+    PayoutSettingsComponent,
     IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonTitle, IonToolbar, NotificationSettingsComponent,
     RecurringManagerComponent, RouterLink, TranslatePipe,
   ],

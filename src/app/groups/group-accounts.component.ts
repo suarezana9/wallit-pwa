@@ -1,10 +1,13 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output, resource } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AlertController, IonButton, IonIcon, IonSkeletonText, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { arrowForward, checkmarkCircle, informationCircleOutline, trashOutline } from 'ionicons/icons';
+import { arrowForward, checkmarkCircle, copyOutline, informationCircleOutline, logoWhatsapp, trashOutline } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
-import { MoneyPipe } from '../core/money';
+import { MoneyPipe, formatMoney } from '../core/money';
+import { Supabase } from '../core/supabase';
+import { PayoutInfo, formatCuenta, hasPayout, reminderText } from './payout.model';
 import { PreferencesStore } from '../core/preferences-store';
 import { parseIsoDate } from '../core/dates';
 import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component';
@@ -25,7 +28,7 @@ interface Person {
 import { amountForClipboard, parseAmount } from '../core/amount';
 @Component({
   selector: 'app-group-accounts',
-  imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, TranslatePipe, TripSummaryComponent],
+  imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, RouterLink, TranslatePipe, TripSummaryComponent],
   template: `
     @if (accounts.data.isLoading() && !accounts.data.hasValue()) {
       <ion-skeleton-text [animated]="true" class="skeleton" />
@@ -75,15 +78,66 @@ import { amountForClipboard, parseAmount } from '../core/amount';
                   @let from = person(transfer.from);
                   @let to = person(transfer.to);
                   <li [class.mine]="from.isMe || to.isMe">
-                    <span class="avatar" [style.background]="from.color" aria-hidden="true">{{ from.initial }}</span>
-                    <span class="who">
-                      <span class="names">{{ from.name }} <ion-icon name="arrow-forward" aria-hidden="true" /> {{ to.name }}</span>
-                      <strong>{{ transfer.amount | money }}</strong>
-                    </span>
-                    @if (from.isMe || to.isMe) {
-                      <ion-button class="wl-btn" size="small" fill="outline" (click)="register(transfer)">
-                        {{ 'registerPayment' | t }}
-                      </ion-button>
+                    <div class="row">
+                      <span class="avatar" [style.background]="from.color" aria-hidden="true">{{ from.initial }}</span>
+                      <span class="who">
+                        <span class="names">{{ from.name }} <ion-icon name="arrow-forward" aria-hidden="true" /> {{ to.name }}</span>
+                        <strong>{{ transfer.amount | money }}</strong>
+                      </span>
+                    </div>
+
+                    @if (from.isMe) {
+                      <!-- Te toca pagar: los datos de quien cobra, listos para copiar. -->
+                      <div class="pay">
+                        @if (payoutOf(transfer.to); as p) {
+                          <span class="pay-title">{{ 'payTo' | t: to.name }}</span>
+                          <div class="copies">
+                            @if (p.alias) {
+                              <button type="button" class="copy" (click)="copy(p.alias, 'aliasCopied')">
+                                <small>{{ 'payoutAliasShort' | t }}</small>
+                                <span class="value">{{ p.alias }}</span>
+                                <ion-icon name="copy-outline" aria-hidden="true" />
+                              </button>
+                            }
+                            @if (p.cuenta) {
+                              <button type="button" class="copy" (click)="copy(p.cuenta, 'cuentaCopied')">
+                                <small>{{ 'payoutCuentaShort' | t }}</small>
+                                <span class="value mono">{{ formatCuenta(p.cuenta) }}</span>
+                                <ion-icon name="copy-outline" aria-hidden="true" />
+                              </button>
+                            }
+                            <button type="button" class="copy" (click)="copy(clip(transfer.amount), 'amountCopiedShort')">
+                              <small>{{ 'amount' | t }}</small>
+                              <span class="value">{{ transfer.amount | money }}</span>
+                              <ion-icon name="copy-outline" aria-hidden="true" />
+                            </button>
+                          </div>
+                        } @else {
+                          <p class="missing">{{ 'payoutMissing' | t: to.name }}</p>
+                          <button type="button" class="link" (click)="askForPayout(transfer)">
+                            <ion-icon name="logo-whatsapp" aria-hidden="true" /> {{ 'askPayout' | t: to.name }}
+                          </button>
+                        }
+                        <ion-button class="wl-btn wl-btn-primary done" size="small" (click)="register(transfer)">
+                          {{ 'iPaid' | t }}
+                        </ion-button>
+                      </div>
+                    } @else if (to.isMe) {
+                      <!-- Te deben: recordatorio con tus datos y "ya me pagó". -->
+                      <div class="pay">
+                        <div class="pay-actions">
+                          <ion-button class="wl-btn" size="small" fill="outline" (click)="remind(transfer)">
+                            <ion-icon slot="start" name="logo-whatsapp" />
+                            {{ 'remindDebt' | t }}
+                          </ion-button>
+                          <ion-button class="wl-btn wl-btn-primary" size="small" (click)="register(transfer)">
+                            {{ 'theyPaid' | t }}
+                          </ion-button>
+                        </div>
+                        @if (!hasPayout(myPayout())) {
+                          <a class="link small" routerLink="/cuenta">{{ 'addPayoutHint' | t }}</a>
+                        }
+                      </div>
                     }
                   </li>
                 }
@@ -173,7 +227,29 @@ import { amountForClipboard, parseAmount } from '../core/amount';
     .empty { margin: 8px 0 0; color: var(--wl-muted); }
     ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
     li { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
-    .transfers li { padding: 10px 12px; border-radius: 14px; background: var(--wl-field-bg); }
+    .transfers li { flex-direction: column; align-items: stretch; gap: 10px; padding: 10px 12px; border-radius: 14px; background: var(--wl-field-bg); }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .pay { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--wl-field-border); }
+    .pay-title { font-size: 13px; font-weight: 700; }
+    .copies { display: flex; flex-direction: column; gap: 6px; }
+    .copy {
+      display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 12px; border-radius: 12px;
+      font: inherit; text-align: left; color: inherit; cursor: pointer;
+      background: var(--wl-surface, var(--ion-background-color)); border: 1px solid var(--wl-field-border);
+    }
+    .copy:active { transform: scale(0.99); }
+    .copy small { flex: none; width: 64px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--wl-muted); }
+    .copy .value { flex: 1; min-width: 0; font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .copy .mono { font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+    .copy ion-icon { flex: none; font-size: 16px; color: var(--ion-color-primary); }
+    .missing { margin: 0; font-size: 13px; color: var(--wl-muted); }
+    .link {
+      display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; padding: 0; border: 0; background: none;
+      font: inherit; font-size: 13px; font-weight: 700; color: var(--ion-color-primary); cursor: pointer; text-decoration: none;
+    }
+    .link.small { font-weight: 600; }
+    .done { align-self: flex-end; }
+    .pay-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
     .transfers li.mine { background: rgba(var(--ion-color-primary-rgb), 0.08); }
     .avatar {
       flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
@@ -218,6 +294,78 @@ export class GroupAccountsComponent {
   readonly myBalance = this.accounts.myBalance;
   readonly transfers = this.accounts.transfers;
   readonly sharedMode = computed(() => this.group()?.divide_gastos === false);
+
+  // ---------- Saldar: datos de cobro (migración 019) ----------
+
+  private readonly supabase = inject(Supabase).client;
+  readonly payouts = resource({
+    params: () => this.groupId(),
+    loader: async ({ params }): Promise<Map<string, PayoutInfo>> => {
+      const { data, error } = await this.supabase.rpc('datos_cobro_grupo', { p_group_id: params });
+      // Sin la migración 019 no hay datos: se muestra "todavía no cargó su alias" y nada se rompe.
+      if (error || !data) return new Map();
+      return new Map(data.map((row) => [row.user_id, { alias: row.alias, cuenta: row.cuenta }]));
+    },
+  });
+  readonly myPayout = computed(() => this.payoutOfRaw(this.userId()));
+  readonly hasPayout = hasPayout;
+  readonly formatCuenta = formatCuenta;
+
+  private payoutOfRaw(userId: string): PayoutInfo | null {
+    return this.payouts.hasValue() ? (this.payouts.value().get(userId) ?? null) : null;
+  }
+
+  payoutOf(userId: string): PayoutInfo | null {
+    const info = this.payoutOfRaw(userId);
+    return hasPayout(info) ? info : null;
+  }
+
+  clip(amount: number): string {
+    return amountForClipboard(amount, this.preferences.language());
+  }
+
+  async copy(value: string, messageKey: 'aliasCopied' | 'cuentaCopied' | 'amountCopiedShort'): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      return;
+    }
+    await this.toast(this.i18n.t(messageKey), 'dark');
+  }
+
+  /** "Hola Sol! Según Wallit, en Casa me debés $13.000." + tu alias o CBU. */
+  async remind(transfer: Transfer): Promise<void> {
+    const debtor = this.person(transfer.from).name;
+    const text = reminderText({
+      debtor,
+      group: this.group()?.name ?? 'Wallit',
+      amount: formatMoney(transfer.amount, this.preferences.currency()),
+      mine: this.myPayout(),
+      labels: {
+        greeting: (n, g, a) => this.i18n.t('remindText', n, g, a),
+        alias: this.i18n.t('payoutAliasShort'),
+        cuenta: this.i18n.t('payoutCuentaShort'),
+      },
+    });
+    await this.shareText(text);
+  }
+
+  async askForPayout(transfer: Transfer): Promise<void> {
+    await this.shareText(this.i18n.t('askPayoutText', this.person(transfer.to).name, formatMoney(transfer.amount, this.preferences.currency())));
+  }
+
+  /** Compartir del sistema (el celular ofrece WhatsApp); en la compu, WhatsApp Web. */
+  private async shareText(text: string): Promise<void> {
+    if (typeof navigator.share === 'function') {
+      try {
+        await navigator.share({ text });
+        return;
+      } catch (error) {
+        if ((error as DOMException).name === 'AbortError') return;
+      }
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  }
   readonly String = String;
   readonly abs = Math.abs;
 
@@ -238,7 +386,7 @@ export class GroupAccountsComponent {
   private readonly maxAbs = computed(() => Math.max(1, ...this.accounts.balances().map((b) => Math.abs(b.net))));
 
   constructor() {
-    addIcons({ arrowForward, checkmarkCircle, informationCircleOutline, trashOutline });
+    addIcons({ arrowForward, checkmarkCircle, copyOutline, informationCircleOutline, logoWhatsapp, trashOutline });
   }
 
   person(userId: string): Person {

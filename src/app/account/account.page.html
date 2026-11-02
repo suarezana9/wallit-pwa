@@ -84,6 +84,17 @@
 
           <div class="setting">
             <div class="setting-text">
+              <span class="setting-label">{{ 'introSettingTitle' | t }}</span>
+              <p class="hint">{{ 'introSettingHint' | t }}</p>
+            </div>
+            <ion-button class="wl-btn wl-btn-secondary manage" fill="outline" routerLink="/bienvenida">
+              {{ 'introSettingButton' | t }}
+              <ion-icon slot="end" name="chevron-forward" />
+            </ion-button>
+          </div>
+
+          <div class="setting">
+            <div class="setting-text">
               <span class="setting-label">{{ 'fixedTitle' | t }}</span>
               <p class="hint">{{ 'fixedSettingHint' | t }}</p>
             </div>
@@ -94,6 +105,7 @@
           </div>
         </section>
 
+        <app-payout-settings class="group" />
         <app-notification-settings class="group" />
         <app-ai-usage class="group" />
         <app-recurring-manager #fixedManager />
