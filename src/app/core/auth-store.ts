@@ -3,6 +3,8 @@ import type { Session } from '@supabase/supabase-js';
 import { Supabase } from './supabase';
 import { I18n, TranslationKey } from './i18n/i18n';
 
+const SESSION_TIMEOUT_MS = 10_000;
+
 export interface AuthResult {
   error: string | null;
 }
@@ -31,18 +33,61 @@ export class AuthStore {
   readonly isLoggedIn = computed(() => this.user() !== null);
 
   /**
+   * Error que devuelve Supabase al volver de Google o de un enlace del mail (?error_description=… en la URL).
+   * Antes se perdía: el guard mandaba al login sin decir nada y parecía que "no pasaba nada".
+   */
+  private readonly _redirectError = signal<string | null>(null);
+  readonly redirectError = this._redirectError.asReadonly();
+
+  clearRedirectError(): void {
+    this._redirectError.set(null);
+  }
+
+  /**
    * Se ejecuta una sola vez al arrancar la app (provideAppInitializer en main.ts),
    * antes de la primera navegación. Así los guards ya saben si hay sesión.
    */
   async init(): Promise<void> {
+    this.readRedirectError();
     this.supabase.auth.onAuthStateChange((_event, session) => {
       // Ojo: no llamar a otros métodos de supabase con await dentro de este callback.
       this._session.set(session);
     });
 
-    const { data } = await this.supabase.auth.getSession();
-    this._session.set(data.session);
+    // Al volver de Google, getSession() canjea el ?code= de la URL. Si ese canje se cuelga (red lenta,
+    // otra pestaña con el bloqueo de sesión tomado), la app quedaba en blanco "cargando" para siempre:
+    // con un tope de 10 s arranca igual y, si la sesión llega después, onAuthStateChange la toma.
+    const result = await Promise.race([
+      this.supabase.auth.getSession().then(({ data, error }) => {
+        if (error) {
+          console.warn('[auth] getSession', error.message);
+          this._redirectError.set(this.translate(error.message));
+        }
+        return data.session;
+      }),
+      new Promise<'timeout'>((resolve) => setTimeout(() => resolve('timeout'), SESSION_TIMEOUT_MS)),
+    ]);
+    if (result === 'timeout') {
+      console.warn('[auth] getSession tardó más de', SESSION_TIMEOUT_MS, 'ms');
+      if (new URL(window.location.href).searchParams.has('code')) this._redirectError.set(this.i18n.t('errGoogleExchange'));
+    } else {
+      this._session.set(result);
+    }
     this._ready.set(true);
+  }
+
+  private readRedirectError(): void {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+    const description = url.searchParams.get('error_description') ?? hash.get('error_description');
+    const code = url.searchParams.get('error_code') ?? hash.get('error_code') ?? url.searchParams.get('error') ?? hash.get('error');
+    if (!description && !code) return;
+    console.warn('[auth] error al volver del login', code, description);
+    this._redirectError.set(this.translate(description || code || ''));
+    // Se limpia la URL para que el error no quede pegado si recargás.
+    for (const key of ['error', 'error_code', 'error_description']) url.searchParams.delete(key);
+    window.history.replaceState(window.history.state, '', url.pathname + url.search);
   }
 
   async signInWithPassword(email: string, password: string): Promise<AuthResult> {
@@ -56,6 +101,12 @@ export class AuthStore {
       password,
       options: { emailRedirectTo: `${window.location.origin}/inicio` },
     });
+    // Si el email ya tiene cuenta (por ejemplo, creada con Google), Supabase responde "ok" sin mandar ningún
+    // mail, para no revelar qué emails existen. La señal es un usuario sin identidades: se avisa en vez de
+    // decir "te mandamos un mail" que nunca llega.
+    if (!error && data.user && (data.user.identities?.length ?? 0) === 0) {
+      return { error: this.i18n.t('errAccountExists'), needsConfirmation: false };
+    }
     return {
       error: error ? this.translate(error.message) : null,
       needsConfirmation: !error && !data.session,
@@ -129,5 +180,11 @@ export function authErrorKey(message: string): TranslationKey | null {
   if (message.includes('For security purposes')) return 'errWaitSeconds';
   if (message.includes('Token has expired or is invalid') || message.includes('otp_expired')) return 'errCodeInvalid';
   if (message.toLowerCase().includes('rate limit')) return 'errRateLimit';
+  // El mail no salió: el servidor de correo rechazó el envío (o no está configurado para ese destinatario).
+  if (/error sending|not authorized|smtp/i.test(message)) return 'errEmailSend';
+  // Falló el alta del usuario en la base (trigger de users) al entrar por primera vez.
+  if (/database error saving new user|unexpected_failure/i.test(message)) return 'errSignupDb';
+  if (/access_denied|access denied/i.test(message)) return 'errGoogleCancelled';
+  if (/exchange external code|code verifier|flow_state|bad_oauth/i.test(message)) return 'errGoogleExchange';
   return null;
 }

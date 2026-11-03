@@ -49,6 +49,11 @@ export class LoginPage {
   readonly serverError = signal<string | null>(null);
   readonly info = signal<string | null>(null);
   readonly googleLoading = signal(false);
+  /** Google bloquea el login dentro de los navegadores de Instagram, Facebook, TikTok, etc. */
+  readonly inAppBrowser = isInAppBrowser(typeof navigator === 'undefined' ? '' : navigator.userAgent);
+  /** App instalada en iPhone: Google abre otra ventana y el login puede terminar ahí, no en la app. */
+  readonly iosStandalone = isIosStandalone();
+  private googleTimer: ReturnType<typeof setTimeout> | null = null;
   readonly submitLabel = computed(() => {
     const keys = { login: 'tabLogin', registro: 'tabSignup', recuperar: 'sendLink' } as const;
     return this.i18n.t(keys[this.mode()]);
@@ -64,7 +69,22 @@ export class LoginPage {
 
   constructor() {
     addIcons({ flashOutline, logoGoogle, mailOutline, pieChartOutline, sparkles, walletOutline });
-    inject(DestroyRef).onDestroy(() => this.stopTimer());
+    inject(DestroyRef).onDestroy(() => {
+      this.stopTimer();
+      if (this.googleTimer) clearTimeout(this.googleTimer);
+      window.removeEventListener('pageshow', this.onPageShow);
+      document.removeEventListener('visibilitychange', this.onVisible);
+    });
+    // Si se vuelve a la app sin haber entrado (se cerró la ventana de Google), el botón no queda girando.
+    document.addEventListener('visibilitychange', this.onVisible);
+    // Volver de Google con "atrás" restaura la página tal cual (bfcache): sin esto el botón queda girando.
+    window.addEventListener('pageshow', this.onPageShow);
+    // Error que trajo Supabase en la URL al volver de Google o de un enlace del mail.
+    const redirectError = this.auth.redirectError();
+    if (redirectError) {
+      this.serverError.set(redirectError);
+      this.auth.clearRedirectError();
+    }
   }
 
   go(step: Step): void {
@@ -194,6 +214,19 @@ export class LoginPage {
     });
   }
 
+  private readonly onPageShow = (event: PageTransitionEvent): void => {
+    if (event.persisted) this.googleLoading.set(false);
+  };
+
+  private readonly onVisible = (): void => {
+    if (document.visibilityState !== 'visible' || !this.googleLoading()) return;
+    setTimeout(() => {
+      if (!this.googleLoading() || this.auth.isLoggedIn()) return;
+      this.googleLoading.set(false);
+      this.info.set(this.i18n.t(this.iosStandalone ? 'googleStandalone' : 'googleSlow'));
+    }, 1500);
+  };
+
   async onGoogle(): Promise<void> {
     this.serverError.set(null);
     this.googleLoading.set(true);
@@ -201,6 +234,24 @@ export class LoginPage {
     if (error) {
       this.serverError.set(error);
       this.googleLoading.set(false);
+      return;
     }
+    // Si a los 12 s seguimos acá (la redirección no salió), se libera el botón y se ofrece otra vía.
+    this.googleTimer = setTimeout(() => {
+      this.googleLoading.set(false);
+      this.info.set(this.i18n.t(this.iosStandalone ? 'googleStandalone' : 'googleSlow'));
+    }, 12_000);
   }
+}
+
+function isIosStandalone(): boolean {
+  if (typeof window === 'undefined') return false;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone = window.matchMedia?.('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true;
+  return ios && !!standalone;
+}
+
+/** Navegadores internos de otras apps, donde Google rechaza el login (error disallowed_useragent). */
+export function isInAppBrowser(userAgent: string): boolean {
+  return /FBAN|FBAV|FB_IAB|Instagram|Line\/|musical_ly|BytedanceWebview|TikTok|Snapchat|LinkedInApp|Twitter/i.test(userAgent);
 }

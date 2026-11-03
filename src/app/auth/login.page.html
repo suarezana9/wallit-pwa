@@ -29,6 +29,9 @@
             <p>{{ (returning() ? 'welcomeBackText' : 'startFreeText') | t }}</p>
           </section>
 
+          @if (inAppBrowser) {
+            <p class="wl-notice wl-notice-error" role="alert">{{ 'inAppBrowser' | t }}</p>
+          }
           <div class="providers">
             <button type="button" class="provider google" (click)="onGoogle()" [disabled]="googleLoading()">
               @if (googleLoading()) {
@@ -55,6 +58,8 @@
 
           @if (serverError(); as error) {
             <p class="wl-notice wl-notice-error" role="alert">{{ error }}</p>
+          } @else if (info(); as message) {
+            <p class="wl-notice wl-notice-info" role="status">{{ message }}</p>
           }
 
           <p class="fine">{{ 'magicExplain' | t }}</p>

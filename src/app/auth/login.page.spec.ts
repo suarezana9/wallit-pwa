@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { LoginPage } from './login.page';
@@ -11,6 +12,8 @@ describe('LoginPage', () => {
     sendPasswordReset: vi.fn().mockResolvedValue({ error: null }),
     sendMagicLink: vi.fn().mockResolvedValue({ error: null }),
     verifyEmailCode: vi.fn().mockResolvedValue({ error: null }),
+    redirectError: signal<string | null>(null),
+    clearRedirectError: vi.fn(),
   };
 
   beforeEach(() => {
@@ -65,5 +68,13 @@ describe('LoginPage', () => {
     await page.onSubmit(new Event('submit'));
     expect(auth.sendPasswordReset).toHaveBeenCalledWith('ana@mail.com');
     expect(page.info()).toContain('ana@mail.com');
+  });
+
+  it('muestra el error que trajo Supabase al volver de Google', () => {
+    auth.redirectError.set('No pudimos crear tu cuenta. Avisanos y lo revisamos.');
+    const page = TestBed.createComponent(LoginPage).componentInstance;
+    expect(page.serverError()).toContain('No pudimos crear tu cuenta');
+    expect(auth.clearRedirectError).toHaveBeenCalled();
+    auth.redirectError.set(null);
   });
 });

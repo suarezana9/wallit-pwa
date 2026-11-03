@@ -4,6 +4,14 @@
   "installCommand": "npm ci",
   "buildCommand": "npm run build",
   "outputDirectory": "www",
+  "redirects": [
+    {
+      "source": "/(.*)",
+      "has": [{ "type": "host", "value": "wallit-pwa-v8rd.vercel.app" }],
+      "destination": "https://wallit-pwa.vercel.app/$1",
+      "permanent": true
+    }
+  ],
   "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
   "headers": [
     {
