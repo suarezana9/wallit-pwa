@@ -11,23 +11,49 @@
   border: 1px solid var(--wl-field-border);
 }
 
+// ---------- Perfil ----------
+
 .profile {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: 14px;
+  gap: 14px 16px;
 }
 
-.avatar {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
+.avatar-wrap {
+  position: relative;
+}
+
+// Botón de cámara sobre la foto.
+.avatar-edit {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
   display: grid;
   place-items: center;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-primary-shade));
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 15px;
+  color: var(--ion-color-primary-contrast);
+  background: var(--ion-color-primary);
+  border: 3px solid var(--wl-surface);
+  cursor: pointer;
+
+  ion-spinner {
+    width: 14px;
+    height: 14px;
+    color: inherit;
+  }
+}
+
+.avatar-edit input,
+.link input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .who {
@@ -38,7 +64,7 @@
 }
 
 .name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
 }
 
@@ -49,21 +75,48 @@
   white-space: nowrap;
 }
 
-.session {
-  grid-column: 1 / -1;
+.photo-actions {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 6px;
-  padding-top: 14px;
-  border-top: 1px solid var(--wl-field-border);
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.link {
+  position: relative;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  background: none;
+  border: 0;
+  cursor: pointer;
+
+  &.muted {
+    color: var(--wl-muted);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
+.dot {
+  color: var(--wl-muted);
 }
 
 .logout {
+  grid-column: 1 / -1;
   --color: var(--ion-color-danger);
-  margin: 0;
+  height: 46px;
+  margin: 4px 0 0;
 }
 
-.settings {
+// ---------- Ajustes ----------
+
+.columns,
+.column {
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -243,12 +296,10 @@
 }
 
 @media (min-width: 992px) {
+  // Todo con el mismo ancho: el perfil arriba, de punta a punta, y los ajustes en dos columnas.
   .layout {
-    display: grid;
-    grid-template-columns: 300px minmax(0, 1fr);
+    max-width: 1120px;
     gap: 24px;
-    align-items: start;
-    max-width: 1040px;
     margin-top: 0;
   }
 
@@ -257,35 +308,29 @@
   }
 
   .profile {
-    position: sticky;
-    top: 24px;
-    grid-template-columns: 1fr;
-    justify-items: center;
-    text-align: center;
-    padding: 28px 24px 24px;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 24px;
+    padding: 24px 28px;
   }
 
-  .avatar {
-    width: 80px;
-    height: 80px;
-    font-size: 32px;
+  .name {
+    font-size: 22px;
   }
 
-  .who {
-    align-items: center;
-    max-width: 100%;
+  .logout {
+    grid-column: auto;
+    width: 180px;
+    margin: 0;
   }
 
-  .email {
-    max-width: 100%;
+  .columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 24px;
   }
 
-  .session {
-    width: 100%;
-    margin-top: 6px;
-  }
-
-  .settings {
+  .column {
     gap: 24px;
   }
 
@@ -293,8 +338,8 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    gap: 32px;
-    padding: 20px 0;
+    gap: 20px;
+    padding: 18px 0;
   }
 
   .setting.stacked {
@@ -310,13 +355,17 @@
 
   .currency-select {
     flex: none;
-    width: 280px;
+    width: 250px;
   }
 
   .segmented,
   .manage {
     flex: none;
-    width: 280px;
+    width: 250px;
+  }
+
+  .manage {
+    white-space: nowrap;
   }
 
   .themes {
@@ -333,7 +382,3 @@
   margin: 0;
 }
 
-:host-context(.ion-palette-dark) .avatar {
-  color: var(--ion-color-primary);
-  background: rgba(var(--ion-color-primary-rgb), 0.16);
-}

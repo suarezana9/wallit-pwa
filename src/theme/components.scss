@@ -148,6 +148,12 @@ ion-menu.wl-sidebar::part(container) {
   ion-modal.wl-dialog.wl-dialog-sm.wl-dialog-md {
     --height: min(780px, 92vh);
   }
+
+  // Avatar del grupo: emojis + dos botones.
+  ion-modal.wl-dialog.wl-dialog-sm.wl-dialog-avatar {
+    --width: 460px;
+    --height: 480px;
+  }
 }
 
 .wl-page {

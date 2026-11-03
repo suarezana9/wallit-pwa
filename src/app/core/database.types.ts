@@ -75,6 +75,9 @@ export interface Database {
           archivado: boolean;
           /** Migración 016: true = dividen gastos (saldos y deudas), false = bolsa común. */
           divide_gastos: boolean;
+          /** Migración 022: avatar del grupo. Si hay foto, se muestra la foto. */
+          avatar_emoji?: string | null;
+          avatar_url?: string | null;
         };
         Insert: Omit<
           Database['public']['Tables']['groups']['Row'],

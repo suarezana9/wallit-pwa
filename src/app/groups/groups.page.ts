@@ -11,6 +11,7 @@ import { PreferencesStore } from '../core/preferences-store';
 import type { Grupo } from '../core/database.types';
 import { formatTripRange } from './trip.model';
 import { spaceColor } from './space-color';
+import { AvatarComponent } from '../shared/avatar.component';
 import { GroupDialogComponent } from './group-dialog.component';
 import { GroupsStore } from './groups-store';
 import { MemberAvatarsComponent } from './member-avatars.component';
@@ -20,7 +21,7 @@ import { MemberAvatarsComponent } from './member-avatars.component';
   templateUrl: 'groups.page.html',
   styleUrls: ['groups.page.scss'],
   imports: [
-    GroupDialogComponent, IonButton, IonContent, IonHeader, IonIcon, IonSkeletonText, IonTitle, IonToolbar,
+    AvatarComponent, GroupDialogComponent, IonButton, IonContent, IonHeader, IonIcon, IonSkeletonText, IonTitle, IonToolbar,
     MemberAvatarsComponent, MoneyPipe, RouterLink, TranslatePipe,
   ],
 })

@@ -10,6 +10,7 @@ import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { GroupDialogComponent } from './group-dialog.component';
 import { GroupsStore, PERSONAL, injectSpaceSwitcher } from './groups-store';
 import { spaceColor } from './space-color';
+import { AvatarComponent } from '../shared/avatar.component';
 import { formatTripRange } from './trip.model';
 import { PreferencesStore } from '../core/preferences-store';
 import type { Grupo, RolGrupo } from '../core/database.types';
@@ -20,6 +21,8 @@ interface SpaceOption {
   hint: string;
   letter: string;
   color: string | null;
+  photo: string | null;
+  emoji: string | null;
 }
 
 /**
@@ -30,7 +33,7 @@ interface SpaceOption {
  */
 @Component({
   selector: 'app-context-switcher',
-  imports: [GroupDialogComponent, IonIcon, IonModal, NgTemplateOutlet, RouterLink, TranslatePipe],
+  imports: [AvatarComponent, GroupDialogComponent, IonIcon, IonModal, NgTemplateOutlet, RouterLink, TranslatePipe],
   host: {
     '[class]': 'variant()',
     '(document:click)': 'onDocumentClick($event)',
@@ -133,7 +136,7 @@ interface SpaceOption {
 
     <ng-template #avatar let-space>
       @if (space.color) {
-        <span class="avatar" [style.--space-color]="space.color" aria-hidden="true">{{ space.letter }}</span>
+        <app-avatar [url]="space.photo" [emoji]="space.emoji" [name]="space.name" [color]="space.color" [size]="34" shape="rounded" />
       } @else {
         <span class="avatar personal" aria-hidden="true"><ion-icon name="person-outline" /></span>
       }
@@ -157,7 +160,7 @@ export class ContextSwitcherComponent {
   readonly open = signal(false);
 
   readonly options = computed<SpaceOption[]>(() => [
-    { id: PERSONAL, name: this.i18n.t('personal'), hint: this.i18n.t('spacePersonalHint'), letter: '', color: null },
+    { id: PERSONAL, name: this.i18n.t('personal'), hint: this.i18n.t('spacePersonalHint'), letter: '', color: null, photo: null, emoji: null },
     // Los archivados no se listan, salvo el que estás viendo ahora.
     ...this.groups.list().filter(({ group }) => !group.archivado || group.id === this.groups.contextId()).map(({ group, role }) => ({
       id: group.id,
@@ -165,6 +168,8 @@ export class ContextSwitcherComponent {
       hint: this.hintFor(group, role),
       letter: group.name.trim().charAt(0).toUpperCase() || '?',
       color: spaceColor(group.id),
+      photo: group.avatar_url ?? null,
+      emoji: group.avatar_emoji ?? null,
     })),
   ]);
 

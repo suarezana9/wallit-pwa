@@ -16,10 +16,12 @@ import { injectGroupAccounts } from './group-accounts';
 import type { GroupMember } from './groups-store';
 import type { Grupo } from '../core/database.types';
 import { TripSummaryComponent } from './trip-summary.component';
+import { AvatarComponent } from '../shared/avatar.component';
 
 interface Person {
   name: string;
   initial: string;
+  photo: string | null;
   color: string;
   isMe: boolean;
 }
@@ -28,7 +30,7 @@ interface Person {
 import { amountForClipboard, parseAmount } from '../core/amount';
 @Component({
   selector: 'app-group-accounts',
-  imports: [IonButton, IonIcon, IonSkeletonText, MoneyPipe, RouterLink, TranslatePipe, TripSummaryComponent],
+  imports: [AvatarComponent, IonButton, IonIcon, IonSkeletonText, MoneyPipe, RouterLink, TranslatePipe, TripSummaryComponent],
   template: `
     @if (accounts.data.isLoading() && !accounts.data.hasValue()) {
       <ion-skeleton-text [animated]="true" class="skeleton" />
@@ -79,7 +81,7 @@ import { amountForClipboard, parseAmount } from '../core/amount';
                   @let to = person(transfer.to);
                   <li [class.mine]="from.isMe || to.isMe">
                     <div class="row">
-                      <span class="avatar" [style.background]="from.color" aria-hidden="true">{{ from.initial }}</span>
+                      <app-avatar [url]="from.photo" [name]="from.initial" [color]="from.color" [size]="34" />
                       <span class="who">
                         <span class="names">{{ from.name }} <ion-icon name="arrow-forward" aria-hidden="true" /> {{ to.name }}</span>
                         <strong>{{ transfer.amount | money }}</strong>
@@ -153,7 +155,7 @@ import { amountForClipboard, parseAmount } from '../core/amount';
               @for (balance of accounts.balances(); track balance.userId) {
                 @let who = person(balance.userId);
                 <li>
-                  <span class="avatar" [style.background]="who.color" aria-hidden="true">{{ who.initial }}</span>
+                  <app-avatar [url]="who.photo" [name]="who.initial" [color]="who.color" [size]="34" />
                   <span class="who">
                     <span class="names">{{ who.name }}</span>
                     <span class="bar" aria-hidden="true">
@@ -387,6 +389,7 @@ export class GroupAccountsComponent {
       map.set(member.userId, {
         name: isMe ? this.i18n.t('youCap') : member.name,
         initial: member.name.charAt(0).toUpperCase(),
+        photo: member.avatarUrl,
         color: MEMBER_COLORS[i % MEMBER_COLORS.length],
         isMe,
       });
@@ -401,7 +404,7 @@ export class GroupAccountsComponent {
   }
 
   person(userId: string): Person {
-    return this.people().get(userId) ?? { name: this.i18n.t('formerMember'), initial: '?', color: '#9ca3af', isMe: false };
+    return this.people().get(userId) ?? { name: this.i18n.t('formerMember'), initial: '?', photo: null, color: '#9ca3af', isMe: false };
   }
 
   barWidth(net: number): number {

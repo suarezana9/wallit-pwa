@@ -4,6 +4,7 @@ import { AuthStore } from '../core/auth-store';
 import { Supabase } from '../core/supabase';
 import { monthRange } from '../core/dates';
 import { I18n } from '../core/i18n/i18n';
+import { AvatarStorage } from '../shared/avatar-storage';
 import { PreferencesStore } from '../core/preferences-store';
 import type { Grupo, RolGrupo, TipoGrupo } from '../core/database.types';
 
@@ -35,6 +36,8 @@ export interface GroupMember {
   email: string;
   role: RolGrupo;
   joinedAt: string;
+  /** Foto de perfil (migración 022). */
+  avatarUrl: string | null;
 }
 
 export interface GroupSettings {
@@ -73,6 +76,7 @@ export class GroupsStore {
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
   private readonly i18n = inject(I18n);
+  private readonly avatars = inject(AvatarStorage);
   private readonly preferences = inject(PreferencesStore);
 
   private readonly selected = signal(readContext());
@@ -190,6 +194,7 @@ export class GroupsStore {
       email: m.email ?? '',
       role: m.role,
       joinedAt: m.joined_at,
+      avatarUrl: m.avatar_url ?? null,
     }));
   }
 
@@ -248,6 +253,28 @@ export class GroupsStore {
     this.groups.update((list) =>
       (list ?? []).map((g) => (g.group.id === groupId ? { ...g, group: { ...g.group, name: name.trim() } } : g)),
     );
+    return null;
+  }
+
+  /**
+   * Avatar del grupo (solo admin; migración 022): un emoji, una foto o nada (vuelve a la inicial).
+   * La foto se recorta cuadrada, se achica y reemplaza a la anterior.
+   */
+  async setAvatar(groupId: string, avatar: { emoji: string } | { file: Blob } | null): Promise<string | null> {
+    if (this.roleIn(groupId) !== 'admin') return this.i18n.t('errOnlyAdmin');
+    const folder = `groups/${groupId}`;
+    let changes: { avatar_emoji: string | null; avatar_url: string | null };
+    try {
+      if (avatar && 'file' in avatar) changes = { avatar_emoji: null, avatar_url: await this.avatars.upload(folder, avatar.file) };
+      else changes = { avatar_emoji: avatar?.emoji ?? null, avatar_url: null };
+    } catch (error) {
+      console.warn('[avatar grupo]', error);
+      return this.i18n.t('photoError');
+    }
+    const { error } = await this.supabase.from('groups').update(changes).eq('id', groupId);
+    if (error) return this.i18n.t('errSaveChanges');
+    if (!changes.avatar_url) void this.avatars.removeAll(folder).catch(() => undefined);
+    this.groups.update((list) => (list ?? []).map((g) => (g.group.id === groupId ? { ...g, group: { ...g.group, ...changes } } : g)));
     return null;
   }
 

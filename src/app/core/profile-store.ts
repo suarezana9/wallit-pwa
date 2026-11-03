@@ -1,6 +1,7 @@
 import { Service, computed, inject, resource } from '@angular/core';
 import { AuthStore } from './auth-store';
 import { Supabase } from './supabase';
+import { AvatarStorage } from '../shared/avatar-storage';
 import type { UserRow } from './database.types';
 
 export type Profile = Pick<UserRow, 'id' | 'name' | 'email' | 'avatar_url'> &
@@ -15,6 +16,7 @@ export type Profile = Pick<UserRow, 'id' | 'name' | 'email' | 'avatar_url'> &
 export class ProfileStore {
   private readonly supabase = inject(Supabase).client;
   private readonly auth = inject(AuthStore);
+  private readonly avatars = inject(AvatarStorage);
 
   readonly profile = resource({
     params: () => this.auth.user()?.id,
@@ -45,6 +47,40 @@ export class ProfileStore {
     const { error } = await this.supabase.from('users').update(changes).eq('id', userId);
     if (error) return false;
     this.profile.update((p) => (p ? { ...p, ...changes } : p));
+    return true;
+  }
+
+  /** Foto de perfil guardada; mientras carga, la de la cuenta de Google (si entraste con Google). */
+  readonly avatarUrl = computed(() => {
+    if (this.profile.hasValue()) return this.profile.value()?.avatar_url ?? null;
+    return (this.auth.user()?.user_metadata?.['avatar_url'] as string | undefined) ?? null;
+  });
+
+  /** Sube una foto nueva (se recorta cuadrada y se achica). Devuelve false si falló. */
+  async setAvatar(file: Blob): Promise<boolean> {
+    const userId = this.auth.user()?.id;
+    if (!userId) return false;
+    try {
+      const url = await this.avatars.upload(`users/${userId}`, file);
+      return await this.saveAvatarUrl(userId, url);
+    } catch (error) {
+      console.warn('[avatar]', error);
+      return false;
+    }
+  }
+
+  async removeAvatar(): Promise<boolean> {
+    const userId = this.auth.user()?.id;
+    if (!userId) return false;
+    const ok = await this.saveAvatarUrl(userId, null);
+    if (ok) await this.avatars.removeAll(`users/${userId}`).catch(() => undefined);
+    return ok;
+  }
+
+  private async saveAvatarUrl(userId: string, url: string | null): Promise<boolean> {
+    const { error } = await this.supabase.from('users').update({ avatar_url: url }).eq('id', userId);
+    if (error) return false;
+    this.profile.update((p) => (p ? { ...p, avatar_url: url } : p));
     return true;
   }
 

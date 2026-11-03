@@ -25,7 +25,14 @@
       </a>
 
       <header class="head">
-        <div class="group-icon" [style.background]="color()" aria-hidden="true">{{ group()!.name.charAt(0).toUpperCase() }}</div>
+        @if (isAdmin()) {
+          <button type="button" class="group-avatar editable" (click)="avatarPicker.open(group()!)" [attr.aria-label]="'groupAvatarEdit' | t" [title]="'groupAvatarEdit' | t">
+            <app-avatar [url]="group()!.avatar_url" [emoji]="group()!.avatar_emoji" [name]="group()!.name" [color]="color()" [size]="56" shape="rounded" />
+            <span class="avatar-badge" aria-hidden="true"><ion-icon name="camera" /></span>
+          </button>
+        } @else {
+          <app-avatar [url]="group()!.avatar_url" [emoji]="group()!.avatar_emoji" [name]="group()!.name" [color]="color()" [size]="56" shape="rounded" />
+        }
         <div class="head-text">
           @if (editing()) {
             <form class="rename" (submit)="saveName($event)">
@@ -114,9 +121,7 @@
             <ul class="members">
               @for (member of memberList(); track member.userId; let i = $index) {
                 <li>
-                  <span class="avatar" [style.background]="colors[i % colors.length]" aria-hidden="true">
-                    {{ member.name.charAt(0).toUpperCase() }}
-                  </span>
+                  <app-avatar [url]="member.avatarUrl" [name]="member.name" [color]="colors[i % colors.length]" [size]="36" />
                   <span class="member-text">
                     <span class="member-name">
                       {{ member.name }}
@@ -225,4 +230,5 @@
     }
   </div>
 
+  <app-group-avatar-picker #avatarPicker />
 </ion-content>

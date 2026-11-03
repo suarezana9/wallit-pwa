@@ -6,10 +6,12 @@ import {
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import {
-  archiveOutline, arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
+  archiveOutline, arrowBack, camera, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
   shareSocialOutline, trashOutline,
 } from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
+import { AvatarComponent } from '../shared/avatar.component';
+import { GroupAvatarPickerComponent } from './group-avatar-picker.component';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { MEMBER_COLORS } from '../movements/explorer/movement-explorer.component';
 import { GroupAccountsComponent } from './group-accounts.component';
@@ -26,7 +28,7 @@ import { SplitModePickerComponent } from './split-mode-picker.component';
   templateUrl: 'group-detail.page.html',
   styleUrls: ['group-detail.page.scss'],
   imports: [
-    GroupAccountsComponent, GroupActivityComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
+    AvatarComponent, GroupAvatarPickerComponent, GroupAccountsComponent, GroupActivityComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput,
     IonSkeletonText, IonTitle, IonToolbar, RouterLink, SplitModePickerComponent, TranslatePipe,
   ],
 })
@@ -107,7 +109,7 @@ export class GroupDetailPage {
 
   constructor() {
     addIcons({
-      archiveOutline, arrowBack, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
+      archiveOutline, arrowBack, camera, checkmark, closeOutline, copyOutline, exitOutline, linkOutline, logoWhatsapp, pencilOutline,
       shareSocialOutline, trashOutline,
     });
   }

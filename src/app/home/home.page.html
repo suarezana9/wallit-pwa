@@ -129,9 +129,8 @@
       <aside class="wl-panel" aria-labelledby="breakdown-title">
         <div class="panel-header">
           <h2 id="breakdown-title">{{ 'byCategory' | t }}</h2>
-          <a class="see-all" routerLink="/movimientos" [queryParams]="{ tipo: 'gasto' }">{{ 'seeAll' | t }}</a>
         </div>
-        <app-category-breakdown [movements]="store.list()" [limit]="5" (selected)="openCategory($event)" />
+        <app-category-breakdown [movements]="store.list()" [limit]="8" (selected)="openCategory($event)" />
 
         <div class="panel-header budgets-header">
           <h2>{{ 'navBudgets' | t }}</h2>

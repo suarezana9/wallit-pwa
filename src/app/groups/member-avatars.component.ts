@@ -1,19 +1,18 @@
 import { Component, computed, inject, input, resource } from '@angular/core';
 import { TranslatePipe } from '../core/i18n/i18n';
 import { GroupsStore } from './groups-store';
+import { AvatarComponent } from '../shared/avatar.component';
 
 const COLORS = ['#6c47ff', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444'];
 
 @Component({
   selector: 'app-member-avatars',
-  imports: [TranslatePipe],
+  imports: [AvatarComponent, TranslatePipe],
   template: `
     @if (members().length) {
       <div class="stack" aria-hidden="true">
         @for (member of visible(); track member.userId; let i = $index) {
-          <span class="avatar" [style.background]="colors[i % colors.length]" [title]="member.name">
-            {{ member.name.charAt(0).toUpperCase() }}
-          </span>
+          <app-avatar class="avatar" [url]="member.avatarUrl" [name]="member.name" [color]="colors[i % colors.length]" [size]="28" [title]="member.name" />
         }
         @if (members().length > max) {
           <span class="avatar more">+{{ members().length - max }}</span>
@@ -26,9 +25,11 @@ const COLORS = ['#6c47ff', '#10b981', '#f59e0b', '#ec4899', '#3b82f6', '#ef4444'
     :host { display: flex; align-items: center; gap: 10px; min-width: 0; }
     .stack { display: flex; }
     .avatar {
+      box-sizing: content-box; border: 2px solid var(--ion-background-color); margin-left: -8px;
+    }
+    span.avatar {
       width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
-      font-size: 13px; font-weight: 700; color: #fff; border: 2px solid var(--ion-background-color);
-      margin-left: -8px;
+      font-size: 13px; font-weight: 700;
     }
     .avatar:first-child { margin-left: 0; }
     .more { color: var(--wl-muted); background: var(--wl-field-bg); }

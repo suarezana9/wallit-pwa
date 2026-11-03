@@ -60,7 +60,7 @@
         @for (item of groups.openList(); track item.group.id) {
           <a class="card" [class.active]="groups.contextId() === item.group.id" [routerLink]="['/grupos', item.group.id]">
             <div class="card-head">
-              <div class="group-icon" [style.--space-color]="color(item.group.id)" aria-hidden="true">{{ item.group.name.charAt(0).toUpperCase() }}</div>
+              <app-avatar [url]="item.group.avatar_url" [emoji]="item.group.avatar_emoji" [name]="item.group.name" [color]="color(item.group.id)" [size]="44" shape="rounded" />
               <div class="card-title">
                 <h2>{{ item.group.name }}</h2>
                 <div class="badges">

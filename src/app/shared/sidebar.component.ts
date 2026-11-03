@@ -8,13 +8,14 @@ import {
 import { AuthStore } from '../core/auth-store';
 import { ProfileStore } from '../core/profile-store';
 import { WallitLogoComponent } from './wallit-logo';
+import { AvatarComponent } from './avatar.component';
 import { TranslatePipe } from '../core/i18n/i18n';
 import { ContextSwitcherComponent } from '../groups/context-switcher.component';
 import { GroupsStore } from '../groups/groups-store';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [ContextSwitcherComponent, IonButton, IonIcon, RouterLink, RouterLinkActive, TranslatePipe, WallitLogoComponent],
+  imports: [AvatarComponent, ContextSwitcherComponent, IonButton, IonIcon, RouterLink, RouterLinkActive, TranslatePipe, WallitLogoComponent],
   template: `
     <div class="brand">
       <app-wallit-logo [size]="32" />
@@ -55,7 +56,9 @@ import { GroupsStore } from '../groups/groups-store';
     </nav>
 
     <div class="user">
-      <div class="avatar" aria-hidden="true">{{ initial() }}</div>
+      <a class="avatar-link" routerLink="/cuenta" [attr.aria-label]="'navAccount' | t">
+        <app-avatar [url]="avatarUrl()" [name]="displayName() || email()" [size]="36" />
+      </a>
       <div class="user-text">
         <span class="name">{{ displayName() }}</span>
         <span class="email">{{ email() }}</span>
@@ -82,10 +85,7 @@ import { GroupsStore } from '../groups/groups-store';
       display: flex; align-items: center; gap: 10px; padding: 10px 4px 10px 10px;
       border-radius: 14px; background: var(--wl-field-bg); border: 1px solid var(--wl-field-border);
     }
-    .avatar {
-      flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center;
-      font-weight: 700; color: #fff; background: var(--ion-color-primary);
-    }
+    .avatar-link { display: flex; flex: none; border-radius: 50%; }
     .user-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
     .name, .email { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .name { font-size: 15px; font-weight: 600; }
@@ -96,9 +96,10 @@ export class SidebarComponent {
   private readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
   readonly groups = inject(GroupsStore);
-  readonly displayName = inject(ProfileStore).displayName;
+  private readonly profile = inject(ProfileStore);
+  readonly displayName = this.profile.displayName;
+  readonly avatarUrl = this.profile.avatarUrl;
   readonly email = computed(() => this.auth.user()?.email ?? '');
-  readonly initial = computed(() => (this.displayName() || this.email()).charAt(0).toUpperCase());
 
   constructor() {
     addIcons({ homeOutline, listOutline, logOutOutline, peopleOutline, personCircleOutline, pieChartOutline, swapHorizontalOutline });
