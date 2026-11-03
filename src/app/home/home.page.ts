@@ -31,6 +31,7 @@ import { RecurringManagerComponent } from '../movements/recurring-manager.compon
 import { RecurringPendingComponent } from '../movements/recurring-pending.component';
 
 import { MonthlySummaryComponent } from '../movements/monthly-summary.component';
+import { GettingStartedComponent, StepAction, injectGettingStarted } from './getting-started.component';
 import { isMonthKey, monthNameOf } from '../movements/summary.model';
 import { monthRange } from '../core/dates';
 
@@ -52,7 +53,7 @@ function readClosed(): string | null {
   imports: [
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
-    MonthNavComponent, MonthlyChartComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,
+    GettingStartedComponent, MonthNavComponent, MonthlyChartComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,
     RecurringManagerComponent, RecurringPendingComponent, RouterLink, TranslatePipe, WallitLogoComponent,
   ],
 })
@@ -88,6 +89,27 @@ export class HomePage {
   });
   readonly pastMonth = computed(() => (this.store.monthOffset() < 0 ? monthRange(this.store.monthOffset()).from.slice(0, 7) : null));
   readonly monthNameOf = (month: string) => monthNameOf(month, this.preferences.locale());
+
+  /**
+   * Sin meses anteriores con gastos el gráfico de evolución queda vacío: en su lugar, los primeros pasos,
+   * hasta que estén todos hechos o haya historial.
+   */
+  private readonly steps = injectGettingStarted();
+  readonly showGettingStarted = computed(
+    () => this.store.monthOffset() === 0 && this.insights.hasHistory() === false && this.steps().some((s) => !s.done),
+  );
+
+  readonly trendNote = computed(() => {
+    const trend = this.insights.trend();
+    return trend.mode === 'weeks'
+      ? this.i18n.t('byWeek', monthNameOf(this.store.range().from.slice(0, 7), this.preferences.locale()))
+      : this.i18n.t('lastNMonths', String(trend.points.length));
+  });
+
+  onStep(action: StepAction): void {
+    if (action === 'fixed') this.fixedManager().open();
+    else this.editor().openNewOfType(action === 'expense' ? 'gasto' : 'ingreso');
+  }
 
   openSummary(month: string): void {
     this.monthlySummary().open(month, this.groups.activeGroupId());

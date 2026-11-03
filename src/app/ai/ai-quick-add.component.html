@@ -40,7 +40,8 @@
           [placeholder]="'aiQuickPlaceholder' | t"
           [attr.aria-label]="'aiQuickPlaceholder' | t"
           [value]="text()"
-          (input)="text.set($any($event.target).value)"
+          (input)="text.set($any($event.target).value); session.error.set(null)"
+          (focus)="session.error.set(null)"
           (paste)="onPaste($event)"
         />
       </form>

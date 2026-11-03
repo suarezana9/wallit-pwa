@@ -93,17 +93,27 @@
 
     <div class="columns">
       <div class="column">
-        <section class="wl-panel" aria-labelledby="chart-title">
-          <div class="panel-header">
-            <h2 id="chart-title">{{ 'spendingTrend' | t }}</h2>
-            <span class="panel-note">{{ 'last6Months' | t }}</span>
-          </div>
-          @defer (on viewport) {
-            <app-monthly-chart [points]="insights.months()" />
-          } @placeholder {
-            <div class="chart-placeholder"></div>
-          }
-        </section>
+        @if (showGettingStarted()) {
+          <section class="wl-panel" aria-labelledby="start-title">
+            <div class="panel-header">
+              <h2 id="start-title">{{ 'gettingStarted' | t }}</h2>
+              <span class="panel-note">{{ 'gettingStartedNote' | t }}</span>
+            </div>
+            <app-getting-started (act)="onStep($event)" />
+          </section>
+        } @else {
+          <section class="wl-panel" aria-labelledby="chart-title">
+            <div class="panel-header">
+              <h2 id="chart-title">{{ 'spendingTrend' | t }}</h2>
+              <span class="panel-note">{{ trendNote() }}</span>
+            </div>
+            @defer (on viewport) {
+              <app-monthly-chart [points]="insights.trend().points" [mode]="insights.trend().mode" />
+            } @placeholder {
+              <div class="chart-placeholder"></div>
+            }
+          </section>
+        }
 
         <section class="wl-panel" aria-labelledby="recent-title">
           <div class="panel-header">

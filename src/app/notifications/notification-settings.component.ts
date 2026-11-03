@@ -45,10 +45,7 @@ const STATUS_TEXT: Record<PushStatus, TranslationKey> = {
         } @else if (status() === 'off') {
           <ion-button class="wl-btn wl-btn-primary" size="small" (click)="enable()">{{ 'pushEnable' | t }}</ion-button>
         } @else if (status() === 'on') {
-          <div class="actions">
-            <ion-button class="wl-btn" size="small" fill="outline" (click)="push.test()">{{ 'pushTest' | t }}</ion-button>
-            <ion-button class="wl-btn" size="small" fill="clear" color="medium" (click)="push.disable()">{{ 'pushDisable' | t }}</ion-button>
-          </div>
+          <ion-button class="wl-btn off" size="small" fill="clear" color="medium" (click)="push.disable()">{{ 'pushDisable' | t }}</ion-button>
         }
       </div>
 
@@ -82,11 +79,11 @@ const STATUS_TEXT: Record<PushStatus, TranslationKey> = {
       flex: none; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 20px;
       color: var(--wl-muted); background: var(--ion-background-color, #fff);
     }
-    .device.on .icon { color: #fff; background: var(--ion-color-primary); }
+    .device.on .icon { color: var(--ion-color-primary-contrast); background: var(--ion-color-primary); }
     .text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
     .label { font-weight: 600; font-size: 16px; }
     .hint { margin: 0; font-size: 14px; color: var(--wl-muted); line-height: 1.4; }
-    .actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+    .off { flex: none; margin: 0; }
     .section-hint { margin: 18px 0 6px; font-size: 14px; color: var(--wl-muted); }
     .prefs { list-style: none; margin: 0; padding: 0; }
     .prefs li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--wl-field-border); }

@@ -21,6 +21,28 @@ export interface ExpenseChange {
 
 const MONTHS_BACK = 5;
 
+/** Gastos del mes en tramos de 7 días: 1–7, 8–14, 15–21, 22–28 y 29 al último (si existe). */
+export function weeksOf(monthStart: string, list: readonly { tipo: string; amount: number; date: string }[], today = new Date()): MonthPoint[] {
+  const [y, m] = monthStart.split('-').map(Number);
+  const last = new Date(y, m, 0).getDate();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const isThisMonth = monthStart.startsWith(todayKey);
+  const points: MonthPoint[] = [];
+  for (let from = 1; from <= last; from += 7) {
+    const to = Math.min(from + 6, last);
+    const gastos = list
+      .filter((mv) => mv.tipo === 'gasto')
+      .filter((mv) => {
+        const d = Number(mv.date.slice(8, 10));
+        return mv.date.startsWith(monthStart.slice(0, 7)) && d >= from && d <= to;
+      })
+      .reduce((sum, mv) => sum + Number(mv.amount), 0);
+    const day = today.getDate();
+    points.push({ key: `w${from}`, label: from === to ? `${from}` : `${from}–${to}`, gastos, ingresos: 0, isCurrent: isThisMonth && day >= from && day <= to });
+  }
+  return points;
+}
+
 function monthKey(offset: number): string {
   return monthRange(offset).from.slice(0, 7);
 }
@@ -74,6 +96,28 @@ export class InsightsStore {
     const current = this.movements.summary();
     points.push({ key: monthKey(offset), label: shortMonth(offset), gastos: current.gastos, ingresos: current.ingresos, isCurrent: true });
     return points;
+  });
+
+  /**
+   * Lo que muestra "Evolución de gastos":
+   * - con 2 meses o más con gastos: un mes por barra, desde el primero con datos (hasta 6);
+   * - si solo hay datos del mes que estás viendo: ese mes por semana (1–7, 8–14…), así no quedan 5 meses vacíos.
+   */
+  readonly trend = computed<{ mode: 'months' | 'weeks'; points: MonthPoint[] }>(() => {
+    const months = this.months();
+    const first = months.findIndex((p) => p.gastos > 0);
+    const fromFirst = first < 0 ? [] : months.slice(first);
+    if (fromFirst.length >= 2) return { mode: 'months', points: fromFirst };
+    return { mode: 'weeks', points: weeksOf(this.movements.range().from, this.movements.list()) };
+  });
+
+  /**
+   * ¿Hay gastos en los meses anteriores al que estás viendo? null mientras carga.
+   * Sin historial el gráfico de evolución queda vacío y en Inicio se muestran los primeros pasos.
+   */
+  readonly hasHistory = computed<boolean | null>(() => {
+    if (!this.history.hasValue()) return null;
+    return this.months().some((p) => !p.isCurrent && p.gastos > 0);
   });
 
   readonly expenseChange = computed<ExpenseChange | null>(() => {

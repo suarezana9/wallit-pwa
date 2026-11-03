@@ -206,6 +206,15 @@ ion-menu.wl-sidebar::part(container) {
   background: var(--wl-surface);
 }
 
+// En celular los paneles también son tarjetas con margen interno (Inicio los saca, ver home.page.scss).
+@media (max-width: 991.98px) {
+  .wl-panel {
+    padding: 16px;
+    border-radius: 16px;
+    border: 1px solid var(--wl-field-border);
+  }
+}
+
 // Oscuro: todo plano, sin brillos ni degradés.
 :root.ion-palette-dark {
   ion-fab-button {

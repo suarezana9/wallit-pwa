@@ -60,14 +60,22 @@ export class AiSession {
       image = await readClipboardImage();
     } catch {
       // Se cerró la burbuja "Pegar" del iPhone o el navegador no dio permiso.
-      this.error.set(this.i18n.t('aiPasteDenied'));
+      this.hint(this.i18n.t('aiPasteDenied'));
       return false;
     }
     if (!image) {
-      this.error.set(this.i18n.t('aiNoImageCopied'));
+      this.hint(this.i18n.t('aiNoImageCopied'));
       return false;
     }
     return this.fromImage(image);
+  }
+
+  /** Aviso que se va solo a los pocos segundos (por ejemplo, "no hay ninguna foto copiada"). */
+  private hint(message: string): void {
+    this.error.set(message);
+    setTimeout(() => {
+      if (this.error() === message) this.error.set(null);
+    }, 6000);
   }
 
   async fromImage(file: Blob): Promise<boolean> {

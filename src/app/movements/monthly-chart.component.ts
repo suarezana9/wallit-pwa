@@ -8,7 +8,8 @@ const WIDTH = 600;
 const HEIGHT = 200;
 const TOP = 26;
 const BOTTOM = 28;
-const SLOT = WIDTH / 6;
+/** Ancho de cada barra: con pocas barras no se estiran, quedan centradas. */
+const MIN_SLOTS = 5;
 const BAR = 44;
 const RADIUS = 4;
 
@@ -27,11 +28,11 @@ function barPath(x: number, y: number, w: number, h: number): string {
       <svg [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" [attr.aria-label]="summary()">
         <line class="baseline" x1="0" [attr.y1]="baseY" [attr.x2]="width" [attr.y2]="baseY" />
         @for (bar of bars(); track bar.key) {
-          <g class="bar" [class.current]="bar.isCurrent">
-            <rect class="hit" [attr.x]="bar.slotX" y="0" [attr.width]="slot" [attr.height]="height" />
+          <g class="bar" [class.current]="bar.isCurrent" [class.weeks]="mode() === 'weeks'">
+            <rect class="hit" [attr.x]="bar.slotX" y="0" [attr.width]="slot()" [attr.height]="height" />
             <path [attr.d]="bar.path" />
             <title>{{ bar.title }}</title>
-            @if (bar.isCurrent) {
+            @if (bar.showValue) {
               <text class="value" [attr.x]="bar.cx" [attr.y]="bar.y - 8" text-anchor="middle">{{ bar.short }}</text>
             }
             <text class="month" [attr.x]="bar.cx" [attr.y]="height - 8" text-anchor="middle">{{ bar.label }}</text>
@@ -40,7 +41,7 @@ function barPath(x: number, y: number, w: number, h: number): string {
       </svg>
       <table class="sr-only">
         <caption>{{ 'chartCaption' | t }}</caption>
-        <tr><th>{{ 'month' | t }}</th><th>{{ 'expenses' | t }}</th></tr>
+        <tr><th>{{ (mode() === 'weeks' ? 'days' : 'month') | t }}</th><th>{{ 'expenses' | t }}</th></tr>
         @for (point of points(); track point.key) {
           <tr><td>{{ point.label }}</td><td>{{ point.gastos | money }}</td></tr>
         }
@@ -55,6 +56,7 @@ function barPath(x: number, y: number, w: number, h: number): string {
     .baseline { stroke: var(--wl-field-border); stroke-width: 1; }
     .bar path { fill: rgba(var(--ion-color-primary-rgb), 0.28); transition: fill 0.15s ease; }
     .bar.current path { fill: var(--ion-color-primary); }
+    .bar.weeks:not(.current) path { fill: rgba(var(--ion-color-primary-rgb), 0.5); }
     .bar:hover path { fill: rgba(var(--ion-color-primary-rgb), 0.55); }
     .bar.current:hover path { fill: var(--ion-color-primary-shade); }
     .hit { fill: transparent; }
@@ -70,12 +72,14 @@ function barPath(x: number, y: number, w: number, h: number): string {
 })
 export class MonthlyChartComponent {
   readonly points = input.required<readonly MonthPoint[]>();
+  /** months: un mes por barra (valor solo en el actual); weeks: el mes por semana (valor en cada barra). */
+  readonly mode = input<'months' | 'weeks'>('months');
   private readonly i18n = inject(I18n);
   private readonly preferences = inject(PreferencesStore);
 
   readonly width = WIDTH;
   readonly height = HEIGHT;
-  readonly slot = SLOT;
+  readonly slot = computed(() => WIDTH / Math.max(this.points().length, MIN_SLOTS));
   readonly baseY = HEIGHT - BOTTOM;
 
   readonly hasData = computed(() => this.points().some((p) => p.gastos > 0));
@@ -84,15 +88,19 @@ export class MonthlyChartComponent {
     const currency = this.preferences.currency();
     const max = Math.max(...this.points().map((p) => p.gastos), 1);
     const usable = this.baseY - TOP;
+    const slot = this.slot();
+    const start = (WIDTH - slot * this.points().length) / 2;
+    const weeks = this.mode() === 'weeks';
     return this.points().map((p, i) => {
       const h = (p.gastos / max) * usable;
-      const x = i * SLOT + (SLOT - BAR) / 2;
+      const x = start + i * slot + (slot - BAR) / 2;
       const y = this.baseY - h;
       return {
         key: p.key,
         label: p.label,
         isCurrent: p.isCurrent,
-        slotX: i * SLOT,
+        slotX: start + i * slot,
+        showValue: weeks ? p.gastos > 0 : p.isCurrent,
         cx: x + BAR / 2,
         y,
         path: barPath(x, y, BAR, h),

@@ -126,15 +126,4 @@ export class PushService {
       this.busy.set(false);
     }
   }
-
-  /** Notificación local para comprobar que el permiso y el service worker andan (no pasa por el servidor). */
-  async test(): Promise<void> {
-    const registration = await navigator.serviceWorker.ready;
-    await registration.showNotification('Wallit', {
-      body: this.i18n.t('pushTestBody'),
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-96x96.png',
-      tag: 'wallit-test',
-    });
-  }
 }

@@ -59,6 +59,8 @@ describe('HomePage', () => {
           useValue: {
             months: signal([]),
             expenseChange: signal({ percent: 12.4, previousMonth: 'septiembre' }),
+            hasHistory: signal(true),
+            trend: signal({ mode: 'months', points: [] }),
             reload: vi.fn(),
           },
         },

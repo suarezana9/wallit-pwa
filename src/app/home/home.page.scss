@@ -410,9 +410,12 @@
   }
 }
 
-// En celular los paneles de Inicio no tienen borde ni padding: en oscuro van sobre el fondo, sin caja.
+// En celular los paneles de Inicio van directo sobre el fondo, sin caja (son secciones de la página).
 @media (max-width: 991.98px) {
-  :host-context(.ion-palette-dark) .wl-panel {
+  .wl-panel {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
     background: transparent;
   }
 }
