@@ -70,7 +70,7 @@ export class AccountPage {
   }
 
   onCurrency(event: SelectCustomEvent<string>): void {
-    if (event.detail.value) this.preferences.currency.set(event.detail.value);
+    if (event.detail.value) this.preferences.chooseCurrency(event.detail.value);
   }
 
   async onPhoto(event: Event): Promise<void> {

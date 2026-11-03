@@ -102,16 +102,8 @@
             <app-getting-started (act)="onStep($event)" />
           </section>
         } @else {
-          <section class="wl-panel" aria-labelledby="chart-title">
-            <div class="panel-header">
-              <h2 id="chart-title">{{ 'spendingTrend' | t }}</h2>
-              <span class="panel-note">{{ trendNote() }}</span>
-            </div>
-            @defer (on viewport) {
-              <app-monthly-chart [points]="insights.trend().points" [mode]="insights.trend().mode" />
-            } @placeholder {
-              <div class="chart-placeholder"></div>
-            }
+          <section class="wl-panel" aria-labelledby="pace-title">
+            <app-month-pace (addIncome)="editor().openNewOfType('ingreso')" />
           </section>
         }
 

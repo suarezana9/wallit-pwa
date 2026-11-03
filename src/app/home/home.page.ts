@@ -21,7 +21,7 @@ import { InsightsStore } from '../movements/insights-store';
 import { CategoryBreakdownComponent } from '../movements/category-breakdown.component';
 import { MovementEditorComponent } from '../movements/movement-editor.component';
 import { MovementListComponent } from '../movements/movement-list.component';
-import { MonthlyChartComponent } from '../movements/monthly-chart.component';
+import { MonthPaceComponent } from '../movements/month-pace.component';
 import { AiQuickAddComponent } from '../ai/ai-quick-add.component';
 import { BudgetCardComponent } from '../budgets/budget-card.component';
 import { BudgetsStore } from '../budgets/budgets-store';
@@ -53,7 +53,7 @@ function readClosed(): string | null {
   imports: [
     AiQuickAddComponent, BudgetCardComponent, GroupBalanceBannerComponent, CategoryBreakdownComponent, ContextSwitcherComponent, IonButton, IonContent, IonFab, IonFabButton, IonHeader,
     IonIcon, IonRefresher, IonRefresherContent, IonSkeletonText, IonToolbar, MoneyPipe,
-    GettingStartedComponent, MonthNavComponent, MonthlyChartComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,
+    GettingStartedComponent, MonthNavComponent, MonthPaceComponent, MonthlySummaryComponent, MovementEditorComponent, MovementListComponent,
     RecurringManagerComponent, RecurringPendingComponent, RouterLink, TranslatePipe, WallitLogoComponent,
   ],
 })
@@ -98,13 +98,6 @@ export class HomePage {
   readonly showGettingStarted = computed(
     () => this.store.monthOffset() === 0 && this.insights.hasHistory() === false && this.steps().some((s) => !s.done),
   );
-
-  readonly trendNote = computed(() => {
-    const trend = this.insights.trend();
-    return trend.mode === 'weeks'
-      ? this.i18n.t('byWeek', monthNameOf(this.store.range().from.slice(0, 7), this.preferences.locale()))
-      : this.i18n.t('lastNMonths', String(trend.points.length));
-  });
 
   onStep(action: StepAction): void {
     if (action === 'fixed') this.fixedManager().open();

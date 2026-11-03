@@ -21,27 +21,18 @@ export interface ExpenseChange {
 
 const MONTHS_BACK = 5;
 
-/** Gastos del mes en tramos de 7 días: 1–7, 8–14, 15–21, 22–28 y 29 al último (si existe). */
-export function weeksOf(monthStart: string, list: readonly { tipo: string; amount: number; date: string }[], today = new Date()): MonthPoint[] {
-  const [y, m] = monthStart.split('-').map(Number);
-  const last = new Date(y, m, 0).getDate();
-  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  const isThisMonth = monthStart.startsWith(todayKey);
-  const points: MonthPoint[] = [];
-  for (let from = 1; from <= last; from += 7) {
-    const to = Math.min(from + 6, last);
-    const gastos = list
-      .filter((mv) => mv.tipo === 'gasto')
-      .filter((mv) => {
-        const d = Number(mv.date.slice(8, 10));
-        return mv.date.startsWith(monthStart.slice(0, 7)) && d >= from && d <= to;
-      })
-      .reduce((sum, mv) => sum + Number(mv.amount), 0);
-    const day = today.getDate();
-    points.push({ key: `w${from}`, label: from === to ? `${from}` : `${from}–${to}`, gastos, ingresos: 0, isCurrent: isThisMonth && day >= from && day <= to });
-  }
-  return points;
+/**
+ * Saca los meses del principio que no aportan: vacíos o con montos que no llegan al 5% del mes más alto
+ * (una prueba de $1.000 en junio no debería estirar el gráfico a 6 meses casi vacíos).
+ */
+export function trimLeadingMonths(points: readonly MonthPoint[]): MonthPoint[] {
+  const max = Math.max(0, ...points.map((p) => p.gastos));
+  if (max <= 0) return [];
+  const first = points.findIndex((p) => p.gastos >= max * MIN_SHARE);
+  return points.slice(first);
 }
+
+const MIN_SHARE = 0.05;
 
 function monthKey(offset: number): string {
   return monthRange(offset).from.slice(0, 7);
@@ -98,17 +89,20 @@ export class InsightsStore {
     return points;
   });
 
-  /**
-   * Lo que muestra "Evolución de gastos":
-   * - con 2 meses o más con gastos: un mes por barra, desde el primero con datos (hasta 6);
-   * - si solo hay datos del mes que estás viendo: ese mes por semana (1–7, 8–14…), así no quedan 5 meses vacíos.
-   */
-  readonly trend = computed<{ mode: 'months' | 'weeks'; points: MonthPoint[] }>(() => {
-    const months = this.months();
-    const first = months.findIndex((p) => p.gastos > 0);
-    const fromFirst = first < 0 ? [] : months.slice(first);
-    if (fromFirst.length >= 2) return { mode: 'months', points: fromFirst };
-    return { mode: 'weeks', points: weeksOf(this.movements.range().from, this.movements.list()) };
+  /** Barras de la pestaña "6 meses": desde el primer mes con datos (ver trimLeadingMonths). */
+  readonly monthsTrend = computed(() => trimLeadingMonths(this.months()));
+
+  /** Promedio de gasto de los meses anteriores que se muestran (sin el que estás viendo). null si no hay. */
+  readonly monthsAverage = computed<number | null>(() => {
+    const previous = this.monthsTrend().filter((p) => !p.isCurrent);
+    return previous.length ? previous.reduce((sum, p) => sum + p.gastos, 0) / previous.length : null;
+  });
+
+  /** Movimientos del mes anterior al que estás viendo, para comparar día a día en "Ritmo del mes". */
+  readonly previousMonthRows = computed(() => {
+    if (!this.history.hasValue()) return [];
+    const key = monthKey(this.movements.monthOffset() - 1);
+    return this.history.value().filter((r) => r.date.startsWith(key));
   });
 
   /**

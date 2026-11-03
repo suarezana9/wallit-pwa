@@ -1,11 +1,13 @@
 import { DOCUMENT } from '@angular/common';
 import { Service, computed, effect, inject, signal } from '@angular/core';
-import { currencyForLocale, currencyInfo, CURRENCIES } from './currencies';
+import { currencyInfo, resolveCurrency } from './currencies';
 
 export type Language = 'es' | 'en';
 export type Theme = 'system' | 'light' | 'dark';
 
 const KEYS = { currency: 'wallit_moneda', language: 'wallit_idioma', theme: 'wallit_tema' } as const;
+/** "1" cuando la persona eligió la moneda a mano en Cuenta (si no, se puede volver a adivinar). */
+const CURRENCY_CHOSEN_KEY = 'wallit_moneda_elegida';
 
 function read(key: string): string | null {
   try {
@@ -30,9 +32,18 @@ function initialLanguage(): Language {
 }
 
 function initialCurrency(): string {
-  const stored = read(KEYS.currency);
-  if (stored && CURRENCIES.some((c) => c.code === stored)) return stored;
-  return currencyForLocale(navigator.language ?? '');
+  let timeZone = '';
+  try {
+    timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  } catch {
+    // Navegador sin Intl: se usa el idioma.
+  }
+  return resolveCurrency({
+    stored: read(KEYS.currency),
+    chosen: read(CURRENCY_CHOSEN_KEY) === '1',
+    timeZone,
+    languages: navigator.languages?.length ? navigator.languages : [navigator.language ?? ''],
+  });
 }
 
 function initialTheme(): Theme {
@@ -49,6 +60,12 @@ export class PreferencesStore {
   readonly currency = signal(initialCurrency());
   readonly language = signal<Language>(initialLanguage());
   readonly theme = signal<Theme>(initialTheme());
+
+  /** Cambio de moneda hecho por la persona: queda fijo, ya no se vuelve a adivinar. */
+  chooseCurrency(code: string): void {
+    write(CURRENCY_CHOSEN_KEY, '1');
+    this.currency.set(code);
+  }
 
   readonly currencyInfo = computed(() => currencyInfo(this.currency()));
   readonly locale = computed(() => (this.language() === 'en' ? 'en-US' : 'es-AR'));
