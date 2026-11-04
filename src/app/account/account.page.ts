@@ -2,10 +2,12 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import {
   IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonSpinner, IonTitle, IonToolbar,
-  SelectCustomEvent, ToastController,
+  AlertController, SelectCustomEvent, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { camera, checkmarkCircle, chevronForward, logOutOutline } from 'ionicons/icons';
+import {
+  camera, chatbubbleEllipsesOutline, checkmarkCircle, chevronForward, documentTextOutline, logOutOutline, shieldCheckmarkOutline, trashOutline,
+} from 'ionicons/icons';
 import { AuthStore } from '../core/auth-store';
 import { CURRENCIES } from '../core/currencies';
 import { I18n, TranslatePipe, TranslationKey } from '../core/i18n/i18n';
@@ -16,6 +18,8 @@ import { RecurringManagerComponent } from '../movements/recurring-manager.compon
 import { AiUsageComponent } from '../ai/ai-usage.component';
 import { PayoutSettingsComponent } from './payout-settings.component';
 import { AvatarComponent } from '../shared/avatar.component';
+import { AccountService } from './account.service';
+import { FeedbackDialogComponent } from './feedback-dialog.component';
 
 interface ThemeOption {
   id: Theme;
@@ -36,7 +40,7 @@ const LANGUAGES: readonly { id: Language; label: string }[] = [
 @Component({
   selector: 'app-account',
   imports: [
-    AiUsageComponent, AvatarComponent,
+    AiUsageComponent, AvatarComponent, FeedbackDialogComponent,
     PayoutSettingsComponent,
     IonButton, IonContent, IonHeader, IonIcon, IonSelect, IonSelectOption, IonSpinner, IonTitle, IonToolbar, NotificationSettingsComponent,
     RecurringManagerComponent, RouterLink, TranslatePipe,
@@ -55,6 +59,9 @@ export class AccountPage {
   readonly avatarUrl = this.profile.avatarUrl;
   readonly email = computed(() => this.auth.user()?.email ?? '');
   readonly photoBusy = signal(false);
+  readonly deleting = signal(false);
+  private readonly account = inject(AccountService);
+  private readonly alerts = inject(AlertController);
   readonly avatarSize = typeof matchMedia === 'function' && matchMedia('(min-width: 992px)').matches ? 88 : 64;
 
   readonly themes = THEMES;
@@ -66,7 +73,7 @@ export class AccountPage {
   });
 
   constructor() {
-    addIcons({ camera, checkmarkCircle, chevronForward, logOutOutline });
+    addIcons({ camera, chatbubbleEllipsesOutline, checkmarkCircle, chevronForward, documentTextOutline, logOutOutline, shieldCheckmarkOutline, trashOutline });
   }
 
   onCurrency(event: SelectCustomEvent<string>): void {
@@ -91,9 +98,45 @@ export class AccountPage {
     if (!ok) await this.toast('photoError', false);
   }
 
-  private async toast(key: 'photoSaved' | 'photoError', ok: boolean): Promise<void> {
+  private async toast(key: 'photoSaved' | 'photoError' | 'deleteAccountError' | 'deleteAccountDone', ok: boolean): Promise<void> {
     const toast = await this.toasts.create({ message: this.i18n.t(key), duration: 2200, position: 'top', color: ok ? 'dark' : 'danger' });
     await toast.present();
+  }
+
+  /** Pide escribir ELIMINAR (o DELETE) para que no se borre la cuenta por un toque sin querer. */
+  async confirmDelete(): Promise<void> {
+    const word = this.i18n.t('deleteAccountWord');
+    const alert = await this.alerts.create({
+      header: this.i18n.t('deleteAccountConfirm'),
+      message: this.i18n.t('deleteAccountText', word),
+      inputs: [{ name: 'word', type: 'text', placeholder: word, attributes: { autocapitalize: 'characters', autocomplete: 'off' } }],
+      buttons: [
+        { text: this.i18n.t('cancel'), role: 'cancel' },
+        {
+          text: this.i18n.t('deleteAccount'),
+          role: 'destructive',
+          cssClass: 'wl-alert-danger',
+          handler: (values: { word?: string }) => {
+            if ((values.word ?? '').trim().toUpperCase() !== word) return false;
+            void this.deleteAccount();
+            return true;
+          },
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async deleteAccount(): Promise<void> {
+    this.deleting.set(true);
+    const ok = await this.account.deleteAccount();
+    this.deleting.set(false);
+    if (!ok) {
+      await this.toast('deleteAccountError', false);
+      return;
+    }
+    await this.router.navigateByUrl('/login', { replaceUrl: true });
+    await this.toast('deleteAccountDone', true);
   }
 
   async logout(): Promise<void> {

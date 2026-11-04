@@ -225,6 +225,12 @@
           }
         }
       }
+      <p class="legal-note">
+        {{ 'legalNotePrefix' | t }}
+        <a routerLink="/terminos">{{ 'termsLink' | t }}</a>
+        {{ 'legalNoteAnd' | t }}
+        <a routerLink="/privacidad">{{ 'privacyLink' | t }}</a>.
+      </p>
     </main>
   </div>
 </ion-content>

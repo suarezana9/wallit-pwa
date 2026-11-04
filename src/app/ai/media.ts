@@ -30,6 +30,47 @@ export function audioExtension(type: string): string {
   return 'webm';
 }
 
+/**
+ * Micrófono compartido. En la app instalada en iPhone, iOS no recuerda el permiso del micrófono para las
+ * web apps: cada vez que se abre el micrófono de cero vuelve a preguntar. Para no preguntar en cada dictado,
+ * el micrófono queda abierto 2 minutos después de usarlo (iOS muestra el puntito naranja mientras tanto)
+ * y se cierra antes si la app pasa a segundo plano.
+ */
+const MIC_IDLE_MS = 2 * 60_000;
+let sharedMic: MediaStream | null = null;
+let micTimer: ReturnType<typeof setTimeout> | null = null;
+
+function micIsLive(stream: MediaStream | null): stream is MediaStream {
+  return !!stream && stream.getAudioTracks().some((t) => t.readyState === 'live');
+}
+
+export async function openMic(): Promise<MediaStream> {
+  if (micTimer) clearTimeout(micTimer);
+  micTimer = null;
+  if (micIsLive(sharedMic)) return sharedMic;
+  sharedMic = await navigator.mediaDevices.getUserMedia({ audio: true });
+  return sharedMic;
+}
+
+/** Deja el micrófono abierto un rato para el próximo dictado y después lo cierra. */
+export function releaseMicLater(): void {
+  if (micTimer) clearTimeout(micTimer);
+  micTimer = setTimeout(closeMic, MIC_IDLE_MS);
+}
+
+export function closeMic(): void {
+  if (micTimer) clearTimeout(micTimer);
+  micTimer = null;
+  sharedMic?.getTracks().forEach((track) => track.stop());
+  sharedMic = null;
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') closeMic();
+  });
+}
+
 /** Graba del micrófono con MediaRecorder: funciona en Chrome, Edge, Firefox y Safari (también en iPhone). */
 export class VoiceRecorder {
   private recorder: MediaRecorder | null = null;
@@ -42,7 +83,7 @@ export class VoiceRecorder {
   async start(): Promise<void> {
     const type = supportedAudioType();
     if (type === null) throw new Error('UNSUPPORTED');
-    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    this.stream = await openMic();
     this.chunks = [];
     this.recorder = new MediaRecorder(this.stream, type ? { mimeType: type } : undefined);
     this.recorder.ondataavailable = (event) => {
@@ -106,7 +147,8 @@ export class VoiceRecorder {
     this.context = null;
     this.analyser = null;
     this.samples = null;
-    this.stream?.getTracks().forEach((track) => track.stop());
+    // No se cierra el micrófono: queda abierto un rato para no volver a pedir permiso (ver openMic).
+    if (this.stream) releaseMicLater();
     this.stream = null;
     this.recorder = null;
     this.chunks = [];

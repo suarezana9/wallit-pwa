@@ -17,6 +17,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./auth/new-password.page').then((m) => m.NewPasswordPage),
   },
+  {
+    // Sin guard: Google pide que estén publicadas y se leen antes de crear la cuenta.
+    path: 'privacidad',
+    data: { doc: 'privacy' },
+    loadComponent: () => import('./legal/legal.page').then((m) => m.LegalPage),
+  },
+  {
+    path: 'terminos',
+    data: { doc: 'terms' },
+    loadComponent: () => import('./legal/legal.page').then((m) => m.LegalPage),
+  },
   { path: 'home', redirectTo: 'inicio', pathMatch: 'full' },
   {
     path: 'unirse/:code',

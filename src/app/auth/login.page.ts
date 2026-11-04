@@ -1,5 +1,5 @@
 import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   FieldTree, FormField, email, form, minLength, required, submit,
 } from '@angular/forms/signals';
@@ -25,7 +25,7 @@ const RESEND_SECONDS = 60;
   templateUrl: 'login.page.html',
   styleUrls: ['login.page.scss'],
   imports: [
-    FormField, IonButton, IonContent, IonIcon, IonInput, IonInputPasswordToggle,
+    RouterLink, FormField, IonButton, IonContent, IonIcon, IonInput, IonInputPasswordToggle,
     IonLabel, IonSegment, IonSegmentButton, IonSpinner, TranslatePipe, WallitLogoComponent,
   ],
 })

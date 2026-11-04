@@ -165,6 +165,33 @@
           <app-payout-settings class="group" />
           <app-notification-settings class="group" />
           <app-ai-usage class="group" />
+
+          <section class="wl-panel group help" aria-labelledby="help-title">
+            <h2 id="help-title">{{ 'helpPrivacy' | t }}</h2>
+            <button type="button" class="row-link" (click)="feedback.open()">
+              <ion-icon name="chatbubble-ellipses-outline" aria-hidden="true" />
+              <span><strong>{{ 'feedbackTitle' | t }}</strong><small>{{ 'feedbackHint' | t }}</small></span>
+              <ion-icon class="go" name="chevron-forward" aria-hidden="true" />
+            </button>
+            <a class="row-link" routerLink="/privacidad">
+              <ion-icon name="shield-checkmark-outline" aria-hidden="true" />
+              <span><strong>{{ 'privacyLink' | t }}</strong></span>
+              <ion-icon class="go" name="chevron-forward" aria-hidden="true" />
+            </a>
+            <a class="row-link" routerLink="/terminos">
+              <ion-icon name="document-text-outline" aria-hidden="true" />
+              <span><strong>{{ 'termsLink' | t }}</strong></span>
+              <ion-icon class="go" name="chevron-forward" aria-hidden="true" />
+            </a>
+            <button type="button" class="row-link danger" [disabled]="deleting()" (click)="confirmDelete()">
+              <ion-icon name="trash-outline" aria-hidden="true" />
+              <span><strong>{{ 'deleteAccount' | t }}</strong><small>{{ 'deleteAccountHint' | t }}</small></span>
+              @if (deleting()) {
+                <ion-spinner name="crescent" />
+              }
+            </button>
+          </section>
+          <app-feedback-dialog #feedback />
         </div>
       </div>
       <app-recurring-manager #fixedManager />

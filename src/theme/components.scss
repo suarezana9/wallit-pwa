@@ -149,6 +149,11 @@ ion-menu.wl-sidebar::part(container) {
     --height: min(780px, 92vh);
   }
 
+  ion-modal.wl-dialog.wl-dialog-sm.wl-dialog-feedback {
+    --width: 520px;
+    --height: 430px;
+  }
+
   // Avatar del grupo: emojis + dos botones.
   ion-modal.wl-dialog.wl-dialog-sm.wl-dialog-avatar {
     --width: 460px;
@@ -268,4 +273,9 @@ ion-fab-button {
   --background-hover: linear-gradient(135deg, var(--ion-color-primary-tint) 0%, var(--ion-color-primary-shade) 100%);
   --box-shadow: 0 0 0 4px var(--ion-background-color, #fff), 0 10px 24px rgba(var(--ion-color-primary-rgb), 0.45);
   --color: #fff;
+}
+
+// Botón de acción destructiva en alertas (por ejemplo, Eliminar mi cuenta).
+ion-alert .alert-button.wl-alert-danger {
+  color: var(--ion-color-danger);
 }

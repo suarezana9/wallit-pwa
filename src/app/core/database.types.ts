@@ -150,6 +150,20 @@ export interface Database {
         Update: Partial<Database['public']['Tables']['expenses']['Row']>;
         Relationships: [];
       };
+      /** Migración 023: lo que mandan desde Cuenta → Enviar comentarios (solo insert). */
+      comentarios: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          texto: string;
+          pantalla: string | null;
+          dispositivo: string | null;
+          created_at: string;
+        };
+        Insert: Omit<Database['public']['Tables']['comentarios']['Row'], 'id' | 'created_at'>;
+        Update: Partial<Database['public']['Tables']['comentarios']['Row']>;
+        Relationships: [];
+      };
       resumenes_ia: {
         Row: {
           user_id: string;
@@ -263,6 +277,11 @@ export interface Database {
     };
     Views: Record<never, never>;
     Functions: {
+      /** Migración 023: borra lo personal y anonimiza la cuenta de quien llama. */
+      eliminar_mi_cuenta: {
+        Args: Record<never, never>;
+        Returns: undefined;
+      };
       buscar_grupo_por_codigo: {
         Args: { p_codigo: string };
         Returns: { id: string; name: string; invite_code: string }[];

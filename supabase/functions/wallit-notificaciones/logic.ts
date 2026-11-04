@@ -189,7 +189,7 @@ export function summaryMessage(
   }
   return {
     title: `📊 Tu resumen de ${monthName}`,
-    body: `${parts[0]}.${parts[1] ? ` ${parts[1]}` : ''} Tocá para ver lo que encontró la IA.`,
+    body: `${parts[0]}.${parts[1] ? ` ${parts[1]}` : ''} Tocá para ver lo que encontró Wallit.`,
     url: `/inicio?resumen=${month}`,
     tag: `resumen-${month}`,
   };
