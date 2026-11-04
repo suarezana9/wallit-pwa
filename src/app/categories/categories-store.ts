@@ -4,8 +4,9 @@ import type { Json } from '../core/database.types';
 import { Supabase } from '../core/supabase';
 import { PreferencesStore } from '../core/preferences-store';
 import { CATEGORIES, type CategoryInfo } from '../movements/movement.model';
+import type { CategoryEntry } from './category-config';
 import {
-  CategoryConfig, CustomCategory, EMPTY_CONFIG, colorFor, lookupCategory, muteForDark, nameTaken, parseConfig, visibleCategories,
+  CategoryConfig, CustomCategory, EMPTY_CONFIG, colorFor, lookupCategory, muteForDark, nameTaken, parseConfig, visibleCategories, allCategories,
 } from './category-config';
 
 @Service()
@@ -30,6 +31,8 @@ export class CategoriesStore {
 
   readonly config = computed(() => (this.configResource.hasValue() ? this.configResource.value() : EMPTY_CONFIG));
   readonly visible = computed(() => visibleCategories(this.config()).map((c) => this.tone(c)));
+  /** Pantalla Categorías: todas juntas, con las desactivadas. */
+  readonly all = computed(() => allCategories(this.config()).map((c) => ({ ...c, ...this.tone(c) })));
   readonly hidden = computed(() => new Set(this.config().ocultas));
   readonly custom = computed(() => this.config().personalizadas);
 
@@ -57,8 +60,29 @@ export class CategoriesStore {
     return this.save({ ...this.config(), personalizadas: [...this.config().personalizadas, custom] });
   }
 
-  /** Categorías predeterminadas que la persona ocultó: aparecen al buscar, por si las quiere volver a usar. */
-  readonly hiddenBuiltins = computed(() => CATEGORIES.filter((c) => this.hidden().has(c.name)));
+  /** Categorías desactivadas: aparecen al buscar, por si las quiere volver a usar. */
+  readonly hiddenCategories = computed(() => this.all().filter((c) => c.hidden).map(({ name, emoji, color }) => ({ name, emoji, color })));
+
+  /** Predeterminadas eliminadas (para ofrecer recuperarlas). */
+  readonly deletedBuiltins = computed(() => CATEGORIES.filter((c) => (this.config().borradas ?? []).includes(c.name)));
+
+  /** Elimina cualquier categoría: las propias se borran y las predeterminadas quedan como "borradas". */
+  remove(entry: CategoryEntry): Promise<boolean> {
+    const config = this.config();
+    const without = (list: readonly string[] | undefined) => (list ?? []).filter((n) => n !== entry.name);
+    const next: CategoryConfig = { ...config, ocultas: without(config.ocultas), orden: without(config.orden) };
+    if (entry.custom) {
+      const id = entry.custom.id;
+      next.personalizadas = config.personalizadas.filter((c) => c.id !== id);
+    } else {
+      next.borradas = [...without(config.borradas), entry.name];
+    }
+    return this.save(next);
+  }
+
+  restoreBuiltins(): Promise<boolean> {
+    return this.save({ ...this.config(), borradas: [] });
+  }
 
   /** Alta rápida desde el formulario: el color sale del nombre. Devuelve el nombre guardado o null si falló. */
   async quickCreate(name: string, emoji: string): Promise<string | null> {
@@ -72,9 +96,16 @@ export class CategoriesStore {
     return this.hidden().has(name) ? this.toggleHidden(name) : true;
   }
 
-  removeCustom(id: string): Promise<boolean> {
-    return this.save({ ...this.config(), personalizadas: this.config().personalizadas.filter((c) => c.id !== id) });
+  /** Guarda el orden en que se muestran (nombres de todas las categorías). */
+  setOrder(names: readonly string[]): Promise<boolean> {
+    return this.save({ ...this.config(), orden: [...names] });
   }
+
+  resetOrder(): Promise<boolean> {
+    return this.save({ ...this.config(), orden: [] });
+  }
+
+  readonly hasCustomOrder = computed(() => (this.config().orden ?? []).length > 0);
 
   /** Actualización optimista: se ve al instante y vuelve atrás si falla. */
   private async save(next: CategoryConfig): Promise<boolean> {

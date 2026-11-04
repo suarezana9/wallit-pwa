@@ -11,15 +11,29 @@ export interface CustomCategory {
 export interface CategoryConfig {
   ocultas: string[];
   personalizadas: CustomCategory[];
+  /** Orden elegido (nombres). Lo que no está acá va después, en el orden de siempre. */
+  orden?: string[];
+  /** Predeterminadas que la persona eliminó (no aparecen en ningún lado; se pueden recuperar). */
+  borradas?: string[];
 }
 
 export const EMPTY_CONFIG: CategoryConfig = { ocultas: [], personalizadas: [] };
 
-export const EMOJI_CHOICES = [
-  '🏷️', '🎯', '🎮', '🧘', '🍺', '🧁', '🌿', '🏖️', '🎸', '💈',
-  '🛠️', '🚀', '🎓', '🌙', '🧠', '🐶', '🐱', '🌺', '⚽', '🎨',
-  '📷', '🎪', '🏄', '🎻', '🍀', '🦋', '🔑', '💎', '🌈', '👶',
+/** Íconos para categorías propias, agrupados por tema (el picker muestra los títulos de grupo). */
+export const EMOJI_GROUPS: readonly { id: string; emojis: readonly string[] }[] = [
+  { id: 'home', emojis: ['🏠', '🏡', '🏢', '🔑', '🛋️', '🛏️', '🚿', '🧺', '🧽', '🧹', '🧴', '🪴', '🌿', '🛠️', '🔧', '🪛', '🧰', '🔌', '💡', '🔥', '💧', '📦', '🗑️', '🪟'] },
+  { id: 'food', emojis: ['🛒', '🍔', '🍕', '🌮', '🍣', '🍝', '🥗', '🍗', '🥩', '🥦', '🍎', '🥖', '🧀', '🥚', '🥛', '☕', '🧉', '🍺', '🍷', '🍹', '🥤', '🍦', '🧁', '🍫', '🍪'] },
+  { id: 'transport', emojis: ['🚗', '🚕', '🚌', '🚇', '🚆', '🚲', '🛵', '🏍️', '⛽', '🅿️', '🛣️', '🚙', '🚚', '✈️', '⛴️', '🛞'] },
+  { id: 'health', emojis: ['🩺', '💊', '🦷', '👓', '🧠', '❤️‍🩹', '🏥', '🧘', '🏋️', '🏃', '🚴', '🏊', '⚽', '🎾', '🏀', '💆', '💈', '💅', '🧖'] },
+  { id: 'fun', emojis: ['🎬', '🍿', '📺', '🎮', '🎵', '🎸', '🎧', '🎤', '🎨', '📷', '🎭', '🎟️', '🎳', '🎲', '🧩', '📚', '📖', '🎉', '🎂', '🎁', '🎪', '🏖️', '⛺', '🏄'] },
+  { id: 'shopping', emojis: ['🛍️', '👕', '👖', '👗', '👟', '👠', '👜', '🎒', '💍', '⌚', '🕶️', '💄', '🧸', '🪑', '🖥️', '💻', '📱', '🎧', '🔋'] },
+  { id: 'money', emojis: ['💰', '💵', '💳', '🏦', '🐷', '📈', '📉', '🧾', '📑', '💼', '🪙', '💎', '🤝', '📊', '🧮', '🏛️'] },
+  { id: 'family', emojis: ['👶', '🍼', '🧒', '👨‍👩‍👧', '👵', '🎓', '🏫', '✏️', '📝', '🐶', '🐱', '🐾', '🐟', '🐦', '🦴', '❤️', '💐', '🌹'] },
+  { id: 'work', emojis: ['💼', '🖨️', '📎', '📮', '📞', '🌐', '☁️', '🔒', '⚙️', '🧑‍💻', '👩‍🍳', '🧑‍🔧', '🚀', '🏷️', '🎯', '⭐', '🌙', '🌈', '🍀', '🦋'] },
 ];
+
+/** Todos los íconos en una sola lista, sin repetidos (el primero de la lista es el de por defecto). */
+export const EMOJI_CHOICES: readonly string[] = [...new Set(['🏷️', ...EMOJI_GROUPS.flatMap((g) => g.emojis)])];
 
 export const COLOR_CHOICES = [
   '#EF4444', '#F97316', '#EAB308', '#84CC16', '#10B981', '#06B6D4',
@@ -34,6 +48,8 @@ export function parseConfig(raw: unknown): CategoryConfig {
     personalizadas: Array.isArray(value.personalizadas)
       ? value.personalizadas.filter((c) => c && typeof c.nombre === 'string')
       : [],
+    ...(Array.isArray(value.orden) ? { orden: value.orden.filter((v) => typeof v === 'string') } : {}),
+    ...(Array.isArray(value.borradas) ? { borradas: value.borradas.filter((v) => typeof v === 'string') } : {}),
   };
 }
 
@@ -41,28 +57,74 @@ export function customToInfo(custom: CustomCategory): CategoryInfo {
   return { name: custom.nombre, emoji: custom.emoji, color: custom.color };
 }
 
-/** Categorías disponibles para cargar: predeterminadas no ocultas + propias. */
-export function visibleCategories(config: CategoryConfig): CategoryInfo[] {
+/** Una fila de la pantalla Categorías: predeterminada o propia, activa o no. */
+export interface CategoryEntry extends CategoryInfo {
+  /** Solo en las propias. */
+  custom?: CustomCategory;
+  hidden: boolean;
+}
+
+/** Predeterminadas que siguen en uso (no eliminadas). */
+export function activeBuiltins(config: CategoryConfig): CategoryInfo[] {
+  const deleted = new Set(config.borradas ?? []);
+  return CATEGORIES.filter((c) => !deleted.has(c.name));
+}
+
+/** Todas las categorías en una sola lista, en el orden elegido: predeterminadas y propias, activas o desactivadas. */
+export function allCategories(config: CategoryConfig): CategoryEntry[] {
   const hidden = new Set(config.ocultas);
-  // Si alguien ya se había creado una propia con el nombre de una predeterminada nueva, no se duplica.
-  const builtin = new Set(CATEGORIES.map((c) => c.name));
-  return [
-    ...CATEGORIES.filter((c) => !hidden.has(c.name)),
-    ...config.personalizadas.filter((c) => !builtin.has(c.nombre)).map(customToInfo),
-  ];
+  const builtins = activeBuiltins(config);
+  // Si alguien ya se había creado una propia con el nombre de una predeterminada, no se duplica.
+  const builtinNames = new Set(builtins.map((c) => c.name));
+  return applyOrder<CategoryEntry>(
+    [
+      ...builtins.map((c) => ({ ...c, hidden: hidden.has(c.name) })),
+      ...config.personalizadas
+        .filter((c) => !builtinNames.has(c.nombre))
+        .map((c) => ({ ...customToInfo(c), custom: c, hidden: hidden.has(c.nombre) })),
+    ],
+    config.orden ?? [],
+  );
+}
+
+/** Categorías disponibles para cargar: las activas, en el orden elegido. */
+export function visibleCategories(config: CategoryConfig): CategoryInfo[] {
+  return allCategories(config)
+    .filter((c) => !c.hidden)
+    .map(({ name, emoji, color }) => ({ name, emoji, color }));
+}
+
+/** Primero las que tienen lugar en `order` (en ese orden) y después el resto, como venían. */
+export function applyOrder<T extends { name: string }>(list: readonly T[], order: readonly string[]): T[] {
+  if (!order.length) return [...list];
+  const position = new Map(order.map((name, i) => [name, i]));
+  return list
+    .map((item, i) => ({ item, key: position.get(item.name) ?? order.length + i }))
+    .sort((a, b) => a.key - b.key)
+    .map(({ item }) => item);
+}
+
+/** Mueve un elemento de `from` a `to` (lo que devuelve ion-reorder-group). */
+export function moveItem<T>(list: readonly T[], from: number, to: number): T[] {
+  const next = [...list];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
 }
 
 export function lookupCategory(name: string, config: CategoryConfig): CategoryInfo {
-  const builtin = CATEGORIES.find((c) => c.name === name);
+  const builtin = activeBuiltins(config).find((c) => c.name === name);
   if (builtin) return builtin;
   const custom = config.personalizadas.find((c) => c.nombre === name);
-  return custom ? customToInfo(custom) : { name, emoji: '📦', color: '#9CA3AF' };
+  if (custom) return customToInfo(custom);
+  // Una predeterminada eliminada conserva su ícono en los movimientos viejos.
+  return CATEGORIES.find((c) => c.name === name) ?? { name, emoji: '📦', color: '#9CA3AF' };
 }
 
 export function nameTaken(name: string, config: CategoryConfig): boolean {
   const key = name.trim().toLowerCase();
   return (
-    CATEGORIES.some((c) => c.name.toLowerCase() === key) ||
+    activeBuiltins(config).some((c) => c.name.toLowerCase() === key) ||
     config.personalizadas.some((c) => c.nombre.toLowerCase() === key)
   );
 }
@@ -122,6 +184,32 @@ const EMOJI_KEYWORDS: [string[], string][] = [
   [['arreglo', 'ferreteria', 'plomero', 'electricista'], '🛠️'],
   [['donacion', 'caridad'], '❤️'],
   [['streaming', 'netflix', 'disney', 'hbo'], '📺'],
+  [['cine', 'pelicula'], '🎬'],
+  [['farmacia', 'remedio', 'medicamento'], '💊'],
+  [['optica', 'anteojo', 'lente'], '👓'],
+  [['mate', 'yerba'], '🧉'],
+  [['vinoteca'], '🍷'],
+  [['heladeria', 'helado'], '🍦'],
+  [['sushi'], '🍣'],
+  [['moto'], '🏍️'],
+  [['bici', 'bicicleta'], '🚲'],
+  [['auto', 'seguro auto', 'mecanico', 'taller'], '🚗'],
+  [['avion', 'pasaje'], '✈️'],
+  [['mascota', 'alimento perro', 'alimento gato'], '🐾'],
+  [['muebles', 'deco', 'decoracion'], '🛋️'],
+  [['tecnologia', 'computadora', 'notebook'], '💻'],
+  [['joya', 'joyeria'], '💍'],
+  [['maquillaje', 'perfume', 'cosmetica'], '💄'],
+  [['juguete', 'jugueteria'], '🧸'],
+  [['sueldo', 'salario'], '💵'],
+  [['banco', 'comision'], '🏦'],
+  [['trabajo', 'oficina', 'coworking'], '💼'],
+  [['software', 'suscripcion', 'nube', 'icloud', 'google one'], '☁️'],
+  [['correo', 'envio', 'mercado libre'], '📦'],
+  [['fiesta', 'evento'], '🎉'],
+  [['camping'], '⛺'],
+  [['natacion', 'pileta'], '🏊'],
+  [['spa', 'masaje'], '💆'],
 ];
 
 /** Emoji sugerido a partir del nombre ("Gimnasio" → 🏋️); si no hay pista, una etiqueta. */

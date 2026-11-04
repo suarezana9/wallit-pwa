@@ -17,54 +17,58 @@
     </header>
 
     <div class="layout">
-      <section class="wl-panel" aria-labelledby="builtin-title">
+      <section class="wl-panel order" aria-labelledby="list-title">
         <div class="panel-head">
           <div>
-            <h2 id="builtin-title">{{ 'defaultCategories' | t }}</h2>
-            <span class="count">{{ 'activeCount' | t: '' + activeCount() : '' + builtin.length }}</span>
+            <h2 id="list-title">{{ 'myCategories' | t }}</h2>
+            <span class="count">{{ 'activeCount' | t: '' + activeCount() : '' + store.all().length }}</span>
           </div>
-          <button type="button" class="link" (click)="toggleAll()">{{ (allActive() ? 'hideAll' : 'showAll') | t }}</button>
+          <div class="actions">
+            @if (store.hasCustomOrder()) {
+              <button type="button" class="link" (click)="resetOrder()">{{ 'categoryOrderReset' | t }}</button>
+            }
+            <button type="button" class="link" (click)="toggleAll()">{{ (allActive() ? 'hideAll' : 'showAll') | t }}</button>
+          </div>
         </div>
-        <p class="hint">{{ 'hiddenHint' | t }}</p>
-        <div class="grid">
-          @for (category of builtin; track category.name) {
-            <button
-              type="button"
-              class="tile"
-              role="switch"
-              [class.off]="store.hidden().has(category.name)"
-              [attr.aria-checked]="!store.hidden().has(category.name)"
-              [style.--cat-color]="category.color"
-              (click)="toggle(category.name)"
-            >
-              <span class="icon" aria-hidden="true">{{ category.emoji }}</span>
-              <span class="name">{{ i18n.category(category.name) }}</span>
-              <span class="switch" aria-hidden="true"><span></span></span>
-            </button>
+        <p class="hint">{{ 'categoryOrderHint' | t }}</p>
+        <ion-reorder-group [disabled]="false" (ionItemReorder)="onReorder($event)">
+          @for (category of store.all(); track category.name) {
+            @let label = category.custom ? category.name : i18n.category(category.name);
+            <div class="order-row" [class.off]="category.hidden">
+              <ion-reorder [attr.aria-label]="'categoryDrag' | t: label">
+                <ion-icon name="reorder-three-outline" />
+              </ion-reorder>
+              <span class="icon" [style.--cat-color]="category.color" aria-hidden="true">{{ category.emoji }}</span>
+              <span class="order-name">
+                <span class="text">{{ label }}</span>
+                @if (category.custom) {
+                  <span class="badge">{{ 'customBadge' | t }}</span>
+                }
+              </span>
+              <button
+                type="button"
+                class="switch-btn"
+                role="switch"
+                [attr.aria-checked]="!category.hidden"
+                [attr.aria-label]="label"
+                (click)="toggle(category.name)"
+              >
+                <span class="switch" aria-hidden="true"><span></span></span>
+              </button>
+              <ion-button fill="clear" color="medium" (click)="confirmRemove(category)" [attr.aria-label]="('delete' | t) + ' ' + label">
+                <ion-icon slot="icon-only" name="trash-outline" />
+              </ion-button>
+            </div>
           }
-        </div>
+        </ion-reorder-group>
+        @if (store.deletedBuiltins().length; as count) {
+          <button type="button" class="link restore" (click)="restoreBuiltins()">{{ 'restoreBuiltins' | t: '' + count }}</button>
+        }
       </section>
 
-      <section class="wl-panel" aria-labelledby="custom-title">
-        <h2 id="custom-title">{{ 'myCategories' | t }}</h2>
-        @if (store.custom().length) {
-          <ul class="custom-list">
-            @for (category of store.custom(); track category.id) {
-              <li>
-                <span class="icon" [style.--cat-color]="category.color" aria-hidden="true">{{ category.emoji }}</span>
-                <span class="custom-name">{{ category.nombre }}</span>
-                <ion-button fill="clear" color="medium" (click)="confirmRemove(category)" [attr.aria-label]="'delete' | t">
-                  <ion-icon slot="icon-only" name="trash-outline" />
-                </ion-button>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="hint">{{ 'noCustomCategories' | t }}</p>
-        }
-
+      <section class="wl-panel" aria-labelledby="new-title">
         <form class="new" (submit)="addCustom($event)" novalidate>
-          <h3>{{ 'newCategory' | t }}</h3>
+          <h2 id="new-title">{{ 'newCategory' | t }}</h2>
           <div class="preview-row">
             <span class="icon big" [style.--cat-color]="color()" aria-hidden="true">{{ emoji() }}</span>
             <div class="wl-field grow">
@@ -85,13 +89,7 @@
           }
 
           <span class="wl-field-label">{{ 'icon' | t }}</span>
-          <div class="emojis" role="radiogroup" [attr.aria-label]="'icon' | t">
-            @for (item of emojis; track item) {
-              <button type="button" role="radio" [class.selected]="emoji() === item" [attr.aria-checked]="emoji() === item" (click)="emoji.set(item)">
-                {{ item }}
-              </button>
-            }
-          </div>
+          <app-emoji-grid [value]="emoji()" (valueChange)="emoji.set($event)" />
 
           <span class="wl-field-label">{{ 'color' | t }}</span>
           <div class="colors" role="radiogroup" [attr.aria-label]="'color' | t">

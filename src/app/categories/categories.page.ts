@@ -1,21 +1,22 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import {
-  AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar,
-  ToastController,
+  AlertController, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonReorder, IonReorderGroup,
+  IonTitle, IonToolbar, ItemReorderEventDetail, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, trashOutline } from 'ionicons/icons';
+import { add, reorderThreeOutline, trashOutline } from 'ionicons/icons';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
-import { CATEGORIES } from '../movements/movement.model';
 import { CategoriesStore } from './categories-store';
-import { COLOR_CHOICES, CustomCategory, EMOJI_CHOICES } from './category-config';
+import { CategoryEntry, COLOR_CHOICES, EMOJI_CHOICES, moveItem } from './category-config';
+import { EmojiGridComponent } from './emoji-grid.component';
 
 @Component({
   selector: 'app-categories',
   templateUrl: 'categories.page.html',
   styleUrls: ['categories.page.scss'],
   imports: [
-    IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonTitle, IonToolbar,
+    EmojiGridComponent, IonBackButton, IonButton, IonButtons, IonContent, IonHeader, IonIcon, IonInput, IonReorder, IonReorderGroup,
+    IonTitle, IonToolbar,
     TranslatePipe,
   ],
 })
@@ -25,12 +26,10 @@ export class CategoriesPage {
   private readonly alerts = inject(AlertController);
   private readonly toasts = inject(ToastController);
 
-  readonly builtin = CATEGORIES;
-  readonly emojis = EMOJI_CHOICES;
   readonly colors = COLOR_CHOICES;
 
-  readonly activeCount = computed(() => this.builtin.filter((c) => !this.store.hidden().has(c.name)).length);
-  readonly allActive = computed(() => this.activeCount() === this.builtin.length);
+  readonly activeCount = computed(() => this.store.all().filter((c) => !c.hidden).length);
+  readonly allActive = computed(() => this.store.all().every((c) => !c.hidden));
 
   readonly name = signal('');
   readonly emoji = signal(EMOJI_CHOICES[0]);
@@ -39,7 +38,21 @@ export class CategoriesPage {
   readonly saving = signal(false);
 
   constructor() {
-    addIcons({ add, trashOutline });
+    addIcons({ add, reorderThreeOutline, trashOutline });
+  }
+
+  /** Arrastrar: Ionic mueve el elemento en pantalla y acá se guarda el orden nuevo. */
+  async onReorder(event: CustomEvent<ItemReorderEventDetail>): Promise<void> {
+    const { from, to } = event.detail;
+    // complete() sin lista: Ionic termina la animación; el @for se redibuja con el orden del store.
+    event.detail.complete();
+    if (from === to) return;
+    const names = moveItem(this.store.all().map((c) => c.name), from, to);
+    await this.result(await this.store.setOrder(names));
+  }
+
+  async resetOrder(): Promise<void> {
+    await this.result(await this.store.resetOrder());
   }
 
   async toggle(name: string): Promise<void> {
@@ -47,7 +60,7 @@ export class CategoriesPage {
   }
 
   async toggleAll(): Promise<void> {
-    await this.result(await this.store.setHidden(this.allActive() ? this.builtin.map((c) => c.name) : []));
+    await this.result(await this.store.setHidden(this.allActive() ? this.store.all().map((c) => c.name) : []));
   }
 
   async addCustom(event: Event): Promise<void> {
@@ -72,16 +85,24 @@ export class CategoriesPage {
     this.error.set(null);
   }
 
-  async confirmRemove(category: CustomCategory): Promise<void> {
+  label(category: CategoryEntry): string {
+    return category.custom ? category.name : this.i18n.category(category.name);
+  }
+
+  async restoreBuiltins(): Promise<void> {
+    await this.result(await this.store.restoreBuiltins());
+  }
+
+  async confirmRemove(category: CategoryEntry): Promise<void> {
     const alert = await this.alerts.create({
-      header: this.i18n.t('deleteCategoryConfirm', category.nombre),
-      message: this.i18n.t('deleteCategoryText'),
+      header: this.i18n.t('deleteCategoryConfirm', this.label(category)),
+      message: this.i18n.t(category.custom ? 'deleteCategoryText' : 'deleteBuiltinText'),
       buttons: [
         { text: this.i18n.t('cancel'), role: 'cancel' },
         {
           text: this.i18n.t('delete'),
           role: 'destructive',
-          handler: () => void this.store.removeCustom(category.id).then((ok) => this.result(ok)),
+          handler: () => void this.store.remove(category).then((ok) => this.result(ok)),
         },
       ],
     });

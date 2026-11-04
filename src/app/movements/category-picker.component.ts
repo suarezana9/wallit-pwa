@@ -5,7 +5,11 @@ import { addIcons } from 'ionicons';
 import { add, chevronUpOutline, closeCircle, ellipsisHorizontal, searchOutline } from 'ionicons/icons';
 import { I18n, TranslatePipe } from '../core/i18n/i18n';
 import { CategoriesStore } from '../categories/categories-store';
-import { EMOJI_CHOICES, filterCategories, findExact, suggestEmoji } from '../categories/category-config';
+import { filterCategories, findExact, suggestEmoji } from '../categories/category-config';
+import { EmojiGridComponent } from '../categories/emoji-grid.component';
+
+/** Los primeros que se ofrecen al crear una categoría desde el formulario; el resto está en "Más". */
+const QUICK_EMOJIS = ['🏷️', '🛒', '🍔', '🚗', '🏠', '💊', '🎮', '🎁', '🐶', '👶', '✈️', '💼'];
 import { CategoryInfo } from './movement.model';
 
 const COLLAPSED = 11;
@@ -16,7 +20,7 @@ const COLLAPSED = 11;
  */
 @Component({
   selector: 'app-category-picker',
-  imports: [IonIcon, IonSpinner, TranslatePipe],
+  imports: [EmojiGridComponent, IonIcon, IonSpinner, TranslatePipe],
   template: `
     @if (expanded()) {
       <div class="search">
@@ -97,7 +101,13 @@ const COLLAPSED = 11;
                 (click)="emoji.set(option)"
               >{{ option }}</button>
             }
+            <button type="button" class="more" [class.on]="allEmojis()" (click)="allEmojis.set(!allEmojis())" [attr.aria-expanded]="allEmojis()">
+              {{ (allEmojis() ? 'emojiLess' : 'emojiMore') | t }}
+            </button>
           </div>
+          @if (allEmojis()) {
+            <app-emoji-grid class="all-emojis" [value]="emoji()" (valueChange)="emoji.set($event); allEmojis.set(false)" [maxHeight]="220" />
+          }
         </div>
       } @else if (query() && !shown().length) {
         <p class="empty">{{ 'categoryNoMatch' | t }}</p>
@@ -156,6 +166,9 @@ const COLLAPSED = 11;
       background: var(--wl-field-bg); border: 1px solid transparent;
     }
     .emojis button.selected { border-color: var(--ion-color-primary); background: rgba(var(--ion-color-primary-rgb), 0.1); }
+    .emojis button.more { width: auto; padding: 0 12px; font-size: 13px; font-weight: 600; color: var(--ion-color-primary); white-space: nowrap; }
+    .emojis button.more.on { background: rgba(var(--ion-color-primary-rgb), 0.1); }
+    .all-emojis { margin-top: 8px; }
     .empty, .tip { margin: 8px 2px 0; font-size: 13px; color: var(--wl-muted); }
   `,
 })
@@ -183,7 +196,7 @@ export class CategoryPickerComponent implements FormValueControl<string> {
   });
 
   /** Al buscar también aparecen las predeterminadas ocultas, por si querés volver a usar una. */
-  private readonly searchable = computed(() => [...this.options(), ...this.categories.hiddenBuiltins()]);
+  private readonly searchable = computed(() => [...this.options(), ...this.categories.hiddenCategories()]);
 
   readonly names = computed(() =>
     Object.fromEntries(this.searchable().map((c) => [c.name, this.i18n.category(c.name)])) as Record<string, string>,
@@ -207,9 +220,13 @@ export class CategoryPickerComponent implements FormValueControl<string> {
   private readonly exact = computed(() => findExact(this.searchable(), this.query()));
   readonly canCreate = computed(() => this.query().trim().length > 0 && !this.exact());
 
+  readonly allEmojis = signal(false);
+
   readonly emojiOptions = computed(() => {
+    // Fila corta: el sugerido por el nombre, el elegido (si vino de la grilla completa) y los más usados.
     const suggested = suggestEmoji(this.query());
-    return [suggested, ...EMOJI_CHOICES.filter((e) => e !== suggested)];
+    const chosen = this.emoji();
+    return [...new Set([suggested, chosen, ...QUICK_EMOJIS])].filter(Boolean).slice(0, 12);
   });
 
   constructor() {
